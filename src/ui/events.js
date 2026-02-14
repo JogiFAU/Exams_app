@@ -145,7 +145,7 @@ async function loadDatasetFromManifest(autoToast = false) {
     const datasetMetaHint = $("datasetMetaHint");
     if (datasetMetaHint) {
       datasetMetaHint.textContent = d.notebookUrl
-        ? "NotebookLM-Link hinterlegt."
+        ? 'NotebookLM-Link hinterlegt. Beim Klick auf "In NotebookLM erklären" wird der Prompt in die Zwischenablage kopiert.'
         : "Kein NotebookLM-Link hinterlegt (manifest.json: notebookUrl).";
     }
 

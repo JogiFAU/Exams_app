@@ -1,13 +1,21 @@
 {
   "datasets": [
     {
+      "id": "sample",
+      "label": "Beispiel-Datensatz (Single)",
+      "json": [
+        "datasets/sample/export.json"
+      ],
+      "zip": "datasets/sample/images.zip",
+      "notebookUrl": "https://notebooklm.google.com/"
+    },
+    {
       "id": "informatik",
       "label": "Informatik",
       "json": [
         "datasets/informatik/export.json"
       ],
-      "zip": "datasets/informatik/images.zip",
-"notebookUrl": "https://notebooklm.google.com/notebook/38cdb701-fe88-408d-b9ab-a09c1e77e32a"
+      "zip": "datasets/informatik/images.zip"
     }
   ]
 }
