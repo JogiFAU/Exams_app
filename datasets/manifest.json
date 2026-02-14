@@ -8,6 +8,14 @@
       ],
       "zip": "datasets/sample/images.zip",
       "notebookUrl": "https://notebooklm.google.com/"
+    },
+    {
+      "id": "informatik",
+      "label": "Informatik",
+      "json": [
+        "datasets/informatik/export.json"
+      ],
+      "zip": "datasets/informatik/images.zip"
     }
   ]
 }

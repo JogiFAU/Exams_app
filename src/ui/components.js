@@ -14,8 +14,10 @@ export function buildExplainPrompt(q, selectedOriginal) {
   const opts = (q.answers || []).map((a, i) => `${letter(i)}) ${a.text}`).join("\n");
   const sel = (selectedOriginal && selectedOriginal.length) ? selectedOriginal.map(i => letter(i)).join(", ") : "(keine)";
   const corr = (q.correctIndices || []).map(i => letter(i)).join(", ");
+  const exam = q?.examName ? `Herkunfts-Klausur: ${q.examName}` : "Herkunfts-Klausur: unbekannt";
   return [
-    "Erkläre mir diese MC-Frage auf Prüfungsniveau (Medizin/Uni):",
+    "Erkläre mir diese MC-Frage auf Prüfungsniveau:",
+    exam,
     "",
     "FRAGE:",
     q.text,
