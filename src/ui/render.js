@@ -8,6 +8,8 @@ import { questionIdIndex } from "../quiz/filters.js";
 import { getLatestAnsweredResultsByQuestion } from "../data/storage.js";
 
 const MAX_RENDER_NO_PAGING = 1000;
+let notebookLmWindow = null;
+const NOTEBOOK_WINDOW_NAME = "examgen-notebooklm";
 
 function getQuizMode() {
   return $("quizMode")?.value || state.quizConfig?.quizMode || "practice";
@@ -307,8 +309,17 @@ async function notebookExplain(q) {
     toast("Prompt konnte nicht automatisch kopiert werden (Browser-Rechte).");
   }
 
-  if (nb) window.open(nb, "_blank", "noopener");
-  else toast("Kein Notebook-Link im Datensatz hinterlegt.");
+  if (!nb) {
+    toast("Kein Notebook-Link im Datensatz hinterlegt.");
+    return;
+  }
+
+  if (notebookLmWindow && !notebookLmWindow.closed) {
+    notebookLmWindow.focus();
+    return;
+  }
+
+  notebookLmWindow = window.open(nb, NOTEBOOK_WINDOW_NAME);
 }
 
 function renderToc() {
