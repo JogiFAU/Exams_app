@@ -326,7 +326,8 @@ export function wireUiEvents() {
       const ok = await confirmDialog({
         title: "Abfrage abbrechen?",
         message: "Abfrage wirklich abbrechen und zur Konfiguration zurückkehren?",
-        confirmText: "Abbrechen"
+        confirmText: "Abfrage abbrechen",
+        cancelText: "Zurück"
       });
       if (!ok) return;
       abortQuizSession();
