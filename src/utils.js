@@ -50,3 +50,28 @@ export function toast(msg, ms = 1800) {
   window.clearTimeout(el.__t);
   el.__t = window.setTimeout(() => { el.hidden = true; }, ms);
 }
+
+export function confirmDialog({ title = "Bestätigung", message = "", confirmText = "Bestätigen", confirmClass = "danger" } = {}) {
+  const dlg = $("appConfirmDialog");
+  const titleEl = $("appConfirmTitle");
+  const msgEl = $("appConfirmMessage");
+  const okBtn = $("appConfirmOkBtn");
+
+  if (!dlg || !titleEl || !msgEl || !okBtn || typeof dlg.showModal !== "function") {
+    return Promise.resolve(window.confirm(message || title));
+  }
+
+  titleEl.textContent = title;
+  msgEl.textContent = message;
+  okBtn.textContent = confirmText;
+  okBtn.className = `btn ${confirmClass}`.trim();
+
+  return new Promise((resolve) => {
+    const onClose = () => {
+      dlg.removeEventListener("close", onClose);
+      resolve(dlg.returnValue === "confirm");
+    };
+    dlg.addEventListener("close", onClose);
+    dlg.showModal();
+  });
+}
