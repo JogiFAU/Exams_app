@@ -411,15 +411,19 @@ export async function renderMain() {
 
   if (state.view === "config") {
     const qc = state.preview?.quizCount ?? 0;
+    const sc = state.preview?.searchCount ?? 0;
+    const isSearchTab = state.configTab === "search";
 
     mainInfo.innerHTML = `
       <div class="hero">
-        <div class="hero__title">Abfragemodus konfigurieren</div>
+        <div class="hero__title">${isSearchTab ? "Suchmodus konfigurieren" : "Abfragemodus konfigurieren"}</div>
         <div class="hero__lead">
-          Wähle Klausuren und Filter im linken Bereich. Die Anzahl der aktuell ausgewählten Fragen wird hier live aktualisiert.
+          ${isSearchTab
+            ? "Wähle Klausuren und Suchfilter im linken Bereich. Die Anzahl der im Suchmodus sichtbaren Fragen wird hier live aktualisiert."
+            : "Wähle Klausuren und Filter im linken Bereich. Die Anzahl der aktuell ausgewählten Fragen wird hier live aktualisiert."}
         </div>
         <div class="hero__stats">
-          <div class="pill">Aktuell gewählte Fragen: ${qc}</div>
+          <div class="pill">${isSearchTab ? `Treffer im Suchmodus: ${sc}` : `Aktuell gewählte Fragen: ${qc}`}</div>
         </div>
       </div>
     `;

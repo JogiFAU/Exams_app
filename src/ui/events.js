@@ -1,4 +1,4 @@
-import { $, toast } from "../utils.js";
+import { $, toast, confirmDialog } from "../utils.js";
 import { state, resetQuizSession, resetSearch } from "../state.js";
 import { loadJsonUrls } from "../data/loaders.js";
 import { loadZipUrl } from "../data/zipImages.js";
@@ -6,7 +6,7 @@ import { getSelectedDataset } from "../data/manifest.js";
 import { filterByExams, filterByImageMode, applyRandomAndShuffle, searchQuestions } from "../quiz/filters.js";
 import { startQuizSession, startSearchView, finishQuizSession, abortQuizSession, exitToConfig } from "../quiz/session.js";
 import { renderAll, updateExamLists } from "./render.js";
-import { listSessions, deleteSession, exportBackupAllDatasets, importBackupAllDatasets, getLatestAnsweredResultsByQuestion } from "../data/storage.js";
+import { listSessions, deleteSession, exportBackupAllDatasets, importBackupAllDatasets, getLatestAnsweredResultsByQuestion, clearAllSessionData } from "../data/storage.js";
 
 function selectedExamsFromList(containerId) {
   const el = $(containerId);
@@ -168,9 +168,12 @@ function updatePreviewTexts() {
 
   const quizCfg = buildQuizConfigFromUi();
   const quizSubset = computeQuizSubset(quizCfg);
-  state.preview = { quizCount: quizSubset.length, searchCount: 0 };
+  const searchCfg = buildSearchConfigFromUi();
+  const searchSubset = computeSearchSubset(searchCfg);
+  state.preview = { quizCount: quizSubset.length, searchCount: searchSubset.length };
 
-  const needPaging = quizSubset.length > 1000;
+  const activeCount = state.configTab === "search" ? searchSubset.length : quizSubset.length;
+  const needPaging = activeCount > 1000;
   const dc = $("displayControlsConfig");
   if (dc) dc.hidden = !needPaging;
 }
@@ -289,9 +292,11 @@ export function wireUiEvents() {
       const unanswered = Math.max(0, state.questionOrder.length - state.submitted.size);
       if (unanswered > 0) {
         const verb = unanswered === 1 ? "ist" : "sind";
-        const ok = window.confirm(
-          `${unanswered} Frage${unanswered === 1 ? "" : "n"} ${verb} noch nicht beantwortet.\n\nTrotzdem zur Auswertung wechseln?`
-        );
+        const ok = await confirmDialog({
+          title: "Zur Auswertung wechseln?",
+          message: `${unanswered} Frage${unanswered === 1 ? "" : "n"} ${verb} noch nicht beantwortet. Trotzdem zur Auswertung wechseln?`,
+          confirmText: "Zur Auswertung"
+        });
         if (!ok) return;
       }
     }
@@ -305,15 +310,13 @@ export function wireUiEvents() {
   });
 
   $("abortQuizBtn").addEventListener("click", async () => {
-    const leavingReview = (state.view === "review");
-    const ok = window.confirm(
-      leavingReview
-        ? "Neue Abfrage starten und zur Konfiguration wechseln?"
-        : "Abfrage wirklich abbrechen und zur Konfiguration zurückkehren?"
-    );
-    if (!ok) return;
-
     if (state.view === "quiz") {
+      const ok = await confirmDialog({
+        title: "Abfrage abbrechen?",
+        message: "Abfrage wirklich abbrechen und zur Konfiguration zurückkehren?",
+        confirmText: "Abbrechen"
+      });
+      if (!ok) return;
       abortQuizSession();
     } else if (state.view === "review") {
       exitToConfig();
@@ -380,6 +383,22 @@ export function wireUiEvents() {
     updateExamLists();
     updatePreviewTexts();
     toast("Session gelöscht.");
+  });
+
+
+  $("clearAllLocalDataBtn").addEventListener("click", async () => {
+    const ok = await confirmDialog({
+      title: "Alle lokalen Daten löschen?",
+      message: "Dadurch werden alle gespeicherten Abfragen für alle Datensätze aus diesem Browser entfernt.",
+      confirmText: "Alles löschen"
+    });
+    if (!ok) return;
+
+    const removed = clearAllSessionData();
+    refreshSavedSessionsUi();
+    updateExamLists();
+    updatePreviewTexts();
+    toast(removed > 0 ? `Lokale Daten gelöscht (${removed} Speicherstände).` : "Keine lokalen Daten vorhanden.");
   });
 
   $("downloadBackupBtn").addEventListener("click", () => {

@@ -138,7 +138,7 @@
         </select>
 
         <label>Suche</label>
-        <input id="searchText" type="text" placeholder="z.B. Trisomie, Hardy-Weinberg, ..." />
+        <input id="searchText" type="text" placeholder="Suchbegriff für den Suchmodus (z.B. Trisomie, Hardy-Weinberg, ...)" />
 
         <label class="checkrow">
           <input id="searchInAnswers" type="checkbox" />
@@ -187,6 +187,7 @@
           <select id="savedSessionsSelect" size="4"></select>
           <div class="row2" style="margin-top:10px;">
             <button class="btn danger" id="deleteSessionBtn" type="button">Löschen</button>
+            <button class="btn danger" id="clearAllLocalDataBtn" type="button">Alles löschen</button>
           </div>
 
           <details style="margin-top:10px;">
@@ -255,6 +256,17 @@
 </div>
 
 <button id="jumpToNavBtn" class="fab" type="button" hidden>↑ Navigation</button>
+
+<dialog id="appConfirmDialog" class="appdialog">
+  <form method="dialog" class="appdialog__form">
+    <h3 id="appConfirmTitle" class="appdialog__title">Bestätigung</h3>
+    <p id="appConfirmMessage" class="appdialog__message"></p>
+    <div class="appdialog__actions">
+      <button class="btn" type="submit" value="cancel">Abbrechen</button>
+      <button class="btn danger" type="submit" value="confirm" id="appConfirmOkBtn">Bestätigen</button>
+    </div>
+  </form>
+</dialog>
 
 <script type="module" src="./src/main.js"></script>
 </body>
