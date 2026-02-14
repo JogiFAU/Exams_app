@@ -1,4 +1,4 @@
-import { $, toast } from "../utils.js";
+import { $, toast, confirmDialog } from "../utils.js";
 import { state, resetQuizSession, resetSearch } from "../state.js";
 import { loadJsonUrls } from "../data/loaders.js";
 import { loadZipUrl } from "../data/zipImages.js";
@@ -6,7 +6,7 @@ import { getSelectedDataset } from "../data/manifest.js";
 import { filterByExams, filterByImageMode, applyRandomAndShuffle, searchQuestions } from "../quiz/filters.js";
 import { startQuizSession, startSearchView, finishQuizSession, abortQuizSession, exitToConfig } from "../quiz/session.js";
 import { renderAll, updateExamLists } from "./render.js";
-import { listSessions, deleteSession, exportBackupAllDatasets, importBackupAllDatasets, getLatestAnsweredResultsByQuestion } from "../data/storage.js";
+import { listSessions, deleteSession, exportBackupAllDatasets, importBackupAllDatasets, getLatestAnsweredResultsByQuestion, clearAllSessionData } from "../data/storage.js";
 
 function selectedExamsFromList(containerId) {
   const el = $(containerId);
@@ -45,20 +45,23 @@ function getWrongQuestionIdSet() {
 }
 
 function refreshWrongOnlyControl() {
-  const cb = $("wrongOnlyQuiz");
-  const label = $("wrongOnlyQuizLabel");
-  if (!cb) return 0;
-
   const wrong = getWrongQuestionIdSet();
   const count = wrong.size;
-  cb.disabled = (count === 0);
-  if (count === 0) cb.checked = false;
 
-  if (label) {
-    label.textContent = count > 0
-      ? `Nur aktuell falsch beantwortete Fragen (${count})`
-      : "Nur aktuell falsch beantwortete Fragen (keine vorhanden)";
-  }
+  [["wrongOnlyQuiz", "wrongOnlyQuizLabel"], ["wrongOnlySearch", "wrongOnlySearchLabel"]].forEach(([cbId, labelId]) => {
+    const cb = $(cbId);
+    const label = $(labelId);
+    if (!cb) return;
+
+    cb.disabled = (count === 0);
+    if (count === 0) cb.checked = false;
+
+    if (label) {
+      label.textContent = count > 0
+        ? `Nur aktuell falsch beantwortete Fragen (${count})`
+        : "Nur aktuell falsch beantwortete Fragen (keine vorhanden)";
+    }
+  });
 
   return count;
 }
@@ -69,6 +72,7 @@ function buildSearchConfigFromUi() {
     imageFilter: $("imageFilterSearch").value,
     query: $("searchText").value,
     inAnswers: $("searchInAnswers").checked,
+    wrongOnly: !!$("wrongOnlySearch")?.checked,
     showSolutions: $("searchShowSolutions").checked,
   };
 }
@@ -98,6 +102,12 @@ function computeSearchSubset(config) {
   let qs = state.questionsAll.slice();
   qs = filterByExams(qs, config.exams);
   qs = filterByImageMode(qs, config.imageFilter);
+
+  if (config.wrongOnly) {
+    const wrong = getWrongQuestionIdSet();
+    qs = qs.filter(q => wrong.has(q.id));
+  }
+
   qs = searchQuestions(qs, { query: config.query, inAnswers: config.inAnswers });
   return qs;
 }
@@ -135,7 +145,7 @@ async function loadDatasetFromManifest(autoToast = false) {
     const datasetMetaHint = $("datasetMetaHint");
     if (datasetMetaHint) {
       datasetMetaHint.textContent = d.notebookUrl
-        ? "NotebookLM-Link hinterlegt."
+        ? 'NotebookLM-Link hinterlegt. Beim Klick auf "In NotebookLM erklären" wird der Prompt in die Zwischenablage kopiert.'
         : "Kein NotebookLM-Link hinterlegt (manifest.json: notebookUrl).";
     }
 
@@ -168,11 +178,14 @@ function updatePreviewTexts() {
 
   const quizCfg = buildQuizConfigFromUi();
   const quizSubset = computeQuizSubset(quizCfg);
-  state.preview = { quizCount: quizSubset.length, searchCount: 0 };
+  const searchCfg = buildSearchConfigFromUi();
+  const searchSubset = computeSearchSubset(searchCfg);
+  state.preview = { quizCount: quizSubset.length, searchCount: searchSubset.length };
 
-  const needPaging = quizSubset.length > 1000;
+  const activeCount = state.configTab === "search" ? searchSubset.length : quizSubset.length;
+  const needPaging = activeCount > 1000;
   const dc = $("displayControlsConfig");
-  if (dc) dc.hidden = !needPaging;
+  if (dc) dc.hidden = (state.view === "config") ? true : !needPaging;
 }
 
 
@@ -207,6 +220,8 @@ function resetSearchConfig() {
   $("imageFilterSearch").value = "all";
   $("searchText").value = "";
   $("searchInAnswers").checked = false;
+  const wo = $("wrongOnlySearch");
+  if (wo) wo.checked = false;
   $("searchShowSolutions").checked = false;
   updatePreviewTexts();
 }
@@ -254,7 +269,7 @@ export function wireUiEvents() {
 
   [
     "imageFilterQuiz","wrongOnlyQuiz","randomN","keywordFilter","keywordInAnswers","shuffleQuestions","shuffleAnswers","quizMode",
-    "imageFilterSearch","searchText","searchInAnswers","searchShowSolutions"
+    "imageFilterSearch","searchText","searchInAnswers","wrongOnlySearch","searchShowSolutions"
   ].forEach(id => {
     const el = $(id);
     el.addEventListener(el.tagName === "INPUT" ? "input" : "change", async () => {
@@ -289,9 +304,11 @@ export function wireUiEvents() {
       const unanswered = Math.max(0, state.questionOrder.length - state.submitted.size);
       if (unanswered > 0) {
         const verb = unanswered === 1 ? "ist" : "sind";
-        const ok = window.confirm(
-          `${unanswered} Frage${unanswered === 1 ? "" : "n"} ${verb} noch nicht beantwortet.\n\nTrotzdem zur Auswertung wechseln?`
-        );
+        const ok = await confirmDialog({
+          title: "Zur Auswertung wechseln?",
+          message: `${unanswered} Frage${unanswered === 1 ? "" : "n"} ${verb} noch nicht beantwortet. Trotzdem zur Auswertung wechseln?`,
+          confirmText: "Zur Auswertung"
+        });
         if (!ok) return;
       }
     }
@@ -305,15 +322,14 @@ export function wireUiEvents() {
   });
 
   $("abortQuizBtn").addEventListener("click", async () => {
-    const leavingReview = (state.view === "review");
-    const ok = window.confirm(
-      leavingReview
-        ? "Neue Abfrage starten und zur Konfiguration wechseln?"
-        : "Abfrage wirklich abbrechen und zur Konfiguration zurückkehren?"
-    );
-    if (!ok) return;
-
     if (state.view === "quiz") {
+      const ok = await confirmDialog({
+        title: "Abfrage abbrechen?",
+        message: "Abfrage wirklich abbrechen und zur Konfiguration zurückkehren?",
+        confirmText: "Abfrage abbrechen",
+        cancelText: "Zurück"
+      });
+      if (!ok) return;
       abortQuizSession();
     } else if (state.view === "review") {
       exitToConfig();
@@ -380,6 +396,22 @@ export function wireUiEvents() {
     updateExamLists();
     updatePreviewTexts();
     toast("Session gelöscht.");
+  });
+
+
+  $("clearAllLocalDataBtn").addEventListener("click", async () => {
+    const ok = await confirmDialog({
+      title: "Alle lokalen Daten löschen?",
+      message: "Dadurch werden alle gespeicherten Abfragen für alle Datensätze aus diesem Browser entfernt.",
+      confirmText: "Alles löschen"
+    });
+    if (!ok) return;
+
+    const removed = clearAllSessionData();
+    refreshSavedSessionsUi();
+    updateExamLists();
+    updatePreviewTexts();
+    toast(removed > 0 ? `Lokale Daten gelöscht (${removed} Speicherstände).` : "Keine lokalen Daten vorhanden.");
   });
 
   $("downloadBackupBtn").addEventListener("click", () => {

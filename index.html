@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Exam Generator</title>
+  <title>Jogi's DocsDocs für Arme</title>
 
   <link rel="stylesheet" href="./assets/styles.css" />
 
@@ -14,7 +14,7 @@
 
 <header class="top">
   <div class="top__left">
-    <div class="top__title">Exam Generator</div>
+    <div class="top__title">Jogi's DocsDocs für Arme</div>
     <div class="top__subtitle" id="headerSubtitle">Datensatz laden und Abfrage konfigurieren</div>
   </div>
 
@@ -138,11 +138,16 @@
         </select>
 
         <label>Suche</label>
-        <input id="searchText" type="text" placeholder="z.B. Trisomie, Hardy-Weinberg, ..." />
+        <input id="searchText" type="text" placeholder="Suchbegriff für den Suchmodus (z.B. Trisomie, Hardy-Weinberg, ...)" />
 
         <label class="checkrow">
           <input id="searchInAnswers" type="checkbox" />
           <span>Auch in Antwortmöglichkeiten suchen</span>
+        </label>
+
+        <label class="checkrow">
+          <input id="wrongOnlySearch" type="checkbox" />
+          <span id="wrongOnlySearchLabel">Nur aktuell falsch beantwortete Fragen</span>
         </label>
 
         <label class="checkrow">
@@ -187,6 +192,7 @@
           <select id="savedSessionsSelect" size="4"></select>
           <div class="row2" style="margin-top:10px;">
             <button class="btn danger" id="deleteSessionBtn" type="button">Löschen</button>
+            <button class="btn danger" id="clearAllLocalDataBtn" type="button">Alles löschen</button>
           </div>
 
           <details style="margin-top:10px;">
@@ -255,6 +261,17 @@
 </div>
 
 <button id="jumpToNavBtn" class="fab" type="button" hidden>↑ Navigation</button>
+
+<dialog id="appConfirmDialog" class="appdialog">
+  <form method="dialog" class="appdialog__form">
+    <h3 id="appConfirmTitle" class="appdialog__title">Bestätigung</h3>
+    <p id="appConfirmMessage" class="appdialog__message"></p>
+    <div class="appdialog__actions">
+      <button class="btn" type="submit" value="cancel" id="appConfirmCancelBtn">Abbrechen</button>
+      <button class="btn danger" type="submit" value="confirm" id="appConfirmOkBtn">Bestätigen</button>
+    </div>
+  </form>
+</dialog>
 
 <script type="module" src="./src/main.js"></script>
 </body>
