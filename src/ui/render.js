@@ -9,6 +9,7 @@ import { getLatestAnsweredResultsByQuestion } from "../data/storage.js";
 
 const MAX_RENDER_NO_PAGING = 1000;
 let notebookLmWindow = null;
+const NOTEBOOK_WINDOW_NAME = "examgen-notebooklm";
 
 function getQuizMode() {
   return $("quizMode")?.value || state.quizConfig?.quizMode || "practice";
@@ -89,9 +90,6 @@ function setSidebarVisibility() {
 
   $("configQuiz").hidden = !showQuizConfig;
   $("configSearch").hidden = !showSearchConfig;
-
-  const configDisplay = $("displayControlsConfig");
-  if (configDisplay && state.view === "config") configDisplay.hidden = true;
 
   // Search view controls
   const startSearchBtn = $("startSearchBtn");
@@ -205,7 +203,7 @@ export function updateExamLists() {
   const exams = Array.from(new Set(state.questionsAll.map(q => q.examName).filter(Boolean))).sort();
   const stats = getExamStatsMap();
   renderExamList("examListQuiz", exams, stats);
-  renderExamList("examListSearch", exams, stats);
+  renderExamList("examListSearch", exams, new Map());
 }
 
 function renderExamList(containerId, exams, statsMap) {
@@ -306,7 +304,7 @@ async function notebookExplain(q) {
 
   try {
     await navigator.clipboard.writeText(prompt);
-    toast("Fragen-Prompt wurde in die Zwischenablage kopiert.");
+    toast("Prompt kopiert. Notebook wird geöffnet…");
   } catch {
     toast("Prompt konnte nicht automatisch kopiert werden (Browser-Rechte).");
   }
@@ -317,16 +315,11 @@ async function notebookExplain(q) {
   }
 
   if (notebookLmWindow && !notebookLmWindow.closed) {
-    try {
-      if (notebookLmWindow.location?.href !== nb) notebookLmWindow.location.href = nb;
-      notebookLmWindow.focus();
-      return;
-    } catch {
-      notebookLmWindow = null;
-    }
+    notebookLmWindow.focus();
+    return;
   }
 
-  notebookLmWindow = window.open(nb, "_blank");
+  notebookLmWindow = window.open(nb, NOTEBOOK_WINDOW_NAME);
 }
 
 function renderToc() {
@@ -429,19 +422,15 @@ export async function renderMain() {
 
   if (state.view === "config") {
     const qc = state.preview?.quizCount ?? 0;
-    const sc = state.preview?.searchCount ?? 0;
-    const isSearchTab = state.configTab === "search";
 
     mainInfo.innerHTML = `
       <div class="hero">
-        <div class="hero__title">${isSearchTab ? "Suchmodus konfigurieren" : "Abfragemodus konfigurieren"}</div>
+        <div class="hero__title">Abfragemodus konfigurieren</div>
         <div class="hero__lead">
-          ${isSearchTab
-            ? "Wähle Klausuren und Suchfilter im linken Bereich. Die Anzahl der im Suchmodus sichtbaren Fragen wird hier live aktualisiert."
-            : "Wähle Klausuren und Filter im linken Bereich. Die Anzahl der aktuell ausgewählten Fragen wird hier live aktualisiert."}
+          Wähle Klausuren und Filter im linken Bereich. Die Anzahl der aktuell ausgewählten Fragen wird hier live aktualisiert.
         </div>
         <div class="hero__stats">
-          <div class="pill">${isSearchTab ? `Treffer im Suchmodus: ${sc}` : `Aktuell gewählte Fragen: ${qc}`}</div>
+          <div class="pill">Aktuell gewählte Fragen: ${qc}</div>
         </div>
       </div>
     `;
@@ -686,33 +675,11 @@ async function renderQuestionList(qs, { allowSubmit, showSolutions }) {
 
     // NotebookLM Explain
     if (!allowSubmit || submitted) {
-      const explainWrap = document.createElement("div");
-      explainWrap.className = "notebookActions";
-
       const explainBtn = document.createElement("button");
       explainBtn.className = "btn";
       explainBtn.textContent = "In NotebookLM erklären";
       explainBtn.addEventListener("click", async () => { await notebookExplain(q); });
-
-      const hint = document.createElement("div");
-      hint.className = "tooltipHint";
-
-      const hintBtn = document.createElement("button");
-      hintBtn.type = "button";
-      hintBtn.className = "tooltipHint__btn";
-      hintBtn.textContent = "?";
-      hintBtn.setAttribute("aria-label", "Hinweis zu NotebookLM");
-
-      const hintText = document.createElement("div");
-      hintText.className = "tooltipHint__text";
-      hintText.textContent = "Öffnet Notebook und kopiert einen Prompt zur Frage in die Zwischenablage, den du direkt im Chat einfügen kannst.";
-
-      hint.appendChild(hintBtn);
-      hint.appendChild(hintText);
-
-      explainWrap.appendChild(explainBtn);
-      explainWrap.appendChild(hint);
-      card.appendChild(explainWrap);
+      card.appendChild(explainBtn);
     }
 
     if (q.explanation && allowSubmit && submitted && showSolutions) {
