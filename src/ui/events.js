@@ -145,7 +145,7 @@ async function loadDatasetFromManifest(autoToast = false) {
     const datasetMetaHint = $("datasetMetaHint");
     if (datasetMetaHint) {
       datasetMetaHint.textContent = d.notebookUrl
-        ? "NotebookLM-Link hinterlegt."
+        ? 'NotebookLM-Link hinterlegt. Beim Klick auf "In NotebookLM erklären" wird der Prompt in die Zwischenablage kopiert.'
         : "Kein NotebookLM-Link hinterlegt (manifest.json: notebookUrl).";
     }
 
@@ -326,7 +326,8 @@ export function wireUiEvents() {
       const ok = await confirmDialog({
         title: "Abfrage abbrechen?",
         message: "Abfrage wirklich abbrechen und zur Konfiguration zurückkehren?",
-        confirmText: "Abbrechen"
+        confirmText: "Abfrage abbrechen",
+        cancelText: "Zurück"
       });
       if (!ok) return;
       abortQuizSession();
