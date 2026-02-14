@@ -175,7 +175,7 @@ function updatePreviewTexts() {
   const activeCount = state.configTab === "search" ? searchSubset.length : quizSubset.length;
   const needPaging = activeCount > 1000;
   const dc = $("displayControlsConfig");
-  if (dc) dc.hidden = !needPaging;
+  if (dc) dc.hidden = (state.view === "config") ? true : !needPaging;
 }
 
 

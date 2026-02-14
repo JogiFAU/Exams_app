@@ -89,6 +89,9 @@ function setSidebarVisibility() {
   $("configQuiz").hidden = !showQuizConfig;
   $("configSearch").hidden = !showSearchConfig;
 
+  const configDisplay = $("displayControlsConfig");
+  if (configDisplay && state.view === "config") configDisplay.hidden = true;
+
   // Search view controls
   const startSearchBtn = $("startSearchBtn");
   if (startSearchBtn) startSearchBtn.textContent = "Suche aktualisieren";
@@ -201,7 +204,7 @@ export function updateExamLists() {
   const exams = Array.from(new Set(state.questionsAll.map(q => q.examName).filter(Boolean))).sort();
   const stats = getExamStatsMap();
   renderExamList("examListQuiz", exams, stats);
-  renderExamList("examListSearch", exams, new Map());
+  renderExamList("examListSearch", exams, stats);
 }
 
 function renderExamList(containerId, exams, statsMap) {
