@@ -1,0 +1,13 @@
+{
+  "datasets": [
+    {
+      "id": "sample",
+      "label": "Beispiel-Datensatz (Single)",
+      "json": [
+        "datasets/sample/export.json"
+      ],
+      "zip": "datasets/sample/images.zip",
+      "notebookUrl": "https://notebooklm.google.com/"
+    }
+  ]
+}
