@@ -84,3 +84,15 @@ export function importBackupAllDatasets(backupObj) {
   }
   toast(`Backup importiert (${written} Datensatz-Speicherstände).`);
 }
+
+
+export function clearAllSessionData() {
+  const keys = [];
+  for (let i = 0; i < localStorage.length; i++) {
+    const k = localStorage.key(i);
+    if (!k || !k.startsWith(PREFIX + "sessions:")) continue;
+    keys.push(k);
+  }
+  for (const k of keys) localStorage.removeItem(k);
+  return keys.length;
+}
