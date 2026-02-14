@@ -45,20 +45,23 @@ function getWrongQuestionIdSet() {
 }
 
 function refreshWrongOnlyControl() {
-  const cb = $("wrongOnlyQuiz");
-  const label = $("wrongOnlyQuizLabel");
-  if (!cb) return 0;
-
   const wrong = getWrongQuestionIdSet();
   const count = wrong.size;
-  cb.disabled = (count === 0);
-  if (count === 0) cb.checked = false;
 
-  if (label) {
-    label.textContent = count > 0
-      ? `Nur aktuell falsch beantwortete Fragen (${count})`
-      : "Nur aktuell falsch beantwortete Fragen (keine vorhanden)";
-  }
+  [["wrongOnlyQuiz", "wrongOnlyQuizLabel"], ["wrongOnlySearch", "wrongOnlySearchLabel"]].forEach(([cbId, labelId]) => {
+    const cb = $(cbId);
+    const label = $(labelId);
+    if (!cb) return;
+
+    cb.disabled = (count === 0);
+    if (count === 0) cb.checked = false;
+
+    if (label) {
+      label.textContent = count > 0
+        ? `Nur aktuell falsch beantwortete Fragen (${count})`
+        : "Nur aktuell falsch beantwortete Fragen (keine vorhanden)";
+    }
+  });
 
   return count;
 }
@@ -69,6 +72,7 @@ function buildSearchConfigFromUi() {
     imageFilter: $("imageFilterSearch").value,
     query: $("searchText").value,
     inAnswers: $("searchInAnswers").checked,
+    wrongOnly: !!$("wrongOnlySearch")?.checked,
     showSolutions: $("searchShowSolutions").checked,
   };
 }
@@ -98,6 +102,12 @@ function computeSearchSubset(config) {
   let qs = state.questionsAll.slice();
   qs = filterByExams(qs, config.exams);
   qs = filterByImageMode(qs, config.imageFilter);
+
+  if (config.wrongOnly) {
+    const wrong = getWrongQuestionIdSet();
+    qs = qs.filter(q => wrong.has(q.id));
+  }
+
   qs = searchQuestions(qs, { query: config.query, inAnswers: config.inAnswers });
   return qs;
 }
@@ -210,6 +220,8 @@ function resetSearchConfig() {
   $("imageFilterSearch").value = "all";
   $("searchText").value = "";
   $("searchInAnswers").checked = false;
+  const wo = $("wrongOnlySearch");
+  if (wo) wo.checked = false;
   $("searchShowSolutions").checked = false;
   updatePreviewTexts();
 }
@@ -257,7 +269,7 @@ export function wireUiEvents() {
 
   [
     "imageFilterQuiz","wrongOnlyQuiz","randomN","keywordFilter","keywordInAnswers","shuffleQuestions","shuffleAnswers","quizMode",
-    "imageFilterSearch","searchText","searchInAnswers","searchShowSolutions"
+    "imageFilterSearch","searchText","searchInAnswers","wrongOnlySearch","searchShowSolutions"
   ].forEach(id => {
     const el = $(id);
     el.addEventListener(el.tagName === "INPUT" ? "input" : "change", async () => {
