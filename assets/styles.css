@@ -330,8 +330,8 @@ summary { cursor: pointer; color: var(--muted); }
   background: #0a0f18;
   display: flex;
 }
-.examseg.ok { background: rgba(46,125,50,.9); }
-.examseg.bad { background: rgba(198,40,40,.9); }
+.examseg.ok { background: linear-gradient(90deg, #34d399, #22c55e); }
+.examseg.bad { background: linear-gradient(270deg, #fda4af, #c62828); }
 .examseg.neu { background: rgba(96,125,139,.9); }
 .exampct { font-size: 12px; color: var(--muted); font-weight: 800; }
 
@@ -638,7 +638,7 @@ summary { cursor: pointer; color: var(--muted); }
   display: flex;
 }
 .topicBar__ok{ background: linear-gradient(90deg, #34d399, #22c55e); }
-.topicBar__bad{ background: linear-gradient(90deg, #fda4af, #c62828); }
+.topicBar__bad{ background: linear-gradient(270deg, #fda4af, #c62828); }
 
 .topicOverlay{
   margin-top: 12px;
@@ -656,12 +656,12 @@ summary { cursor: pointer; color: var(--muted); }
 .miniLegend__row{ display: grid; grid-template-columns: 10px 1fr; gap: 8px; font-size: 12px; }
 .miniLegend__dot{ width: 10px; height: 10px; border-radius: 999px; margin-top: 3px; }
 
-.miniBarRow{ display: grid; grid-template-columns: 1fr 1fr auto; gap: 8px; align-items: center; }
+.miniBarRow{ display: grid; grid-template-columns: minmax(120px, 1fr) minmax(0, 1fr) 58px; gap: 8px; align-items: center; }
 .miniBarRow__name{ font-size: 12px; color: var(--muted); }
 .miniBarRow__track{ height: 10px; border-radius: 999px; overflow: hidden; background: #0a0f18; border: 1px solid var(--border); display: flex; }
-.miniBarRow__ok{ background: rgba(52,211,153,.95); }
-.miniBarRow__bad{ background: rgba(244,63,94,.95); }
-.miniBarRow__pct{ font-size: 11px; font-weight: 700; }
+.miniBarRow__ok{ background: linear-gradient(90deg, #34d399, #22c55e); }
+.miniBarRow__bad{ background: linear-gradient(270deg, #fda4af, #c62828); }
+.miniBarRow__pct{ font-size: 11px; font-weight: 700; text-align: right; font-variant-numeric: tabular-nums; }
 
 .topicCard--recommendations{ margin-top: 12px; }
 .recoList{ margin: 6px 0 0; padding-left: 18px; display: grid; gap: 5px; }

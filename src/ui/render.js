@@ -436,6 +436,35 @@ function createPieChartSvg(segments, { size = 240, innerRatio = 0.58, showLabels
   const total = segments.reduce((sum, seg) => sum + seg.value, 0);
   if (!total) return "";
 
+  if (segments.length === 1) {
+    const c = size / 2;
+    const outerR = c - 2;
+    const innerR = outerR * innerRatio;
+    const seg = segments[0];
+    const labelRadius = innerR + ((outerR - innerR) * 0.5);
+    const textPos = polarToCartesian(c, c, labelRadius, -Math.PI / 2);
+
+    return `
+      <svg viewBox="0 0 ${size} ${size}" role="img" aria-label="Themenverteilung">
+        <circle
+          class="pieSegment"
+          data-index="0"
+          cx="${c}"
+          cy="${c}"
+          r="${outerR}"
+          fill="${seg.color}"
+        />
+        <circle cx="${c}" cy="${c}" r="${innerR}" fill="rgba(11,15,23,.82)" />
+        ${showLabels ? `
+          <text class="pieLabel" x="${textPos.x.toFixed(2)}" y="${textPos.y.toFixed(2)}" fill="#f8fbff" text-anchor="middle" dominant-baseline="middle">
+            <tspan x="${textPos.x.toFixed(2)}" dy="-0.38em">${seg.value}</tspan>
+            <tspan x="${textPos.x.toFixed(2)}" dy="1.05em">100%</tspan>
+          </text>
+        ` : ""}
+      </svg>
+    `;
+  }
+
   const c = size / 2;
   const outerR = c - 2;
   const innerR = outerR * innerRatio;
@@ -758,6 +787,20 @@ function renderReviewAnalytics(summaryEl, data) {
       closeTopicOverlay();
     }
   });
+
+  const closeOnOutsideClick = (ev) => {
+    if (!panel.isConnected) {
+      document.removeEventListener("click", closeOnOutsideClick);
+      return;
+    }
+    const target = ev.target;
+    if (!(target instanceof Element)) return;
+    if (target.closest(".topicLegend, .topicBar, .pieSegment, .topicOverlay")) return;
+    lockedKey = null;
+    closeTopicOverlay();
+  };
+
+  document.addEventListener("click", closeOnOutsideClick);
 }
 
 export function renderPager(totalCount, suffix="") {
@@ -887,9 +930,9 @@ export async function renderMain() {
   if (!state.activeDataset) {
     mainInfo.innerHTML = `
       <div class="hero">
-        <div class="hero__title">Willkommen im Exam Generator</div>
+        <div class="hero__title">Willkommen bei DocsDocs für Arme in besser</div>
         <div class="hero__lead">
-          Wähle links zuerst einen Datensatz aus und lade ihn. Danach kannst du direkt im Abfragemodus starten oder im Suchmodus nach Inhalten suchen.
+          Wähle links zuerst einen Datensatz aus und lade ihn. Danach kannst du im Abfragemodus gezielt für Klausuren üben (mit Fortschritt, Auswertung und Review) oder im Suchmodus durch alle Fragen browsen. Nutze die Filter für Klausuren, Bilder, Schlagwörter und Themen, um deine Lernsession präzise einzugrenzen.
         </div>
         <div class="hero__stats">
           <div class="pill">🔎 Suche nach Stichwörtern</div>
