@@ -9,6 +9,7 @@ import { getLatestAnsweredResultsByQuestion } from "../data/storage.js";
 
 const MAX_RENDER_NO_PAGING = 1000;
 let notebookLmWindow = null;
+const NOTEBOOK_LM_WINDOW_NAME = "exam-generator-notebooklm";
 
 function getQuizMode() {
   return $("quizMode")?.value || state.quizConfig?.quizMode || "practice";
@@ -321,7 +322,8 @@ async function notebookExplain(q) {
     return;
   }
 
-  notebookLmWindow = window.open(nb, "_blank");
+  notebookLmWindow = window.open(nb, NOTEBOOK_LM_WINDOW_NAME);
+  if (notebookLmWindow && !notebookLmWindow.closed) notebookLmWindow.focus();
 }
 
 function renderToc() {
