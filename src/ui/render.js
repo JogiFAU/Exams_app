@@ -9,6 +9,7 @@ import { getLatestAnsweredResultsByQuestion } from "../data/storage.js";
 
 const MAX_RENDER_NO_PAGING = 1000;
 const NOTEBOOK_LM_WINDOW_NAME = "exam-generator-notebooklm";
+let notebookLmWindow = null;
 
 function getQuizMode() {
   return $("quizMode")?.value || state.quizConfig?.quizMode || "practice";
@@ -304,31 +305,33 @@ async function notebookExplain(q) {
   const nb = state.activeDataset?.notebookUrl;
   const prompt = buildExplainPrompt(q, state.answers.get(q.id) || []);
 
+  if (!nb) {
+    toast("Kein Notebook-Link im Datensatz hinterlegt.");
+  } else {
+    let focused = false;
+
+    if (notebookLmWindow) {
+      try {
+        notebookLmWindow.focus();
+        focused = true;
+      } catch {
+        notebookLmWindow = null;
+      }
+    }
+
+    if (!focused) {
+      notebookLmWindow = window.open(nb, NOTEBOOK_LM_WINDOW_NAME);
+      if (!notebookLmWindow) toast("NotebookLM konnte nicht geöffnet werden (Popup-Blocker). Bitte Popups erlauben.");
+      else notebookLmWindow.focus();
+    }
+  }
+
   try {
     await navigator.clipboard.writeText(prompt);
     toast("Fragen-Prompt wurde in die Zwischenablage kopiert.");
   } catch {
     toast("Prompt konnte nicht automatisch kopiert werden (Browser-Rechte).");
   }
-
-  if (!nb) {
-    toast("Kein Notebook-Link im Datensatz hinterlegt.");
-    return;
-  }
-
-  const notebookLmTab = window.open("", NOTEBOOK_LM_WINDOW_NAME);
-  if (!notebookLmTab) {
-    toast("NotebookLM konnte nicht geöffnet werden (Popup-Blocker). Bitte Popups erlauben.");
-    return;
-  }
-
-  try {
-    if (notebookLmTab.location.href !== nb) notebookLmTab.location.replace(nb);
-  } catch {
-    // Bereits geöffneter Cross-Origin-Tab (NotebookLM): nicht neu laden, nur fokussieren.
-  }
-
-  notebookLmTab.focus();
 }
 
 function renderToc() {
