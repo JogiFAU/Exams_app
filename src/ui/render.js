@@ -310,15 +310,18 @@ async function notebookExplain(q) {
   } else {
     if (notebookLmWindow?.closed) notebookLmWindow = null;
 
-    let targetWindow = notebookLmWindow;
-    if (!targetWindow) targetWindow = window.open(nb, NOTEBOOK_LM_WINDOW_NAME);
-    else targetWindow = window.open("", NOTEBOOK_LM_WINDOW_NAME) || targetWindow;
+    if (notebookLmWindow) {
+      try {
+        notebookLmWindow.focus();
+      } catch {
+        notebookLmWindow = null;
+      }
+    }
 
-    if (!targetWindow) {
-      toast("NotebookLM konnte nicht geöffnet werden (Popup-Blocker). Bitte Popups erlauben.");
-    } else {
-      notebookLmWindow = targetWindow;
-      notebookLmWindow.focus();
+    if (!notebookLmWindow) {
+      notebookLmWindow = window.open(nb, NOTEBOOK_LM_WINDOW_NAME);
+      if (!notebookLmWindow) toast("NotebookLM konnte nicht geöffnet werden (Popup-Blocker). Bitte Popups erlauben.");
+      else notebookLmWindow.focus();
     }
   }
 
