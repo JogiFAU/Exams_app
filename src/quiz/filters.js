@@ -6,6 +6,22 @@ export function filterByExams(qs, examNames) {
   return qs.filter(q => q.examName && set.has(q.examName));
 }
 
+export function filterByTopics(qs, { superTopics = [], subTopics = [] } = {}) {
+  if ((!superTopics || superTopics.length === 0) && (!subTopics || subTopics.length === 0)) return qs;
+
+  const superSet = new Set(superTopics || []);
+  const subSet = new Set(subTopics || []);
+
+  return qs.filter((q) => {
+    const superTopic = (q.aiSuperTopic || "").trim();
+    const subTopic = (q.aiSubtopic || "").trim();
+
+    if (superTopic && superSet.has(superTopic)) return true;
+    if (superTopic && subTopic && subSet.has(`${superTopic}::${subTopic}`)) return true;
+    return false;
+  });
+}
+
 export function filterByImageMode(qs, mode) {
   if (!mode || mode === "all") return qs;
   if (mode === "with") return qs.filter(q => (q.imageFiles || []).length > 0);

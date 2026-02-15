@@ -3,9 +3,9 @@ import { state, resetQuizSession, resetSearch } from "../state.js";
 import { loadJsonUrls } from "../data/loaders.js";
 import { loadZipUrl } from "../data/zipImages.js";
 import { getSelectedDataset } from "../data/manifest.js";
-import { filterByExams, filterByImageMode, applyRandomAndShuffle, searchQuestions } from "../quiz/filters.js";
+import { filterByExams, filterByTopics, filterByImageMode, applyRandomAndShuffle, searchQuestions } from "../quiz/filters.js";
 import { startQuizSession, startSearchView, finishQuizSession, abortQuizSession, exitToConfig } from "../quiz/session.js";
-import { renderAll, updateExamLists } from "./render.js";
+import { renderAll, updateFilterLists } from "./render.js";
 import { listSessions, deleteSession, exportBackupAllDatasets, importBackupAllDatasets, getLatestAnsweredResultsByQuestion, clearAllSessionData } from "../data/storage.js";
 
 function selectedExamsFromList(containerId) {
@@ -16,12 +16,32 @@ function selectedExamsFromList(containerId) {
     .filter(Boolean);
 }
 
+
+function selectedTopicsFromList(containerId) {
+  const el = $(containerId);
+  if (!el) return { superTopics: [], subTopics: [] };
+
+  const superTopics = Array.from(el.querySelectorAll("input[type=checkbox][data-topic-super]:checked"))
+    .map(x => x.dataset.topicSuper)
+    .filter(Boolean);
+
+  const subTopics = Array.from(el.querySelectorAll("input[type=checkbox][data-topic-sub]:checked"))
+    .map(x => x.dataset.topicSub)
+    .filter(Boolean);
+
+  return { superTopics, subTopics };
+}
+
 function buildQuizConfigFromUi() {
   const rawN = ($("randomN")?.value || "").trim();
   const n = rawN ? Number(rawN) : 0;
 
+  const topics = selectedTopicsFromList("topicListQuiz");
+
   return {
     exams: selectedExamsFromList("examListQuiz"),
+    superTopics: topics.superTopics,
+    subTopics: topics.subTopics,
     imageFilter: $("imageFilterQuiz").value,
     wrongOnly: !!$("wrongOnlyQuiz")?.checked,
     randomN: Number.isFinite(n) && n > 0 ? Math.floor(n) : 0,
@@ -30,6 +50,7 @@ function buildQuizConfigFromUi() {
     shuffleQuestions: $("shuffleQuestions").checked,
     shuffleAnswers: $("shuffleAnswers").checked,
     quizMode: $("quizMode").value,
+    showTopicsInBanner: !!$("showTopicsInBanner")?.checked,
   };
 }
 
@@ -67,8 +88,12 @@ function refreshWrongOnlyControl() {
 }
 
 function buildSearchConfigFromUi() {
+  const topics = selectedTopicsFromList("topicListSearch");
+
   return {
     exams: selectedExamsFromList("examListSearch"),
+    superTopics: topics.superTopics,
+    subTopics: topics.subTopics,
     imageFilter: $("imageFilterSearch").value,
     query: $("searchText").value,
     inAnswers: $("searchInAnswers").checked,
@@ -80,6 +105,7 @@ function buildSearchConfigFromUi() {
 function computeQuizSubset(config) {
   let qs = state.questionsAll.slice();
   qs = filterByExams(qs, config.exams);
+  qs = filterByTopics(qs, { superTopics: config.superTopics, subTopics: config.subTopics });
   qs = filterByImageMode(qs, config.imageFilter);
 
   if (config.wrongOnly) {
@@ -101,6 +127,7 @@ function computeQuizSubset(config) {
 function computeSearchSubset(config) {
   let qs = state.questionsAll.slice();
   qs = filterByExams(qs, config.exams);
+  qs = filterByTopics(qs, { superTopics: config.superTopics, subTopics: config.subTopics });
   qs = filterByImageMode(qs, config.imageFilter);
 
   if (config.wrongOnly) {
@@ -154,7 +181,7 @@ async function loadDatasetFromManifest(autoToast = false) {
     state.view = "config";
     state.configTab = "quiz";
 
-    updateExamLists();
+    updateFilterLists();
     resetAllConfigs();
 
     $("pageNumber").value = "1";
@@ -198,7 +225,7 @@ function bindExamListChange(containerId) {
 }
 
 function resetQuizConfig() {
-  for (const cb of document.querySelectorAll("#examListQuiz input[type=checkbox]")) cb.checked = false;
+  for (const cb of document.querySelectorAll("#examListQuiz input[type=checkbox], #topicListQuiz input[type=checkbox]")) cb.checked = false;
   $("imageFilterQuiz").value = "all";
   const rn = $("randomN");
   if (rn) rn.value = "";
@@ -212,11 +239,13 @@ function resetQuizConfig() {
   $("shuffleQuestions").checked = false;
   $("shuffleAnswers").checked = false;
   $("quizMode").value = "practice";
+  const showTopics = $("showTopicsInBanner");
+  if (showTopics) showTopics.checked = true;
   updatePreviewTexts();
 }
 
 function resetSearchConfig() {
-  for (const cb of document.querySelectorAll("#examListSearch input[type=checkbox]")) cb.checked = false;
+  for (const cb of document.querySelectorAll("#examListSearch input[type=checkbox], #topicListSearch input[type=checkbox]")) cb.checked = false;
   $("imageFilterSearch").value = "all";
   $("searchText").value = "";
   $("searchInAnswers").checked = false;
@@ -239,7 +268,7 @@ export function wireUiEvents() {
       state.view = "config";
       resetSearch();
       resetAllConfigs();
-      updateExamLists();
+      updateFilterLists();
       refreshSavedSessionsUi();
     }
     state.configTab = "quiz";
@@ -261,14 +290,14 @@ export function wireUiEvents() {
       resetSearch();
       state.view = "config";
       state.configTab = "search";
-      updateExamLists();
+      updateFilterLists();
       refreshSavedSessionsUi();
       await renderAll();
     }
   });
 
   [
-    "imageFilterQuiz","wrongOnlyQuiz","randomN","keywordFilter","keywordInAnswers","shuffleQuestions","shuffleAnswers","quizMode",
+    "imageFilterQuiz","wrongOnlyQuiz","randomN","keywordFilter","keywordInAnswers","shuffleQuestions","shuffleAnswers","quizMode","showTopicsInBanner",
     "imageFilterSearch","searchText","searchInAnswers","wrongOnlySearch","searchShowSolutions"
   ].forEach(id => {
     const el = $(id);
@@ -279,6 +308,8 @@ export function wireUiEvents() {
   });
   bindExamListChange("examListQuiz");
   bindExamListChange("examListSearch");
+  bindExamListChange("topicListQuiz");
+  bindExamListChange("topicListSearch");
 
   $("startQuizBtn").addEventListener("click", async () => {
     if (!state.activeDataset) {
@@ -335,7 +366,7 @@ export function wireUiEvents() {
       exitToConfig();
     }
     resetAllConfigs();
-    updateExamLists();
+    updateFilterLists();
     refreshSavedSessionsUi();
     await renderAll();
   });
@@ -393,7 +424,7 @@ export function wireUiEvents() {
     if (!sessionId) return;
     deleteSession(datasetId, sessionId);
     refreshSavedSessionsUi();
-    updateExamLists();
+    updateFilterLists();
     updatePreviewTexts();
     toast("Session gelöscht.");
   });
@@ -409,7 +440,7 @@ export function wireUiEvents() {
 
     const removed = clearAllSessionData();
     refreshSavedSessionsUi();
-    updateExamLists();
+    updateFilterLists();
     updatePreviewTexts();
     toast(removed > 0 ? `Lokale Daten gelöscht (${removed} Speicherstände).` : "Keine lokalen Daten vorhanden.");
   });
@@ -435,7 +466,7 @@ export function wireUiEvents() {
       const obj = JSON.parse(txt);
       importBackupAllDatasets(obj);
       refreshSavedSessionsUi();
-      updateExamLists();
+      updateFilterLists();
       updatePreviewTexts();
     } catch (err) {
       alert("Backup konnte nicht importiert werden: " + err);

@@ -8,6 +8,8 @@ function normalizeQuestion(q) {
   return {
     id,
     examName: q.examName || null,
+    aiSuperTopic: normSpace(q.aiSuperTopic || "") || null,
+    aiSubtopic: normSpace(q.aiSubtopic || "") || null,
     examYear: (q.examYear != null ? Number(q.examYear) : null),
     text: normSpace(q.questionText || ""),
     explanation: normSpace(q.explanationText || "") || null,
