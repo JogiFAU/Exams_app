@@ -317,13 +317,8 @@ async function notebookExplain(q) {
   }
 
   if (notebookLmWindow && !notebookLmWindow.closed) {
-    try {
-      if (notebookLmWindow.location?.href !== nb) notebookLmWindow.location.href = nb;
-      notebookLmWindow.focus();
-      return;
-    } catch {
-      notebookLmWindow = null;
-    }
+    notebookLmWindow.focus();
+    return;
   }
 
   notebookLmWindow = window.open(nb, "_blank");
