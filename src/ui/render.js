@@ -316,10 +316,16 @@ async function notebookExplain(q) {
     return;
   }
 
-  const notebookLmTab = window.open(nb, NOTEBOOK_LM_WINDOW_NAME);
+  const notebookLmTab = window.open("", NOTEBOOK_LM_WINDOW_NAME);
   if (!notebookLmTab) {
     toast("NotebookLM konnte nicht geöffnet werden (Popup-Blocker). Bitte Popups erlauben.");
     return;
+  }
+
+  try {
+    if (notebookLmTab.location.href !== nb) notebookLmTab.location.replace(nb);
+  } catch {
+    // Bereits geöffneter Cross-Origin-Tab (NotebookLM): nicht neu laden, nur fokussieren.
   }
 
   notebookLmTab.focus();
