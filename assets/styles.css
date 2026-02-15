@@ -109,6 +109,32 @@ input:hover, select:hover {
 .row { display: grid; grid-template-columns: 1fr auto; gap: 10px; }
 .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 
+.row--dataset { grid-template-columns: 1fr; }
+
+.loadPrimaryBtn {
+  margin-top: 10px;
+  width: 100%;
+}
+
+.loadAlternative {
+  margin-top: 8px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 8px 10px;
+  background: rgba(15,22,34,.45);
+}
+
+.loadAlternative__summary {
+  cursor: pointer;
+  font-size: 12px;
+  color: var(--muted);
+  font-weight: 700;
+}
+
+.loadAlternative__actions {
+  margin-top: 8px;
+}
+
 .btn {
   display: inline-flex;
   align-items: center;

@@ -45,10 +45,19 @@
       <h2>1) Setup</h2>
 
       <label for="datasetSelect">Datensatz</label>
-      <div class="row">
+      <div class="row row--dataset">
         <select id="datasetSelect"></select>
-        <button class="btn primary" id="loadDatasetBtn">Datensatz laden</button>
+        <button class="btn" id="loadDatasetBtn" type="button">Aus manifest laden</button>
       </div>
+      <button class="btn primary loadPrimaryBtn" id="loadDatasetDirBtn" type="button">Datensatz laden</button>
+      <div class="small" style="margin-top:6px;">Standard: Ordner mit Schreibzugriff wählen (enthält JSON und optional ZIP).</div>
+      <details class="loadAlternative">
+        <summary class="loadAlternative__summary">Alternative ohne Schreibzugriff</summary>
+        <div class="row2 loadAlternative__actions">
+          <button class="btn" id="loadDatasetFilesBtn" type="button">Dateien manuell auswählen</button>
+          <input id="loadDatasetFilesInput" type="file" accept=".json,.zip,application/json,application/zip" multiple hidden>
+        </div>
+      </details>
       <div class="small" id="datasetMetaHint" style="margin-top:8px;"></div>
 
       <hr class="sep">

@@ -22,12 +22,9 @@ function normalizeQuestion(q) {
   };
 }
 
-export async function loadJsonUrls(urls) {
+export async function loadJsonPayloads(payloads) {
   const byId = new Map();
-  for (const url of urls) {
-    const res = await fetch(url, { cache: "no-store" });
-    if (!res.ok) throw new Error(`JSON HTTP ${res.status}: ${url}`);
-    const payload = await res.json();
+  for (const payload of payloads) {
     for (const q of (payload.questions || [])) {
       const nq = normalizeQuestion(q);
       if (!nq) continue;
@@ -35,4 +32,14 @@ export async function loadJsonUrls(urls) {
     }
   }
   state.questionsAll = Array.from(byId.values());
+}
+
+export async function loadJsonUrls(urls) {
+  const payloads = [];
+  for (const url of urls) {
+    const res = await fetch(url, { cache: "no-store" });
+    if (!res.ok) throw new Error(`JSON HTTP ${res.status}: ${url}`);
+    payloads.push(await res.json());
+  }
+  await loadJsonPayloads(payloads);
 }

@@ -14,24 +14,33 @@ function requireJSZip() {
   return window.JSZip;
 }
 
-export async function loadZipUrl(url) {
+export async function loadZipArrayBuffer(buf) {
   clearZipObjectUrls();
-  if (!url) { state.zip = null; state.zipIndex = new Map(); return; }
+  if (!buf) { state.zip = null; state.zipIndex = new Map(); return; }
 
   const JSZip = requireJSZip();
-  const res = await fetch(url, { cache: "no-store" });
-  if (!res.ok) throw new Error(`ZIP HTTP ${res.status}: ${url}`);
-  const buf = await res.arrayBuffer();
   const zip = await JSZip.loadAsync(buf);
 
   state.zip = zip;
   state.zipIndex = new Map();
 
-  zip.forEach((path, entry) => {
+  zip.forEach((path) => {
     const base = path.split("/").pop();
     const m = base.match(/^(.+)\.(png|jpg|jpeg|webp|gif)$/i);
     if (m) state.zipIndex.set(m[1], path);
   });
+}
+
+export async function loadZipUrl(url) {
+  if (!url) {
+    await loadZipArrayBuffer(null);
+    return;
+  }
+
+  const res = await fetch(url, { cache: "no-store" });
+  if (!res.ok) throw new Error(`ZIP HTTP ${res.status}: ${url}`);
+  const buf = await res.arrayBuffer();
+  await loadZipArrayBuffer(buf);
 }
 
 export async function getImageUrl(fileBase) {

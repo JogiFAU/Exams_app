@@ -1,7 +1,7 @@
 import { $, toast, confirmDialog } from "../utils.js";
 import { state, resetQuizSession, resetSearch } from "../state.js";
-import { loadJsonUrls } from "../data/loaders.js";
-import { loadZipUrl } from "../data/zipImages.js";
+import { loadJsonPayloads, loadJsonUrls } from "../data/loaders.js";
+import { loadZipArrayBuffer, loadZipUrl } from "../data/zipImages.js";
 import { getSelectedDataset } from "../data/manifest.js";
 import { filterByExams, filterByTopics, filterByImageMode, applyRandomAndShuffle, searchQuestions } from "../quiz/filters.js";
 import { startQuizSession, startSearchView, finishQuizSession, abortQuizSession, exitToConfig } from "../quiz/session.js";
@@ -157,6 +157,126 @@ function refreshSavedSessionsUi() {
   }
 }
 
+
+const LOCAL_DATASET_ID = "local-files";
+
+function updateDatasetMetaHint(dataset) {
+  const datasetMetaHint = $("datasetMetaHint");
+  if (!datasetMetaHint) return;
+  datasetMetaHint.textContent = dataset?.notebookUrl
+    ? 'NotebookLM-Link hinterlegt. Beim Klick auf "In NotebookLM erklären" wird der Prompt in die Zwischenablage kopiert.'
+    : "Kein NotebookLM-Link hinterlegt (manifest.json: notebookUrl).";
+}
+
+async function applyLoadedDataset(dataset, autoToastMessage = "") {
+  state.activeDataset = { ...dataset };
+  updateDatasetMetaHint(dataset);
+
+  resetQuizSession();
+  resetSearch();
+  state.view = "config";
+  state.configTab = "quiz";
+
+  updateFilterLists();
+  resetAllConfigs();
+
+  $("pageNumber").value = "1";
+  $("pageNumber2").value = "1";
+  $("pageSize2").value = $("pageSize").value;
+
+  refreshSavedSessionsUi();
+  updatePreviewTexts();
+
+  await renderAll();
+  if (autoToastMessage) toast(autoToastMessage);
+}
+
+async function loadDatasetFromPickedFiles(files, sourceLabel = "lokalen Dateien") {
+  const normalized = Array.from(files || []);
+  const jsonFiles = normalized.filter(file => /\.json$/i.test(file.name || ""));
+  const zipFile = normalized.find(file => /\.zip$/i.test(file.name || ""));
+
+  if (!jsonFiles.length) {
+    alert("Kein JSON gefunden. Bitte mindestens eine .json-Datei auswählen.");
+    return;
+  }
+
+  const payloads = [];
+  for (const file of jsonFiles) {
+    const txt = await file.text();
+    payloads.push(JSON.parse(txt));
+  }
+
+  await loadJsonPayloads(payloads);
+  if (zipFile) {
+    await loadZipArrayBuffer(await zipFile.arrayBuffer());
+  } else {
+    await loadZipUrl(null);
+  }
+
+  await applyLoadedDataset({
+    id: LOCAL_DATASET_ID,
+    label: `Lokaler Datensatz (${sourceLabel})`,
+    notebookUrl: null
+  }, `Datensatz aus ${sourceLabel} geladen.`);
+}
+
+async function collectFilesFromDirectoryHandle(dirHandle) {
+  const files = [];
+
+  async function visit(handle) {
+    for await (const entry of handle.values()) {
+      if (entry.kind === "file") {
+        const name = entry.name || "";
+        if (/\.(json|zip)$/i.test(name)) files.push(await entry.getFile());
+      } else if (entry.kind === "directory") {
+        await visit(entry);
+      }
+    }
+  }
+
+  await visit(dirHandle);
+  return files;
+}
+
+async function openDatasetDirectoryPicker() {
+  if (typeof window.showDirectoryPicker !== "function") {
+    throw new Error("Dieser Browser unterstützt den Ordner-Dialog nicht (showDirectoryPicker). Nutze bitte die Alternative ohne Schreibzugriff.");
+  }
+
+  const dirHandle = await window.showDirectoryPicker({ mode: "readwrite" });
+  if (typeof dirHandle.requestPermission === "function") {
+    const permission = await dirHandle.requestPermission({ mode: "readwrite" });
+    if (permission !== "granted") throw new Error("Kein Schreibzugriff auf den ausgewählten Ordner gewährt.");
+  }
+
+  const files = await collectFilesFromDirectoryHandle(dirHandle);
+  if (!files.length) throw new Error("Im Ordner wurden keine JSON/ZIP-Dateien gefunden.");
+
+  await loadDatasetFromPickedFiles(files, "dem gewählten Ordner");
+}
+
+async function openManualDatasetFilePicker() {
+  if (typeof window.showOpenFilePicker === "function") {
+    const handles = await window.showOpenFilePicker({
+      multiple: true,
+      types: [{
+        description: "Datensatz-Dateien",
+        accept: {
+          "application/json": [".json"],
+          "application/zip": [".zip"]
+        }
+      }]
+    });
+    const files = await Promise.all(handles.map(h => h.getFile()));
+    await loadDatasetFromPickedFiles(files, "manueller Dateiauswahl");
+    return;
+  }
+
+  const input = $("loadDatasetFilesInput");
+  if (input) input.click();
+}
+
 async function loadDatasetFromManifest(autoToast = false) {
   const d = getSelectedDataset();
   if (!d) {
@@ -167,32 +287,7 @@ async function loadDatasetFromManifest(autoToast = false) {
     const jsonUrls = Array.isArray(d.json) ? d.json : [d.json];
     await loadJsonUrls(jsonUrls);
     await loadZipUrl(d.zip || null);
-
-    state.activeDataset = { ...d };
-    const datasetMetaHint = $("datasetMetaHint");
-    if (datasetMetaHint) {
-      datasetMetaHint.textContent = d.notebookUrl
-        ? 'NotebookLM-Link hinterlegt. Beim Klick auf "In NotebookLM erklären" wird der Prompt in die Zwischenablage kopiert.'
-        : "Kein NotebookLM-Link hinterlegt (manifest.json: notebookUrl).";
-    }
-
-    resetQuizSession();
-    resetSearch();
-    state.view = "config";
-    state.configTab = "quiz";
-
-    updateFilterLists();
-    resetAllConfigs();
-
-    $("pageNumber").value = "1";
-    $("pageNumber2").value = "1";
-    $("pageSize2").value = $("pageSize").value;
-
-    refreshSavedSessionsUi();
-    updatePreviewTexts();
-
-    await renderAll();
-    if (autoToast) toast("Datensatz geladen.");
+    await applyLoadedDataset(d, autoToast ? "Datensatz geladen." : "");
   } catch (e) {
     alert("Fehler beim Laden des Datensatzes: " + e);
   }
@@ -282,6 +377,44 @@ export function wireUiEvents() {
   $("loadDatasetBtn").addEventListener("click", async () => {
     await loadDatasetFromManifest(true);
   });
+
+  const loadDatasetDirBtn = $("loadDatasetDirBtn");
+  if (loadDatasetDirBtn) {
+    loadDatasetDirBtn.addEventListener("click", async () => {
+      try {
+        await openDatasetDirectoryPicker();
+      } catch (err) {
+        if (err?.name === "AbortError") return;
+        alert("Ordner konnte nicht geladen werden: " + (err?.message || err));
+      }
+    });
+  }
+
+  const loadDatasetFilesBtn = $("loadDatasetFilesBtn");
+  if (loadDatasetFilesBtn) {
+    loadDatasetFilesBtn.addEventListener("click", async () => {
+      try {
+        await openManualDatasetFilePicker();
+      } catch (err) {
+        if (err?.name === "AbortError") return;
+        alert("Dateien konnten nicht geladen werden: " + (err?.message || err));
+      }
+    });
+  }
+
+  const loadDatasetFilesInput = $("loadDatasetFilesInput");
+  if (loadDatasetFilesInput) {
+    loadDatasetFilesInput.addEventListener("change", async (e) => {
+      const files = Array.from(e.target.files || []);
+      try {
+        if (files.length) await loadDatasetFromPickedFiles(files, "manueller Dateiauswahl");
+      } catch (err) {
+        alert("Dateien konnten nicht geladen werden: " + (err?.message || err));
+      } finally {
+        e.target.value = "";
+      }
+    });
+  }
 
   $("resetConfigQuizBtn").addEventListener("click", () => resetQuizConfig());
   $("resetConfigSearchBtn").addEventListener("click", async () => {
