@@ -51,13 +51,22 @@ export function getLatestAnsweredResultsByQuestion(datasetId) {
 
   const latestAnswered = new Map(); // qid -> boolean correct
 
+  function normalizeResultValue(value) {
+    if (value === true || value === false) return value;
+    if (value === 1 || value === "1") return true;
+    if (value === 0 || value === "0") return false;
+    return null;
+  }
+
   for (const s of arr) {
     const submitted = new Set(Array.isArray(s.submitted) ? s.submitted : []);
     const results = s.results || {};
     for (const qid of (s.questionOrder || [])) {
       if (latestAnswered.has(qid)) continue;
       if (!submitted.has(qid)) continue;
-      latestAnswered.set(qid, results[qid] === true);
+      const normalized = normalizeResultValue(results[qid]);
+      if (normalized === null) continue;
+      latestAnswered.set(qid, normalized);
     }
   }
 
