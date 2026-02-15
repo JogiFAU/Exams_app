@@ -308,21 +308,17 @@ async function notebookExplain(q) {
   if (!nb) {
     toast("Kein Notebook-Link im Datensatz hinterlegt.");
   } else {
-    let focused = false;
+    if (notebookLmWindow?.closed) notebookLmWindow = null;
 
-    if (notebookLmWindow) {
-      try {
-        notebookLmWindow.focus();
-        focused = true;
-      } catch {
-        notebookLmWindow = null;
-      }
-    }
+    let targetWindow = notebookLmWindow;
+    if (!targetWindow) targetWindow = window.open(nb, NOTEBOOK_LM_WINDOW_NAME);
+    else targetWindow = window.open("", NOTEBOOK_LM_WINDOW_NAME) || targetWindow;
 
-    if (!focused) {
-      notebookLmWindow = window.open(nb, NOTEBOOK_LM_WINDOW_NAME);
-      if (!notebookLmWindow) toast("NotebookLM konnte nicht geöffnet werden (Popup-Blocker). Bitte Popups erlauben.");
-      else notebookLmWindow.focus();
+    if (!targetWindow) {
+      toast("NotebookLM konnte nicht geöffnet werden (Popup-Blocker). Bitte Popups erlauben.");
+    } else {
+      notebookLmWindow = targetWindow;
+      notebookLmWindow.focus();
     }
   }
 
