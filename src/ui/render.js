@@ -432,7 +432,27 @@ function polarToCartesian(cx, cy, r, angleRad) {
   };
 }
 
-function createPieChartSvg(segments, { size = 240, innerRatio = 0.58 } = {}) {
+function parseHexColor(color) {
+  const value = String(color || "").trim();
+  if (!value.startsWith("#")) return null;
+  const raw = value.slice(1);
+  const hex = raw.length === 3 ? raw.split("").map((c) => c + c).join("") : raw;
+  if (hex.length !== 6 || /[^0-9a-f]/i.test(hex)) return null;
+  return {
+    r: parseInt(hex.slice(0, 2), 16),
+    g: parseInt(hex.slice(2, 4), 16),
+    b: parseInt(hex.slice(4, 6), 16)
+  };
+}
+
+function labelColorForSegment(bgColor) {
+  const rgb = parseHexColor(bgColor);
+  if (!rgb) return "#f8fbff";
+  const luminance = (0.299 * rgb.r + 0.587 * rgb.g + 0.114 * rgb.b) / 255;
+  return luminance > 0.62 ? "#111827" : "#f8fbff";
+}
+
+function createPieChartSvg(segments, { size = 240, innerRatio = 0.58, showLabels = true, minLabelPct = 0.07 } = {}) {
   const total = segments.reduce((sum, seg) => sum + seg.value, 0);
   if (!total) return "";
 
@@ -441,6 +461,7 @@ function createPieChartSvg(segments, { size = 240, innerRatio = 0.58 } = {}) {
   const innerR = outerR * innerRatio;
   let angleStart = -Math.PI / 2;
   const paths = [];
+  const labels = [];
 
   segments.forEach((seg, idx) => {
     const frac = seg.value / total;
@@ -466,12 +487,27 @@ function createPieChartSvg(segments, { size = 240, innerRatio = 0.58 } = {}) {
       />
     `);
 
+    if (showLabels && frac >= minLabelPct) {
+      const midAngle = angleStart + sweep / 2;
+      const labelRadius = innerR + ((outerR - innerR) * 0.5);
+      const textPos = polarToCartesian(c, c, labelRadius, midAngle);
+      const textColor = labelColorForSegment(seg.color);
+      const pct = Math.round(frac * 100);
+      labels.push(`
+        <text class="pieLabel" x="${textPos.x.toFixed(2)}" y="${textPos.y.toFixed(2)}" fill="${textColor}" text-anchor="middle" dominant-baseline="middle">
+          <tspan x="${textPos.x.toFixed(2)}" dy="-0.38em">${seg.value}</tspan>
+          <tspan x="${textPos.x.toFixed(2)}" dy="1.05em">${pct}%</tspan>
+        </text>
+      `);
+    }
+
     angleStart = angleEnd;
   });
 
   return `
     <svg viewBox="0 0 ${size} ${size}" role="img" aria-label="Themenverteilung">
       ${paths.join("\n")}
+      ${labels.join("\n")}
       <circle cx="${c}" cy="${c}" r="${innerR - 3}" fill="rgba(11,15,23,.82)" />
     </svg>
   `;
@@ -567,13 +603,13 @@ function buildSubtopicPie(topic) {
     color: sub.color
   }));
   const total = segments.reduce((sum, seg) => sum + seg.value, 0) || 1;
-  const pie = createPieChartSvg(segments, { size: 160, innerRatio: 0.45 });
+  const pie = createPieChartSvg(segments, { size: 170, innerRatio: 0.45, minLabelPct: 0.1 });
 
   const legend = segments.slice(0, 5).map((seg) => `
     <div class="miniLegend__row">
       <span class="miniLegend__dot" style="background:${seg.color}"></span>
       <span>${escapeHtml(seg.label)}</span>
-      <span>${Math.round((seg.value / total) * 100)}%</span>
+      <span>${seg.value} · ${Math.round((seg.value / total) * 100)}%</span>
     </div>
   `).join("");
 
@@ -638,7 +674,7 @@ function renderReviewAnalytics(summaryEl, data) {
   const bars = data.map((topic, idx) => `
     <button class="topicBar" type="button" data-topic-index="${idx}" data-mode="bar" style="--topic-color:${topic.color}">
       <div class="topicBar__head">
-        <span>${escapeHtml(topic.name)}</span>
+        <span>${escapeHtml(topic.name)} (${topic.total})</span>
         <span>${topic.correctPct}% richtig</span>
       </div>
       <div class="topicBar__track">
@@ -680,23 +716,51 @@ function renderReviewAnalytics(summaryEl, data) {
   summaryEl.appendChild(panel);
 
   const overlay = panel.querySelector("#topicOverlay");
+  let lockedKey = null;
+
+  const openTopicOverlay = (topic, mode) => {
+    overlay.hidden = false;
+    overlay.innerHTML = mode === "bar" ? buildSubtopicBars(topic) : buildSubtopicPie(topic);
+  };
+
+  const closeTopicOverlay = () => {
+    overlay.hidden = true;
+    overlay.innerHTML = "";
+  };
+
   const bindInteractive = (selector) => {
     panel.querySelectorAll(selector).forEach((el) => {
       const idx = Number(el.dataset.topicIndex);
       const mode = el.dataset.mode;
       const topic = data[idx];
       if (!topic) return;
+      const key = `${mode}:${idx}`;
 
-      const open = () => {
-        overlay.hidden = false;
-        overlay.innerHTML = mode === "bar" ? buildSubtopicBars(topic) : buildSubtopicPie(topic);
-      };
+      const open = () => openTopicOverlay(topic, mode);
 
-      el.addEventListener("mouseenter", open);
-      el.addEventListener("focus", open);
-      el.addEventListener("click", open);
-      el.addEventListener("mouseleave", () => { overlay.hidden = true; });
-      el.addEventListener("blur", () => { overlay.hidden = true; });
+      el.addEventListener("mouseenter", () => {
+        if (lockedKey && lockedKey !== key) return;
+        open();
+      });
+      el.addEventListener("focus", () => {
+        if (lockedKey && lockedKey !== key) return;
+        open();
+      });
+      el.addEventListener("click", () => {
+        if (lockedKey === key) {
+          lockedKey = null;
+          closeTopicOverlay();
+          return;
+        }
+        lockedKey = key;
+        open();
+      });
+      el.addEventListener("mouseleave", () => {
+        if (!lockedKey) closeTopicOverlay();
+      });
+      el.addEventListener("blur", () => {
+        if (!lockedKey) closeTopicOverlay();
+      });
     });
   };
 
@@ -712,6 +776,13 @@ function renderReviewAnalytics(summaryEl, data) {
     seg.setAttribute("role", "button");
   });
   bindInteractive(".pieSegment");
+
+  panel.addEventListener("keydown", (ev) => {
+    if (ev.key === "Escape") {
+      lockedKey = null;
+      closeTopicOverlay();
+    }
+  });
 }
 
 export function renderPager(totalCount, suffix="") {

@@ -584,6 +584,16 @@ summary { cursor: pointer; color: var(--muted); }
   outline: none;
 }
 
+.pieLabel{
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: .1px;
+  paint-order: stroke;
+  stroke: rgba(7,10,16,.55);
+  stroke-width: 2.8px;
+  pointer-events: none;
+}
+
 .topicLegendList{ display: grid; gap: 8px; max-height: 260px; overflow: auto; }
 
 .topicLegend{
