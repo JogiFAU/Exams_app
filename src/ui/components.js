@@ -3,13 +3,14 @@ import { letter } from "../utils.js";
 export function qMetaHtml(q, ordinal, { showTopics = true } = {}) {
   const img = (q.imageFiles && q.imageFiles.length) ? `<span class="pill">🖼️ ${q.imageFiles.length}</span>` : "";
   const exam = q.examName ? `<span class="pill">${q.examName}</span>` : "";
-  const superTopic = showTopics && q.aiSuperTopic ? `<span class="pill">Thema: ${q.aiSuperTopic}</span>` : "";
-  const subTopic = showTopics && q.aiSubtopic ? `<span class="pill">Unterthema: ${q.aiSubtopic}</span>` : "";
+  const topicPath = showTopics
+    ? [q.aiSuperTopic, q.aiSubtopic].filter(Boolean).join(" → ")
+    : "";
+  const topic = topicPath ? `<span class="pill">${topicPath}</span>` : "";
   return `
     <span class="pill">#${ordinal}</span>
     ${exam}
-    ${superTopic}
-    ${subTopic}
+    ${topic}
     ${img}
   `;
 }

@@ -547,3 +547,30 @@ summary { cursor: pointer; color: var(--muted); }
   font-weight: 600;
   opacity: 0.95;
 }
+
+.filterSection {
+  margin-top: 10px;
+}
+
+.filterSection__summary {
+  list-style: none;
+  cursor: pointer;
+  font-size: 12px;
+  color: var(--muted);
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+
+.filterSection__summary::-webkit-details-marker {
+  display: none;
+}
+
+.filterSection__summary::before {
+  content: "▾";
+  margin-right: 6px;
+  color: var(--muted);
+}
+
+.filterSection:not([open]) .filterSection__summary::before {
+  content: "▸";
+}

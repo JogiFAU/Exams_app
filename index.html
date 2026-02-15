@@ -65,11 +65,15 @@
       <section id="configQuiz">
         <h2>3) Abfragemodus konfigurieren</h2>
 
-        <label>Klausuren auswählen (Mehrfachauswahl möglich)</label>
-        <div id="examListQuiz" class="examlist"></div>
+        <details class="filterSection" open>
+          <summary class="filterSection__summary">Klausuren auswählen (Mehrfachauswahl möglich)</summary>
+          <div id="examListQuiz" class="examlist"></div>
+        </details>
 
-        <label style="margin-top:12px;">Themen auswählen (Mehrfachauswahl möglich)</label>
-        <div id="topicListQuiz" class="examlist"></div>
+        <details class="filterSection" open>
+          <summary class="filterSection__summary">Themen auswählen (Mehrfachauswahl möglich)</summary>
+          <div id="topicListQuiz" class="examlist"></div>
+        </details>
 
         <div class="subhead">Weitere Filter</div>
         <div class="filterbox">
@@ -135,11 +139,15 @@
       <section id="configSearch" hidden>
         <h2>3) Suchmodus konfigurieren</h2>
 
-        <label>Klausuren auswählen (optional)</label>
-        <div id="examListSearch" class="examlist"></div>
+        <details class="filterSection" open>
+          <summary class="filterSection__summary">Klausuren auswählen (optional)</summary>
+          <div id="examListSearch" class="examlist"></div>
+        </details>
 
-        <label style="margin-top:12px;">Themen auswählen (optional)</label>
-        <div id="topicListSearch" class="examlist"></div>
+        <details class="filterSection" open>
+          <summary class="filterSection__summary">Themen auswählen (optional)</summary>
+          <div id="topicListSearch" class="examlist"></div>
+        </details>
 
         <label>Bilder</label>
         <select id="imageFilterSearch">
