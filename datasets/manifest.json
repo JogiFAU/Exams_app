@@ -1,13 +1,22 @@
 {
   "datasets": [
     {
-      "id": "informatik",
-      "label": "Informatik",
+      "id": "informatik roh",
+      "label": "Informatik (DocsDocs roh)",
       "json": [
         "datasets/informatik/export.json"
       ],
       "zip": "datasets/informatik/images.zip",
       "notebookUrl": "https://notebooklm.google.com/notebook/38cdb701-fe88-408d-b9ab-a09c1e77e32a"
+    },
+
+    {
+      "id": "MiBi roh",
+      "label": "Mibi (DocsDocs roh)",
+      "json": [
+        "datasets/mibi_prac/export.json"
+      ],
+      "zip": "datasets/mibi_prac/images.zip"
 
     }
   ]
