@@ -432,26 +432,6 @@ function polarToCartesian(cx, cy, r, angleRad) {
   };
 }
 
-function parseHexColor(color) {
-  const value = String(color || "").trim();
-  if (!value.startsWith("#")) return null;
-  const raw = value.slice(1);
-  const hex = raw.length === 3 ? raw.split("").map((c) => c + c).join("") : raw;
-  if (hex.length !== 6 || /[^0-9a-f]/i.test(hex)) return null;
-  return {
-    r: parseInt(hex.slice(0, 2), 16),
-    g: parseInt(hex.slice(2, 4), 16),
-    b: parseInt(hex.slice(4, 6), 16)
-  };
-}
-
-function labelColorForSegment(bgColor) {
-  const rgb = parseHexColor(bgColor);
-  if (!rgb) return "#f8fbff";
-  const luminance = (0.299 * rgb.r + 0.587 * rgb.g + 0.114 * rgb.b) / 255;
-  return luminance > 0.62 ? "#111827" : "#f8fbff";
-}
-
 function createPieChartSvg(segments, { size = 240, innerRatio = 0.58, showLabels = true, minLabelPct = 0.07 } = {}) {
   const total = segments.reduce((sum, seg) => sum + seg.value, 0);
   if (!total) return "";
@@ -491,10 +471,9 @@ function createPieChartSvg(segments, { size = 240, innerRatio = 0.58, showLabels
       const midAngle = angleStart + sweep / 2;
       const labelRadius = innerR + ((outerR - innerR) * 0.5);
       const textPos = polarToCartesian(c, c, labelRadius, midAngle);
-      const textColor = labelColorForSegment(seg.color);
       const pct = Math.round(frac * 100);
       labels.push(`
-        <text class="pieLabel" x="${textPos.x.toFixed(2)}" y="${textPos.y.toFixed(2)}" fill="${textColor}" text-anchor="middle" dominant-baseline="middle">
+        <text class="pieLabel" x="${textPos.x.toFixed(2)}" y="${textPos.y.toFixed(2)}" fill="#f8fbff" text-anchor="middle" dominant-baseline="middle">
           <tspan x="${textPos.x.toFixed(2)}" dy="-0.38em">${seg.value}</tspan>
           <tspan x="${textPos.x.toFixed(2)}" dy="1.05em">${pct}%</tspan>
         </text>
@@ -602,14 +581,12 @@ function buildSubtopicPie(topic) {
     value: sub.total,
     color: sub.color
   }));
-  const total = segments.reduce((sum, seg) => sum + seg.value, 0) || 1;
   const pie = createPieChartSvg(segments, { size: 170, innerRatio: 0.45, minLabelPct: 0.1 });
 
   const legend = segments.slice(0, 5).map((seg) => `
     <div class="miniLegend__row">
       <span class="miniLegend__dot" style="background:${seg.color}"></span>
       <span>${escapeHtml(seg.label)}</span>
-      <span>${seg.value} · ${Math.round((seg.value / total) * 100)}%</span>
     </div>
   `).join("");
 
@@ -654,7 +631,6 @@ function renderReviewAnalytics(summaryEl, data) {
     return;
   }
 
-  const total = data.reduce((sum, topic) => sum + topic.total, 0) || 1;
   const pieSegments = data.map((topic) => ({
     label: topic.name,
     value: topic.total,
@@ -667,7 +643,6 @@ function renderReviewAnalytics(summaryEl, data) {
     <button class="topicLegend" type="button" data-topic-index="${idx}" data-mode="pie" style="--topic-color:${topic.color}">
       <span class="topicLegend__dot"></span>
       <span class="topicLegend__name">${escapeHtml(topic.name)}</span>
-      <span class="topicLegend__meta">${Math.round((topic.total / total) * 100)}% · ${topic.total} Fragen</span>
     </button>
   `).join("");
 

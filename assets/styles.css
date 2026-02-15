@@ -598,7 +598,7 @@ summary { cursor: pointer; color: var(--muted); }
 
 .topicLegend{
   display: grid;
-  grid-template-columns: 12px 1fr auto;
+  grid-template-columns: 12px 1fr;
   gap: 8px;
   align-items: center;
   width: 100%;
@@ -614,7 +614,6 @@ summary { cursor: pointer; color: var(--muted); }
 .topicLegend:focus{ border-color: rgba(122,162,255,.55); outline: none; }
 .topicLegend__dot{ width: 10px; height: 10px; border-radius: 999px; background: var(--topic-color); }
 .topicLegend__name{ font-size: 13px; font-weight: 700; }
-.topicLegend__meta{ font-size: 11px; color: var(--muted); }
 
 .topicBars{ display: grid; gap: 8px; }
 .topicBar{
@@ -654,7 +653,7 @@ summary { cursor: pointer; color: var(--muted); }
 .miniPanel__body--stack{ grid-template-columns: 1fr; }
 .miniPie svg{ width: 100%; display: block; }
 .miniLegend{ display: grid; gap: 6px; }
-.miniLegend__row{ display: grid; grid-template-columns: 10px 1fr auto; gap: 8px; font-size: 12px; }
+.miniLegend__row{ display: grid; grid-template-columns: 10px 1fr; gap: 8px; font-size: 12px; }
 .miniLegend__dot{ width: 10px; height: 10px; border-radius: 999px; margin-top: 3px; }
 
 .miniBarRow{ display: grid; grid-template-columns: 1fr 1fr auto; gap: 8px; align-items: center; }
