@@ -408,6 +408,358 @@ function renderTopicItem({ superTopic, subTopic = null, level = "super" }) {
   return { item, checkbox: cb };
 }
 
+function escapeHtml(text) {
+  return String(text || "")
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#39;");
+}
+
+function reviewPalette(i) {
+  const colors = [
+    "#7aa2ff", "#4cc9f0", "#72efdd", "#ffd166", "#f4978e", "#ff99c8",
+    "#84a59d", "#c77dff", "#90be6d", "#f9c74f", "#43aa8b", "#577590"
+  ];
+  return colors[i % colors.length];
+}
+
+function polarToCartesian(cx, cy, r, angleRad) {
+  return {
+    x: cx + r * Math.cos(angleRad),
+    y: cy + r * Math.sin(angleRad)
+  };
+}
+
+function createPieChartSvg(segments, { size = 240, innerRatio = 0.58, showLabels = true, minLabelPct = 0.07 } = {}) {
+  const total = segments.reduce((sum, seg) => sum + seg.value, 0);
+  if (!total) return "";
+
+  const c = size / 2;
+  const outerR = c - 2;
+  const innerR = outerR * innerRatio;
+  let angleStart = -Math.PI / 2;
+  const paths = [];
+  const labels = [];
+
+  segments.forEach((seg, idx) => {
+    const frac = seg.value / total;
+    const sweep = frac * Math.PI * 2;
+    const angleEnd = angleStart + sweep;
+
+    const p1 = polarToCartesian(c, c, outerR, angleStart);
+    const p2 = polarToCartesian(c, c, outerR, angleEnd);
+    const p3 = polarToCartesian(c, c, innerR, angleEnd);
+    const p4 = polarToCartesian(c, c, innerR, angleStart);
+    const largeArc = sweep > Math.PI ? 1 : 0;
+
+    paths.push(`
+      <path
+        class="pieSegment"
+        data-index="${idx}"
+        d="M ${p1.x.toFixed(3)} ${p1.y.toFixed(3)}
+           A ${outerR.toFixed(3)} ${outerR.toFixed(3)} 0 ${largeArc} 1 ${p2.x.toFixed(3)} ${p2.y.toFixed(3)}
+           L ${p3.x.toFixed(3)} ${p3.y.toFixed(3)}
+           A ${innerR.toFixed(3)} ${innerR.toFixed(3)} 0 ${largeArc} 0 ${p4.x.toFixed(3)} ${p4.y.toFixed(3)}
+           Z"
+        fill="${seg.color}"
+      />
+    `);
+
+    if (showLabels && frac >= minLabelPct) {
+      const midAngle = angleStart + sweep / 2;
+      const labelRadius = innerR + ((outerR - innerR) * 0.5);
+      const textPos = polarToCartesian(c, c, labelRadius, midAngle);
+      const pct = Math.round(frac * 100);
+      labels.push(`
+        <text class="pieLabel" x="${textPos.x.toFixed(2)}" y="${textPos.y.toFixed(2)}" fill="#f8fbff" text-anchor="middle" dominant-baseline="middle">
+          <tspan x="${textPos.x.toFixed(2)}" dy="-0.38em">${seg.value}</tspan>
+          <tspan x="${textPos.x.toFixed(2)}" dy="1.05em">${pct}%</tspan>
+        </text>
+      `);
+    }
+
+    angleStart = angleEnd;
+  });
+
+  return `
+    <svg viewBox="0 0 ${size} ${size}" role="img" aria-label="Themenverteilung">
+      ${paths.join("\n")}
+      ${labels.join("\n")}
+      <circle cx="${c}" cy="${c}" r="${innerR - 3}" fill="rgba(11,15,23,.82)" />
+    </svg>
+  `;
+}
+
+function computeTopicPerformance() {
+  const byId = questionIdIndex(state.questionsAll);
+  const topics = new Map();
+
+  for (const qid of state.questionOrder) {
+    const q = byId.get(qid);
+    if (!q) continue;
+
+    const superTopic = (q.aiSuperTopic || "Sonstige").trim() || "Sonstige";
+    const subTopic = (q.aiSubtopic || "Nicht zugeordnet").trim() || "Nicht zugeordnet";
+
+    if (!topics.has(superTopic)) {
+      topics.set(superTopic, {
+        name: superTopic,
+        total: 0,
+        answered: 0,
+        correct: 0,
+        wrong: 0,
+        subtopics: new Map()
+      });
+    }
+
+    const superBucket = topics.get(superTopic);
+    superBucket.total++;
+
+    if (!superBucket.subtopics.has(subTopic)) {
+      superBucket.subtopics.set(subTopic, {
+        name: subTopic,
+        total: 0,
+        answered: 0,
+        correct: 0,
+        wrong: 0
+      });
+    }
+
+    const subBucket = superBucket.subtopics.get(subTopic);
+    subBucket.total++;
+
+    if (state.submitted.has(qid)) {
+      superBucket.answered++;
+      subBucket.answered++;
+
+      const isCorrect = state.results.get(qid) === true;
+      if (isCorrect) {
+        superBucket.correct++;
+        subBucket.correct++;
+      } else {
+        superBucket.wrong++;
+        subBucket.wrong++;
+      }
+    }
+  }
+
+  const result = Array.from(topics.values())
+    .map((topic, i) => {
+      const answerBase = topic.answered || topic.total || 1;
+      const correctPct = Math.round((topic.correct / answerBase) * 100);
+      const wrongPct = Math.round((topic.wrong / answerBase) * 100);
+      const subtopics = Array.from(topic.subtopics.values())
+        .map((sub, subIdx) => {
+          const subBase = sub.answered || sub.total || 1;
+          return {
+            ...sub,
+            correctPct: Math.round((sub.correct / subBase) * 100),
+            wrongPct: Math.round((sub.wrong / subBase) * 100),
+            color: reviewPalette(i + subIdx + 2)
+          };
+        })
+        .sort((a, b) => b.total - a.total || a.name.localeCompare(b.name, "de"));
+
+      return {
+        ...topic,
+        color: reviewPalette(i),
+        correctPct,
+        wrongPct,
+        subtopics
+      };
+    })
+    .sort((a, b) => b.total - a.total || a.name.localeCompare(b.name, "de"));
+
+  return result;
+}
+
+function buildSubtopicPie(topic) {
+  const segments = topic.subtopics.map((sub) => ({
+    label: sub.name,
+    value: sub.total,
+    color: sub.color
+  }));
+  const pie = createPieChartSvg(segments, { size: 170, innerRatio: 0.45, minLabelPct: 0.1 });
+
+  const legend = segments.slice(0, 5).map((seg) => `
+    <div class="miniLegend__row">
+      <span class="miniLegend__dot" style="background:${seg.color}"></span>
+      <span>${escapeHtml(seg.label)}</span>
+    </div>
+  `).join("");
+
+  return `
+    <div class="miniPanel">
+      <div class="miniPanel__title">Unterthemen-Verteilung</div>
+      <div class="miniPanel__body">
+        <div class="miniPie">${pie}</div>
+        <div class="miniLegend">${legend}</div>
+      </div>
+    </div>
+  `;
+}
+
+function buildSubtopicBars(topic) {
+  const rows = topic.subtopics.slice(0, 6).map((sub) => `
+    <div class="miniBarRow">
+      <div class="miniBarRow__name">${escapeHtml(sub.name)}</div>
+      <div class="miniBarRow__track">
+        <span class="miniBarRow__ok" style="width:${sub.correctPct}%"></span>
+        <span class="miniBarRow__bad" style="width:${sub.wrongPct}%"></span>
+      </div>
+      <div class="miniBarRow__pct">${sub.correctPct}%</div>
+    </div>
+  `).join("");
+
+  return `
+    <div class="miniPanel">
+      <div class="miniPanel__title">Unterthemen-Leistung</div>
+      <div class="miniPanel__body miniPanel__body--stack">${rows || '<div class="small">Keine Unterthemen-Daten</div>'}</div>
+    </div>
+  `;
+}
+
+function renderReviewAnalytics(summaryEl, data) {
+  const panel = document.createElement("div");
+  panel.className = "topicAnalytics";
+
+  if (!data.length) {
+    panel.innerHTML = `<div class="small">Keine Themeninformationen verfügbar.</div>`;
+    summaryEl.appendChild(panel);
+    return;
+  }
+
+  const pieSegments = data.map((topic) => ({
+    label: topic.name,
+    value: topic.total,
+    color: topic.color
+  }));
+
+  const pieSvg = createPieChartSvg(pieSegments, { size: 260, innerRatio: 0.56 });
+
+  const pieLegend = data.map((topic, idx) => `
+    <button class="topicLegend" type="button" data-topic-index="${idx}" data-mode="pie" style="--topic-color:${topic.color}">
+      <span class="topicLegend__dot"></span>
+      <span class="topicLegend__name">${escapeHtml(topic.name)}</span>
+    </button>
+  `).join("");
+
+  const bars = data.map((topic, idx) => `
+    <button class="topicBar" type="button" data-topic-index="${idx}" data-mode="bar" style="--topic-color:${topic.color}">
+      <div class="topicBar__head">
+        <span>${escapeHtml(topic.name)} (${topic.total})</span>
+        <span>${topic.correctPct}% richtig</span>
+      </div>
+      <div class="topicBar__track">
+        <span class="topicBar__ok" style="width:${topic.correctPct}%"></span>
+        <span class="topicBar__bad" style="width:${topic.wrongPct}%"></span>
+      </div>
+    </button>
+  `).join("");
+
+  const recommendations = data
+    .filter((topic) => topic.correctPct < 55)
+    .sort((a, b) => a.correctPct - b.correctPct)
+    .map((topic) => `<li><strong>${escapeHtml(topic.name)}</strong> · ${topic.correctPct}% richtig (${topic.correct}/${topic.answered || topic.total})</li>`)
+    .join("");
+
+  panel.innerHTML = `
+    <div class="topicAnalytics__grid">
+      <section class="topicCard" aria-labelledby="topicDistHeading">
+        <h3 id="topicDistHeading">Verteilung nach Überthemen</h3>
+        <div class="topicPieWrap">
+          <div class="topicPie" id="superTopicPie">${pieSvg}</div>
+          <div class="topicLegendList">${pieLegend}</div>
+        </div>
+      </section>
+      <section class="topicCard" aria-labelledby="topicPerfHeading">
+        <h3 id="topicPerfHeading">Leistung pro Überthema (richtig/falsch)</h3>
+        <div class="topicBars">${bars}</div>
+      </section>
+    </div>
+    <div class="topicOverlay" id="topicOverlay" hidden></div>
+    <section class="topicCard topicCard--recommendations" aria-labelledby="topicRecoHeading">
+      <h3 id="topicRecoHeading">Lernempfehlungen</h3>
+      ${recommendations
+        ? `<p class="small">Fokus auf Themen unter 55% Trefferquote:</p><ul class="recoList">${recommendations}</ul>`
+        : `<p class="small">Sehr stark! Alle Überthemen liegen bei mindestens 55% richtigen Antworten.</p>`}
+    </section>
+  `;
+
+  summaryEl.appendChild(panel);
+
+  const overlay = panel.querySelector("#topicOverlay");
+  let lockedKey = null;
+
+  const openTopicOverlay = (topic, mode) => {
+    overlay.hidden = false;
+    overlay.innerHTML = mode === "bar" ? buildSubtopicBars(topic) : buildSubtopicPie(topic);
+  };
+
+  const closeTopicOverlay = () => {
+    overlay.hidden = true;
+    overlay.innerHTML = "";
+  };
+
+  const bindInteractive = (selector) => {
+    panel.querySelectorAll(selector).forEach((el) => {
+      const idx = Number(el.dataset.topicIndex);
+      const mode = el.dataset.mode;
+      const topic = data[idx];
+      if (!topic) return;
+      const key = `${mode}:${idx}`;
+
+      const open = () => openTopicOverlay(topic, mode);
+
+      el.addEventListener("mouseenter", () => {
+        if (lockedKey && lockedKey !== key) return;
+        open();
+      });
+      el.addEventListener("focus", () => {
+        if (lockedKey && lockedKey !== key) return;
+        open();
+      });
+      el.addEventListener("click", () => {
+        if (lockedKey === key) {
+          lockedKey = null;
+          closeTopicOverlay();
+          return;
+        }
+        lockedKey = key;
+        open();
+      });
+      el.addEventListener("mouseleave", () => {
+        if (!lockedKey) closeTopicOverlay();
+      });
+      el.addEventListener("blur", () => {
+        if (!lockedKey) closeTopicOverlay();
+      });
+    });
+  };
+
+  bindInteractive(".topicLegend");
+  bindInteractive(".topicBar");
+
+  const pieEl = panel.querySelector("#superTopicPie");
+  pieEl?.querySelectorAll(".pieSegment").forEach((seg) => {
+    const idx = Number(seg.dataset.index);
+    seg.dataset.topicIndex = String(idx);
+    seg.dataset.mode = "pie";
+    seg.setAttribute("tabindex", "0");
+    seg.setAttribute("role", "button");
+  });
+  bindInteractive(".pieSegment");
+
+  panel.addEventListener("keydown", (ev) => {
+    if (ev.key === "Escape") {
+      lockedKey = null;
+      closeTopicOverlay();
+    }
+  });
+}
+
 export function renderPager(totalCount, suffix="") {
   const pageSizeEl = $("pageSize" + suffix);
   const pageNumberEl = $("pageNumber" + suffix);
@@ -616,6 +968,7 @@ export async function renderMain() {
         ${pctCards}
       </div>
     `;
+    renderReviewAnalytics(summary, computeTopicPerformance());
     list.appendChild(summary);
   }
 
