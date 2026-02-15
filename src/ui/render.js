@@ -8,7 +8,6 @@ import { questionIdIndex } from "../quiz/filters.js";
 import { getLatestAnsweredResultsByQuestion } from "../data/storage.js";
 
 const MAX_RENDER_NO_PAGING = 1000;
-let notebookLmWindow = null;
 const NOTEBOOK_LM_WINDOW_NAME = "exam-generator-notebooklm";
 
 function getQuizMode() {
@@ -317,13 +316,13 @@ async function notebookExplain(q) {
     return;
   }
 
-  if (notebookLmWindow && !notebookLmWindow.closed) {
-    notebookLmWindow.focus();
+  const notebookLmTab = window.open(nb, NOTEBOOK_LM_WINDOW_NAME);
+  if (!notebookLmTab) {
+    toast("NotebookLM konnte nicht geöffnet werden (Popup-Blocker). Bitte Popups erlauben.");
     return;
   }
 
-  notebookLmWindow = window.open(nb, NOTEBOOK_LM_WINDOW_NAME);
-  if (notebookLmWindow && !notebookLmWindow.closed) notebookLmWindow.focus();
+  notebookLmTab.focus();
 }
 
 function renderToc() {
