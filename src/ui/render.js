@@ -436,6 +436,35 @@ function createPieChartSvg(segments, { size = 240, innerRatio = 0.58, showLabels
   const total = segments.reduce((sum, seg) => sum + seg.value, 0);
   if (!total) return "";
 
+  if (segments.length === 1) {
+    const c = size / 2;
+    const outerR = c - 2;
+    const innerR = outerR * innerRatio;
+    const seg = segments[0];
+    const labelRadius = innerR + ((outerR - innerR) * 0.5);
+    const textPos = polarToCartesian(c, c, labelRadius, -Math.PI / 2);
+
+    return `
+      <svg viewBox="0 0 ${size} ${size}" role="img" aria-label="Themenverteilung">
+        <circle
+          class="pieSegment"
+          data-index="0"
+          cx="${c}"
+          cy="${c}"
+          r="${outerR}"
+          fill="${seg.color}"
+        />
+        <circle cx="${c}" cy="${c}" r="${innerR}" fill="rgba(11,15,23,.82)" />
+        ${showLabels ? `
+          <text class="pieLabel" x="${textPos.x.toFixed(2)}" y="${textPos.y.toFixed(2)}" fill="#f8fbff" text-anchor="middle" dominant-baseline="middle">
+            <tspan x="${textPos.x.toFixed(2)}" dy="-0.38em">${seg.value}</tspan>
+            <tspan x="${textPos.x.toFixed(2)}" dy="1.05em">100%</tspan>
+          </text>
+        ` : ""}
+      </svg>
+    `;
+  }
+
   const c = size / 2;
   const outerR = c - 2;
   const innerR = outerR * innerRatio;
