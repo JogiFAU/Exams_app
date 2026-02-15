@@ -347,8 +347,9 @@ function renderTopicList(containerId, topics) {
 
     if (childCheckboxes.length) {
       parent.checkbox.addEventListener("change", () => {
+        const nextChecked = parent.checkbox.checked;
         for (const cb of childCheckboxes) {
-          cb.checked = parent.checkbox.checked;
+          cb.checked = nextChecked;
           cb.dispatchEvent(new Event("change", { bubbles: true }));
         }
       });
