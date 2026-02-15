@@ -538,3 +538,12 @@ summary { cursor: pointer; color: var(--muted); }
 }
 .sumcard__k{ font-size: 12px; opacity:.78; margin-bottom: 6px; font-weight: 800; }
 .sumcard__v{ font-size: 18px; font-weight: 900; letter-spacing:.2px; }
+
+.topicitem-sub .examleft {
+  padding-left: 18px;
+}
+
+.topicitem-sub .examname {
+  font-weight: 600;
+  opacity: 0.95;
+}

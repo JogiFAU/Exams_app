@@ -68,6 +68,9 @@
         <label>Klausuren auswählen (Mehrfachauswahl möglich)</label>
         <div id="examListQuiz" class="examlist"></div>
 
+        <label style="margin-top:12px;">Themen auswählen (Mehrfachauswahl möglich)</label>
+        <div id="topicListQuiz" class="examlist"></div>
+
         <div class="subhead">Weitere Filter</div>
         <div class="filterbox">
           <label>Bilder</label>
@@ -115,6 +118,11 @@
             <option value="practice">Übungsmodus (Feedback sofort)</option>
             <option value="exam">Prüfungsmodus (Feedback am Ende)</option>
           </select>
+
+          <label class="checkrow">
+            <input id="showTopicsInBanner" type="checkbox" checked />
+            <span>Themen im Frage-Banner anzeigen</span>
+          </label>
         </div>
 
         <div class="row2" style="margin-top:12px;">
@@ -129,6 +137,9 @@
 
         <label>Klausuren auswählen (optional)</label>
         <div id="examListSearch" class="examlist"></div>
+
+        <label style="margin-top:12px;">Themen auswählen (optional)</label>
+        <div id="topicListSearch" class="examlist"></div>
 
         <label>Bilder</label>
         <select id="imageFilterSearch">

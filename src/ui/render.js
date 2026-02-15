@@ -201,11 +201,15 @@ function getExamStatsMap() {
   return out;
 }
 
-export function updateExamLists() {
+export function updateFilterLists() {
   const exams = Array.from(new Set(state.questionsAll.map(q => q.examName).filter(Boolean))).sort();
   const stats = getExamStatsMap();
   renderExamList("examListQuiz", exams, stats);
   renderExamList("examListSearch", exams, stats);
+
+  const topics = getTopicTree();
+  renderTopicList("topicListQuiz", topics);
+  renderTopicList("topicListSearch", topics);
 }
 
 function renderExamList(containerId, exams, statsMap) {
@@ -283,6 +287,124 @@ function renderExamList(containerId, exams, statsMap) {
 
     el.appendChild(item);
   }
+}
+
+
+function getTopicTree() {
+  const tree = new Map();
+
+  for (const q of state.questionsAll) {
+    const superTopic = (q.aiSuperTopic || "").trim();
+    const subTopic = (q.aiSubtopic || "").trim();
+    if (!superTopic) continue;
+
+    if (!tree.has(superTopic)) tree.set(superTopic, new Set());
+    if (subTopic) tree.get(superTopic).add(subTopic);
+  }
+
+  return Array.from(tree.entries())
+    .sort(([a], [b]) => a.localeCompare(b, "de"))
+    .map(([superTopic, subSet]) => ({
+      superTopic,
+      subTopics: Array.from(subSet).sort((a, b) => a.localeCompare(b, "de"))
+    }));
+}
+
+function renderTopicList(containerId, topics) {
+  const el = $(containerId);
+  if (!el) return;
+  el.innerHTML = "";
+
+  for (const topic of topics) {
+    const parent = renderTopicItem({
+      superTopic: topic.superTopic,
+      level: "super"
+    });
+    el.appendChild(parent.item);
+
+    const childCheckboxes = [];
+    for (const subTopic of topic.subTopics) {
+      const child = renderTopicItem({
+        superTopic: topic.superTopic,
+        subTopic,
+        level: "sub"
+      });
+      childCheckboxes.push(child.checkbox);
+      el.appendChild(child.item);
+    }
+
+    const syncParentState = () => {
+      if (!childCheckboxes.length) {
+        parent.checkbox.indeterminate = false;
+        return;
+      }
+
+      const checkedCount = childCheckboxes.filter(cb => cb.checked).length;
+      parent.checkbox.checked = checkedCount === childCheckboxes.length;
+      parent.checkbox.indeterminate = checkedCount > 0 && checkedCount < childCheckboxes.length;
+      parent.item.classList.toggle("selected", parent.checkbox.checked || parent.checkbox.indeterminate);
+    };
+
+    if (childCheckboxes.length) {
+      parent.checkbox.addEventListener("change", () => {
+        for (const cb of childCheckboxes) {
+          cb.checked = parent.checkbox.checked;
+          cb.dispatchEvent(new Event("change", { bubbles: true }));
+        }
+      });
+
+      for (const cb of childCheckboxes) {
+        cb.addEventListener("change", () => syncParentState());
+      }
+
+      syncParentState();
+    }
+  }
+}
+
+function renderTopicItem({ superTopic, subTopic = null, level = "super" }) {
+  const item = document.createElement("div");
+  item.className = `examitem topicitem ${level === "sub" ? "topicitem-sub" : "topicitem-super"}`;
+
+  const left = document.createElement("div");
+  left.className = "examleft";
+
+  const cb = document.createElement("input");
+  cb.type = "checkbox";
+  if (level === "super") cb.dataset.topicSuper = superTopic;
+  else cb.dataset.topicSub = `${superTopic}::${subTopic}`;
+  cb.addEventListener("click", (e) => e.stopPropagation());
+
+  const name = document.createElement("div");
+  name.className = "examname";
+  name.textContent = level === "super" ? superTopic : subTopic;
+
+  left.appendChild(cb);
+  left.appendChild(name);
+  item.appendChild(left);
+
+  const right = document.createElement("div");
+  right.className = "examstats";
+  const label = document.createElement("div");
+  label.className = "exampct placeholder";
+  if (level === "super") {
+    label.textContent = subTopic ? subTopic : "Überthema";
+  } else {
+    label.textContent = "Unterthema";
+  }
+  right.appendChild(label);
+  item.appendChild(right);
+
+  const syncSelected = () => item.classList.toggle("selected", cb.checked);
+  syncSelected();
+  cb.addEventListener("change", syncSelected);
+
+  item.addEventListener("click", () => {
+    cb.checked = !cb.checked;
+    cb.dispatchEvent(new Event("change", { bubbles: true }));
+  });
+
+  return { item, checkbox: cb };
 }
 
 export function renderPager(totalCount, suffix="") {
@@ -551,7 +673,8 @@ async function renderQuestionList(qs, { allowSubmit, showSolutions }) {
 
     const meta = document.createElement("div");
     meta.className = "qmeta";
-    meta.innerHTML = qMetaHtml(q, offset + idx + 1);
+    const showTopicsInBanner = state.view === "search" ? true : (state.quizConfig?.showTopicsInBanner !== false);
+    meta.innerHTML = qMetaHtml(q, offset + idx + 1, { showTopics: showTopicsInBanner });
 
     const text = document.createElement("div");
     text.className = "qtext";
