@@ -787,6 +787,20 @@ function renderReviewAnalytics(summaryEl, data) {
       closeTopicOverlay();
     }
   });
+
+  const closeOnOutsideClick = (ev) => {
+    if (!panel.isConnected) {
+      document.removeEventListener("click", closeOnOutsideClick);
+      return;
+    }
+    const target = ev.target;
+    if (!(target instanceof Element)) return;
+    if (target.closest(".topicLegend, .topicBar, .pieSegment, .topicOverlay")) return;
+    lockedKey = null;
+    closeTopicOverlay();
+  };
+
+  document.addEventListener("click", closeOnOutsideClick);
 }
 
 export function renderPager(totalCount, suffix="") {
@@ -916,9 +930,9 @@ export async function renderMain() {
   if (!state.activeDataset) {
     mainInfo.innerHTML = `
       <div class="hero">
-        <div class="hero__title">Willkommen im Exam Generator</div>
+        <div class="hero__title">Willkommen bei DocsDocs für Arme in besser</div>
         <div class="hero__lead">
-          Wähle links zuerst einen Datensatz aus und lade ihn. Danach kannst du direkt im Abfragemodus starten oder im Suchmodus nach Inhalten suchen.
+          Wähle links zuerst einen Datensatz aus und lade ihn. Danach kannst du im Abfragemodus gezielt für Klausuren üben (mit Fortschritt, Auswertung und Review) oder im Suchmodus durch alle Fragen browsen. Nutze die Filter für Klausuren, Bilder, Schlagwörter und Themen, um deine Lernsession präzise einzugrenzen.
         </div>
         <div class="hero__stats">
           <div class="pill">🔎 Suche nach Stichwörtern</div>
