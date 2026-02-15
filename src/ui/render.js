@@ -308,8 +308,6 @@ async function notebookExplain(q) {
   if (!nb) {
     toast("Kein Notebook-Link im Datensatz hinterlegt.");
   } else {
-    if (notebookLmWindow?.closed) notebookLmWindow = null;
-
     if (notebookLmWindow) {
       try {
         notebookLmWindow.focus();
