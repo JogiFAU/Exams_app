@@ -1,6 +1,6 @@
 import { state } from "../state.js";
 import { $, letter, toast } from "../utils.js";
-import { isMultiCorrect } from "../quiz/evaluate.js";
+import { isMultiCorrect, getCorrectIndices } from "../quiz/evaluate.js";
 import { submitAnswer, unsubmitAnswer } from "../quiz/session.js";
 import { getImageUrl } from "../data/zipImages.js";
 import { qMetaHtml, buildExplainPrompt } from "./components.js";
@@ -26,6 +26,12 @@ function computeQuizProgress() {
 function solutionsVisible() {
   if (getQuizMode() === "practice") return true;
   return state.view === "review";
+}
+
+function usesOriginalSolutionInQuiz(q) {
+  return (state.view === "quiz" || state.view === "review") &&
+    state.quizConfig?.useAiModifiedAnswers === false &&
+    q.aiChangedAnswers;
 }
 
 export function renderHeaderProgress() {
@@ -1108,8 +1114,10 @@ async function renderQuestionList(qs, { allowSubmit, showSolutions }) {
     opts.className = "opts";
 
     const selectedOriginal = state.answers.get(qid) || [];
-    const correctSet = new Set(q.correctIndices || []);
-    const multi = isMultiCorrect(q);
+    const preferOriginal = usesOriginalSolutionInQuiz(q);
+    const effectiveCorrectIndices = getCorrectIndices(q, { preferOriginal });
+    const correctSet = new Set(effectiveCorrectIndices);
+    const multi = preferOriginal ? effectiveCorrectIndices.length > 1 : isMultiCorrect(q);
     const displayOrder = state.answerOrder.get(qid) || [...Array((q.answers || []).length).keys()];
 
     displayOrder.forEach((origIdx, displayIdx) => {
@@ -1156,12 +1164,61 @@ async function renderQuestionList(qs, { allowSubmit, showSolutions }) {
         }
       }
 
+      const shouldMarkOriginalInSearch = (
+        state.view === "search" &&
+        state.searchConfig?.onlyAiModified &&
+        q.aiChangedAnswers &&
+        Array.isArray(q.originalCorrectIndices) &&
+        q.originalCorrectIndices.includes(origIdx)
+      );
+      if (shouldMarkOriginalInSearch) {
+        wrap.classList.add("orig");
+        const marker = document.createElement("span");
+        marker.className = "origMarker";
+        marker.textContent = " · ursprünglich korrekt";
+        t.appendChild(marker);
+      }
+
       wrap.appendChild(inp);
       wrap.appendChild(t);
       opts.appendChild(wrap);
     });
 
     card.appendChild(opts);
+
+    if (preferOriginal && allowSubmit && submitted && showSolutions) {
+      const originalModeInfo = document.createElement("div");
+      originalModeInfo.className = "small";
+      originalModeInfo.style.marginTop = "8px";
+      originalModeInfo.textContent = "Bewertung mit ursprünglicher Lösung (KI-Bearbeitung deaktiviert).";
+      card.appendChild(originalModeInfo);
+    }
+
+    if (q.aiReasonDetailed && allowSubmit && submitted && showSolutions) {
+      const aiHint = document.createElement("div");
+      aiHint.className = "small";
+      aiHint.style.marginTop = "10px";
+      aiHint.textContent = `Hinweis (KI generiert): ${q.aiReasonDetailed}`;
+      card.appendChild(aiHint);
+    }
+
+    if (q.aiChangedAnswers && allowSubmit && submitted && showSolutions) {
+      const oldCorrectIndices = Array.isArray(q.originalCorrectIndices) ? q.originalCorrectIndices : [];
+      const oldCorrectText = oldCorrectIndices.length
+        ? oldCorrectIndices
+            .map((i) => {
+              const ansText = (q.answers || [])[i]?.text || "";
+              return `${letter(i)}) ${ansText}`;
+            })
+            .join(" · ")
+        : "nicht hinterlegt";
+
+      const oldCorrectInfo = document.createElement("div");
+      oldCorrectInfo.className = "small";
+      oldCorrectInfo.style.marginTop = "6px";
+      oldCorrectInfo.textContent = `Ursprünglich als richtig markiert: ${oldCorrectText}`;
+      card.appendChild(oldCorrectInfo);
+    }
 
     if (allowSubmit) {
       const actions = document.createElement("div");
@@ -1233,19 +1290,6 @@ async function renderQuestionList(qs, { allowSubmit, showSolutions }) {
       explainWrap.appendChild(explainBtn);
       explainWrap.appendChild(hint);
       card.appendChild(explainWrap);
-    }
-
-    if (q.explanation && allowSubmit && submitted && showSolutions) {
-      const det = document.createElement("details");
-      const sum = document.createElement("summary");
-      sum.textContent = "Notizen/Erklärung (Datensatz)";
-      const p = document.createElement("div");
-      p.className = "small";
-      p.style.marginTop = "8px";
-      p.textContent = q.explanation;
-      det.appendChild(sum);
-      det.appendChild(p);
-      card.appendChild(det);
     }
 
     list.appendChild(card);

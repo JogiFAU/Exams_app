@@ -70,7 +70,8 @@ export function submitAnswer(q) {
   const qid = q.id;
   const selected = state.answers.get(qid) || [];
   state.submitted.add(qid);
-  state.results.set(qid, evaluate(q, selected));
+  const preferOriginal = (state.quizConfig?.useAiModifiedAnswers === false) && q.aiChangedAnswers;
+  state.results.set(qid, evaluate(q, selected, { preferOriginal }));
   persistCurrentQuizSession();
 }
 

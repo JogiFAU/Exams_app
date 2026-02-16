@@ -51,6 +51,7 @@ function buildQuizConfigFromUi() {
     shuffleAnswers: $("shuffleAnswers").checked,
     quizMode: $("quizMode").value,
     showTopicsInBanner: !!$("showTopicsInBanner")?.checked,
+    useAiModifiedAnswers: !!$("useAiModifiedAnswers")?.checked,
   };
 }
 
@@ -99,6 +100,7 @@ function buildSearchConfigFromUi() {
     inAnswers: $("searchInAnswers").checked,
     wrongOnly: !!$("wrongOnlySearch")?.checked,
     showSolutions: $("searchShowSolutions").checked,
+    onlyAiModified: !!$("onlyAiModifiedSearch")?.checked,
   };
 }
 
@@ -133,6 +135,10 @@ function computeSearchSubset(config) {
   if (config.wrongOnly) {
     const wrong = getWrongQuestionIdSet();
     qs = qs.filter(q => wrong.has(q.id));
+  }
+
+  if (config.onlyAiModified) {
+    qs = qs.filter(q => q.aiChangedAnswers);
   }
 
   qs = searchQuestions(qs, { query: config.query, inAnswers: config.inAnswers });
@@ -241,6 +247,8 @@ function resetQuizConfig() {
   $("quizMode").value = "practice";
   const showTopics = $("showTopicsInBanner");
   if (showTopics) showTopics.checked = true;
+  const useAiModified = $("useAiModifiedAnswers");
+  if (useAiModified) useAiModified.checked = true;
   updatePreviewTexts();
 }
 
@@ -252,6 +260,8 @@ function resetSearchConfig() {
   const wo = $("wrongOnlySearch");
   if (wo) wo.checked = false;
   $("searchShowSolutions").checked = false;
+  const aiOnly = $("onlyAiModifiedSearch");
+  if (aiOnly) aiOnly.checked = false;
   updatePreviewTexts();
 }
 
@@ -297,8 +307,8 @@ export function wireUiEvents() {
   });
 
   [
-    "imageFilterQuiz","wrongOnlyQuiz","randomN","keywordFilter","keywordInAnswers","shuffleQuestions","shuffleAnswers","quizMode","showTopicsInBanner",
-    "imageFilterSearch","searchText","searchInAnswers","wrongOnlySearch","searchShowSolutions"
+    "imageFilterQuiz","wrongOnlyQuiz","randomN","keywordFilter","keywordInAnswers","shuffleQuestions","shuffleAnswers","quizMode","showTopicsInBanner","useAiModifiedAnswers",
+    "imageFilterSearch","searchText","searchInAnswers","wrongOnlySearch","searchShowSolutions","onlyAiModifiedSearch"
   ].forEach(id => {
     const el = $(id);
     el.addEventListener(el.tagName === "INPUT" ? "input" : "change", async () => {
