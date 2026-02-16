@@ -5,6 +5,15 @@ function normalizeQuestion(q) {
   const id = String(q.id || "").trim();
   if (!id) return null;
 
+  const aiReasonDetailed = normSpace(
+    q.AnswerReasonDetailed ||
+    q.answerReasonDetailed ||
+    q.aiAnswerReasonDetailed ||
+    q.aiAudit?.answerPlausibility?.verification?.reasonDetailed ||
+    q.aiAudit?.answerPlausibility?.passA?.reasonDetailed ||
+    ""
+  ) || null;
+
   return {
     id,
     examName: q.examName || null,
@@ -13,6 +22,7 @@ function normalizeQuestion(q) {
     examYear: (q.examYear != null ? Number(q.examYear) : null),
     text: normSpace(q.questionText || ""),
     explanation: normSpace(q.explanationText || "") || null,
+    aiReasonDetailed,
     answers: (q.answers || []).map(a => ({
       text: normSpace(a.text || ""),
       isCorrect: !!a.isCorrect

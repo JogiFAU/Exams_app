@@ -1163,6 +1163,14 @@ async function renderQuestionList(qs, { allowSubmit, showSolutions }) {
 
     card.appendChild(opts);
 
+    if (q.aiReasonDetailed && allowSubmit && submitted && showSolutions) {
+      const aiHint = document.createElement("div");
+      aiHint.className = "small";
+      aiHint.style.marginTop = "10px";
+      aiHint.textContent = `Hinweis (KI generiert): ${q.aiReasonDetailed}`;
+      card.appendChild(aiHint);
+    }
+
     if (allowSubmit) {
       const actions = document.createElement("div");
       actions.className = "actions";
@@ -1233,19 +1241,6 @@ async function renderQuestionList(qs, { allowSubmit, showSolutions }) {
       explainWrap.appendChild(explainBtn);
       explainWrap.appendChild(hint);
       card.appendChild(explainWrap);
-    }
-
-    if (q.explanation && allowSubmit && submitted && showSolutions) {
-      const det = document.createElement("details");
-      const sum = document.createElement("summary");
-      sum.textContent = "Notizen/Erklärung (Datensatz)";
-      const p = document.createElement("div");
-      p.className = "small";
-      p.style.marginTop = "8px";
-      p.textContent = q.explanation;
-      det.appendChild(sum);
-      det.appendChild(p);
-      card.appendChild(det);
     }
 
     list.appendChild(card);
