@@ -1,6 +1,6 @@
-# Exam Generator (DocsDocs Klausurtrainer)
+# DocsDocs, nur anders und besser
 
-Statische Web-App (GitHub Pages), ohne Build.
+https://jogifau.github.io/Exams_app/
 
 ## Daten
 - `datasets/manifest.json` steuert die Datensätze im Dropdown.
