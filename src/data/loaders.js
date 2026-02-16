@@ -14,6 +14,15 @@ function normalizeIndices(indices) {
     .sort((a, b) => a - b);
 }
 
+function indicesDiffer(a, b) {
+  if (!Array.isArray(a) || !Array.isArray(b)) return false;
+  if (a.length !== b.length) return true;
+  for (let i = 0; i < a.length; i++) {
+    if (a[i] !== b[i]) return true;
+  }
+  return false;
+}
+
 function normalizeQuestion(q) {
   const id = String(q.id || "").trim();
   if (!id) return null;
@@ -27,27 +36,18 @@ function normalizeQuestion(q) {
     ""
   ) || null;
 
-  const aiChangeSource = String(
-    q.aiAudit?.answerPlausibility?.changeSource ||
-    q.aiChangeSource ||
-    ""
-  ).trim().toLowerCase();
-
-  const aiChangedAnswers = !!(
-    q.aiAnswersModified === true ||
-    q.answerOptionsModifiedByAi === true ||
-    q.answerOptionsModified === true ||
-    q.aiAudit?.answerPlausibility?.changedInDataset === true ||
-    q.aiAudit?.answerPlausibility?.appliedChange === true ||
-    q.aiAudit?.answerPlausibility?.passA?.recommendChange === true ||
-    q.aiAudit?.answerPlausibility?.verification?.appliedChange === true ||
-    (aiChangeSource && aiChangeSource !== "none")
-  );
-
   const originalCorrectIndices = normalizeIndices(
     q.originalCorrectIndices ||
     q.aiAudit?.answerPlausibility?.originalCorrectIndices
   );
+
+  const finalCorrectIndices = normalizeIndices(
+    q.finalCorrectIndices ||
+    q.aiAudit?.answerPlausibility?.finalCorrectIndices ||
+    q.correctIndices
+  );
+
+  const aiChangedAnswers = indicesDiffer(originalCorrectIndices, finalCorrectIndices);
 
   return {
     id,

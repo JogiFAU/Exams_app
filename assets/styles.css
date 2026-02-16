@@ -197,7 +197,6 @@ hr.sep { border:0; border-top:1px solid var(--border); margin:14px 0; }
   align-items: center;
   gap: 6px;
 }
-.qmetaTraffic__label { font-weight: 800; }
 .qmetaTraffic__dot {
   width: 10px;
   height: 10px;

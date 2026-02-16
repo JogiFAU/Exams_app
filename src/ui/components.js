@@ -8,7 +8,6 @@ function maintenanceTrafficLightHtml(severity) {
 
   return `
     <span class="pill qmetaTraffic" title="KI-Einschätzung: Wartungsbedarf ${label} (${severityText})." aria-label="KI-Einschätzung Wartungsbedarf ${severityText}">
-      <span class="qmetaTraffic__label">KI</span>
       <span class="qmetaTraffic__dot qmetaTraffic__dot--${level}" aria-hidden="true"></span>
     </span>
   `;
