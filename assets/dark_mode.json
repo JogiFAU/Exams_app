@@ -1,6 +1,6 @@
 {
   "meta": {
-    "name": "Implemented Night Blue",
+    "name": "dark_mode",
     "basedOnImage": "extracted from current app styles",
     "version": "1.0"
   },
