@@ -1171,6 +1171,24 @@ async function renderQuestionList(qs, { allowSubmit, showSolutions }) {
       card.appendChild(aiHint);
     }
 
+    if (q.aiChangedAnswers && allowSubmit && submitted && showSolutions) {
+      const oldCorrectIndices = Array.isArray(q.originalCorrectIndices) ? q.originalCorrectIndices : [];
+      const oldCorrectText = oldCorrectIndices.length
+        ? oldCorrectIndices
+            .map((i) => {
+              const ansText = (q.answers || [])[i]?.text || "";
+              return `${letter(i)}) ${ansText}`;
+            })
+            .join(" · ")
+        : "nicht hinterlegt";
+
+      const oldCorrectInfo = document.createElement("div");
+      oldCorrectInfo.className = "small";
+      oldCorrectInfo.style.marginTop = "6px";
+      oldCorrectInfo.textContent = `Ursprünglich als richtig markiert: ${oldCorrectText}`;
+      card.appendChild(oldCorrectInfo);
+    }
+
     if (allowSubmit) {
       const actions = document.createElement("div");
       actions.className = "actions";
