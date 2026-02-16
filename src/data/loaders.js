@@ -36,8 +36,11 @@ function normalizeQuestion(q) {
   const aiChangedAnswers = !!(
     q.aiAnswersModified === true ||
     q.answerOptionsModifiedByAi === true ||
+    q.answerOptionsModified === true ||
     q.aiAudit?.answerPlausibility?.changedInDataset === true ||
     q.aiAudit?.answerPlausibility?.appliedChange === true ||
+    q.aiAudit?.answerPlausibility?.passA?.recommendChange === true ||
+    q.aiAudit?.answerPlausibility?.verification?.appliedChange === true ||
     (aiChangeSource && aiChangeSource !== "none")
   );
 

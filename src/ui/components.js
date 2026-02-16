@@ -1,13 +1,13 @@
 import { letter } from "../utils.js";
 
 function maintenanceTrafficLightHtml(severity) {
-  if (!Number.isFinite(severity)) return "";
-
-  const level = severity >= 3 ? "red" : severity >= 2 ? "yellow" : "green";
-  const label = severity >= 3 ? "hoch" : severity >= 2 ? "mittel" : "niedrig";
+  const hasSeverity = Number.isFinite(severity);
+  const level = !hasSeverity ? "unknown" : (severity >= 3 ? "red" : severity >= 2 ? "yellow" : "green");
+  const label = !hasSeverity ? "unbekannt" : (severity >= 3 ? "hoch" : severity >= 2 ? "mittel" : "niedrig");
+  const severityText = hasSeverity ? `Severity ${severity}` : "ohne Severity-Wert";
 
   return `
-    <span class="pill qmetaTraffic" title="KI-Einschätzung: Wartungsbedarf ${label} (Severity ${severity})." aria-label="KI-Einschätzung Wartungsbedarf Severity ${severity}">
+    <span class="pill qmetaTraffic" title="KI-Einschätzung: Wartungsbedarf ${label} (${severityText})." aria-label="KI-Einschätzung Wartungsbedarf ${severityText}">
       <span class="qmetaTraffic__label">KI</span>
       <span class="qmetaTraffic__dot qmetaTraffic__dot--${level}" aria-hidden="true"></span>
     </span>

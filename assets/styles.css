@@ -208,6 +208,7 @@ hr.sep { border:0; border-top:1px solid var(--border); margin:14px 0; }
 .qmetaTraffic__dot--green { background: #22c55e; }
 .qmetaTraffic__dot--yellow { background: #eab308; }
 .qmetaTraffic__dot--red { background: #ef4444; }
+.qmetaTraffic__dot--unknown { background: #64748b; }
 .qtext { margin-top: 8px; font-size: 16px; font-weight: 750; line-height: 1.35; }
 
 .opts { margin-top: 10px; display: grid; gap: 8px; }
@@ -226,6 +227,8 @@ hr.sep { border:0; border-top:1px solid var(--border); margin:14px 0; }
 .opt:hover { border-color: rgba(122,162,255,.55); background: rgba(29,42,68,.35); }
 .opt.ok { border-color: rgba(46,125,50,.7); background: rgba(15,36,21,.65); }
 .opt.bad { border-color: rgba(198,40,40,.7); background: rgba(42,16,16,.65); }
+.opt.orig { border-color: rgba(59,130,246,.65); background: rgba(18,35,65,.58); }
+.origMarker { color: #93c5fd; font-weight: 700; }
 
 .opt input { margin-top: 2px; cursor: pointer; }
 .opt .t { font-size: 14px; line-height: 1.35; }

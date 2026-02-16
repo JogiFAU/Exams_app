@@ -1,6 +1,6 @@
 import { state } from "../state.js";
 import { $, letter, toast } from "../utils.js";
-import { isMultiCorrect } from "../quiz/evaluate.js";
+import { isMultiCorrect, getCorrectIndices } from "../quiz/evaluate.js";
 import { submitAnswer, unsubmitAnswer } from "../quiz/session.js";
 import { getImageUrl } from "../data/zipImages.js";
 import { qMetaHtml, buildExplainPrompt } from "./components.js";
@@ -26,6 +26,12 @@ function computeQuizProgress() {
 function solutionsVisible() {
   if (getQuizMode() === "practice") return true;
   return state.view === "review";
+}
+
+function usesOriginalSolutionInQuiz(q) {
+  return (state.view === "quiz" || state.view === "review") &&
+    state.quizConfig?.useAiModifiedAnswers === false &&
+    q.aiChangedAnswers;
 }
 
 export function renderHeaderProgress() {
@@ -1108,8 +1114,10 @@ async function renderQuestionList(qs, { allowSubmit, showSolutions }) {
     opts.className = "opts";
 
     const selectedOriginal = state.answers.get(qid) || [];
-    const correctSet = new Set(q.correctIndices || []);
-    const multi = isMultiCorrect(q);
+    const preferOriginal = usesOriginalSolutionInQuiz(q);
+    const effectiveCorrectIndices = getCorrectIndices(q, { preferOriginal });
+    const correctSet = new Set(effectiveCorrectIndices);
+    const multi = preferOriginal ? effectiveCorrectIndices.length > 1 : isMultiCorrect(q);
     const displayOrder = state.answerOrder.get(qid) || [...Array((q.answers || []).length).keys()];
 
     displayOrder.forEach((origIdx, displayIdx) => {
@@ -1156,12 +1164,35 @@ async function renderQuestionList(qs, { allowSubmit, showSolutions }) {
         }
       }
 
+      const shouldMarkOriginalInSearch = (
+        state.view === "search" &&
+        state.searchConfig?.onlyAiModified &&
+        q.aiChangedAnswers &&
+        Array.isArray(q.originalCorrectIndices) &&
+        q.originalCorrectIndices.includes(origIdx)
+      );
+      if (shouldMarkOriginalInSearch) {
+        wrap.classList.add("orig");
+        const marker = document.createElement("span");
+        marker.className = "origMarker";
+        marker.textContent = " · ursprünglich korrekt";
+        t.appendChild(marker);
+      }
+
       wrap.appendChild(inp);
       wrap.appendChild(t);
       opts.appendChild(wrap);
     });
 
     card.appendChild(opts);
+
+    if (preferOriginal && allowSubmit && submitted && showSolutions) {
+      const originalModeInfo = document.createElement("div");
+      originalModeInfo.className = "small";
+      originalModeInfo.style.marginTop = "8px";
+      originalModeInfo.textContent = "Bewertung mit ursprünglicher Lösung (KI-Bearbeitung deaktiviert).";
+      card.appendChild(originalModeInfo);
+    }
 
     if (q.aiReasonDetailed && allowSubmit && submitted && showSolutions) {
       const aiHint = document.createElement("div");
