@@ -59,6 +59,8 @@
   --font-family-base: "Inter", "Segoe UI Variable", "SF Pro Text", "Helvetica Neue", Arial, sans-serif;
 }
 
+[hidden] { display: none !important; }
+
 * { box-sizing: border-box; }
 
 body {
