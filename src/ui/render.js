@@ -1109,15 +1109,20 @@ export async function renderMain() {
     mainInfo.innerHTML = `
       <div class="hero">
         <div class="hero__title">Willkommen bei DocsDocs für Arme in besser</div>
-        <div class="hero__lead">
-          Wähle links zuerst einen Datensatz aus und lade ihn. Danach kannst du im Abfragemodus gezielt für Klausuren üben (mit Fortschritt, Auswertung und Review) oder im Suchmodus durch alle Fragen browsen. Nutze die Filter für Klausuren, Bilder, Schlagwörter und Themen, um deine Lernsession präzise einzugrenzen.
-        </div>
         <div class="hero__stats">
-          <div class="pill">🔎 Suche nach Stichwörtern</div>
-          <div class="pill">🗂️ Filter nach Altklausuren</div>
-          <div class="pill">🏷️ Filter nach Schlagwörtern</div>
-          <div class="pill">🧪 Themen-Filter (in construction)</div>
+          <div class="pill">📚 2 Datensätze im Manifest hinterlegt</div>
+          <div class="pill">🧠 Abfrage + Suchmodus in einer App</div>
+          <div class="pill">💾 Lokale Lernstände inkl. Backup/Import</div>
+          <div class="pill">🖼️ Bildfragen via ZIP-Support</div>
         </div>
+        <div class="hero__lead">
+          Diese App läuft vollständig im Browser und ist für effizientes Klausurtraining gedacht. Starte links mit der Datensatz-Auswahl und klicke auf „Datensatz laden“. Danach kannst du zwischen zwei klar getrennten Lernwegen wechseln:
+        </div>
+        <ul class="hero__list">
+          <li><strong>Abfragemodus:</strong> klassische Übungssession mit Fortschritt, Abgabe pro Frage, Abschlussauswertung und optionalem Wiederholen falscher Fragen.</li>
+          <li><strong>Suchmodus:</strong> gezieltes Durchsuchen der gesamten Fragenbasis mit Filterung nach Klausur, Themen, Bildern und Stichwörtern.</li>
+          <li><strong>Flexibel trainieren:</strong> nutze Zufalls-Subset, Mischoptionen und „nur falsch beantwortete Fragen“, um fokussierte Lernblöcke zu bauen.</li>
+        </ul>
       </div>
     `;
     return;
@@ -1131,14 +1136,25 @@ export async function renderMain() {
     mainInfo.innerHTML = `
       <div class="hero">
         <div class="hero__title">${isSearchTab ? "Suchmodus konfigurieren" : "Abfragemodus konfigurieren"}</div>
+        <div class="hero__stats">
+          <div class="pill">${isSearchTab ? `Ausgewählte Fragen: ${sc}` : `Ausgewählte Fragen: ${qc}`}</div>
+        </div>
         <div class="hero__lead">
           ${isSearchTab
-            ? "Wähle Klausuren und Suchfilter im linken Bereich. Die Anzahl der im Suchmodus sichtbaren Fragen wird hier live aktualisiert."
-            : "Wähle Klausuren und Filter im linken Bereich. Die Anzahl der aktuell ausgewählten Fragen wird hier live aktualisiert."}
+            ? "Im Suchmodus kannst du deinen Datenbestand explorativ durchsuchen. Nutze links Klausur-, Themen-, Bild- und Suchfilter und entscheide, ob Lösungen direkt sichtbar sein sollen. Die Trefferzahl wird hier live aktualisiert."
+            : "Im Abfragemodus stellst du dir eine gezielte Trainingssession zusammen: wähle Klausuren/Themen, beschränke auf Bildfragen oder nur zuletzt falsche Fragen, nutze optional Zufalls-Subset sowie Shuffle und entscheide zwischen Übungs- und Prüfungsmodus."}
         </div>
-        <div class="hero__stats">
-          <div class="pill">${isSearchTab ? `Treffer im Suchmodus: ${sc}` : `Aktuell gewählte Fragen: ${qc}`}</div>
-        </div>
+        ${isSearchTab
+          ? `<ul class="hero__list">
+               <li>Setze einen Suchbegriff, um Frage- und optional Antworttexte zu durchsuchen.</li>
+               <li>Kombiniere Suchbegriff mit Klausur- und Themenfiltern für sehr präzise Treffer.</li>
+               <li>Aktiviere „Nur KI-modifizierte Fragen“, wenn du gezielt AI-überarbeitete Inhalte prüfen möchtest.</li>
+             </ul>`
+          : `<ul class="hero__list">
+               <li><strong>Übungsmodus:</strong> direktes Feedback nach dem Beantworten einzelner Fragen.</li>
+               <li><strong>Prüfungsmodus:</strong> neutrale Darstellung ohne vorzeitige Ergebnisanzeige, Auswertung am Ende.</li>
+               <li>Nach Abschluss kannst du die komplette Session oder nur falsche Antworten erneut trainieren.</li>
+             </ul>`}
       </div>
     `;
     return;

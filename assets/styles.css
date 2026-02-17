@@ -166,11 +166,11 @@ body {
 
 .card h2 {
   margin: 0 0 10px 0;
-  font-size: 13px;
-  font-weight: 800;
-  color: var(--muted);
-  text-transform: uppercase;
-  letter-spacing: .8px;
+  font-size: 15px;
+  font-weight: 900;
+  color: var(--text);
+  text-transform: none;
+  letter-spacing: .2px;
 }
 
 .small { font-size: 12px; color: var(--muted); line-height: 1.35; }
@@ -802,14 +802,15 @@ summary { cursor: pointer; color: var(--muted); }
 /* Section subhead (Konfigurationsmenü) */
 .subhead{
   margin-top: 12px;
-  padding: 8px 10px;
-  border-radius: 14px;
-  background: var(--selected-bg);
-  border: 1px solid var(--interactive-border-soft);
+  padding: 4px 2px;
+  border-radius: 0;
+  background: transparent;
+  border: 0;
   color: var(--muted);
   font-size: 12px;
-  font-weight: 700;
-  letter-spacing: .15px;
+  font-weight: 800;
+  letter-spacing: .25px;
+  text-transform: uppercase;
 }
 .muted{ opacity:.72; font-weight:700; }
 
@@ -852,6 +853,16 @@ summary { cursor: pointer; color: var(--muted); }
   opacity: .86;
   margin-bottom: 10px;
   line-height: 1.5;
+}
+.hero__list{
+  margin: 10px 0 12px;
+  padding-left: 18px;
+  display: grid;
+  gap: 6px;
+  font-size: 14px;
+  line-height: 1.45;
+  color: var(--text-on-selected);
+  opacity: .9;
 }
 .hero__stats{
   display: flex;
