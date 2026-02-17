@@ -994,13 +994,15 @@ function renderToc() {
 }
 
 
-function buildClusterModalQuestionCard(q, ordinal, { showExplanations = true } = {}) {
+function buildClusterModalQuestionCard(q, ordinal, { showExplanations = true, showSolutions = true } = {}) {
   const correctSet = new Set(getCorrectIndices(q));
   const answers = (q.answers || []).map((a, idx) => {
-    const cls = correctSet.has(idx) ? "opt ok" : "opt";
+    const isCorrect = correctSet.has(idx);
+    const cls = showSolutions && isCorrect ? "opt ok" : "opt";
+    const checked = showSolutions && isCorrect ? "checked" : "";
     return `
       <div class="${cls}">
-        <input type="checkbox" disabled ${correctSet.has(idx) ? "checked" : ""} />
+        <input type="checkbox" disabled ${checked} />
         <div class="t">${escapeHtml(`${letter(idx)}) ${a?.text || ""}`)}</div>
       </div>
     `;
@@ -1040,6 +1042,7 @@ export function openClusterQuestionsDialog(questionId) {
   const subtitle = $("clusterDialogSubtitle");
   const body = $("clusterDialogBody");
   const explainToggle = $("clusterDialogShowExplanations");
+  const solutionsToggle = $("clusterDialogShowSolutions");
 
   const relatedIds = [source.id, ...(source.clusterRelatedIds || [])];
   const idx = questionIdIndex(state.questionsAll);
@@ -1048,8 +1051,9 @@ export function openClusterQuestionsDialog(questionId) {
   const renderClusterModalQuestions = () => {
     if (!body) return;
     const showExplanations = explainToggle ? explainToggle.checked : true;
+    const showSolutions = solutionsToggle ? solutionsToggle.checked : true;
     body.innerHTML = clusterQuestions
-      .map((q, i) => buildClusterModalQuestionCard(q, i + 1, { showExplanations }))
+      .map((q, i) => buildClusterModalQuestionCard(q, i + 1, { showExplanations, showSolutions }))
       .join("");
   };
 
@@ -1058,6 +1062,10 @@ export function openClusterQuestionsDialog(questionId) {
   if (explainToggle) {
     explainToggle.checked = true;
     explainToggle.onchange = () => renderClusterModalQuestions();
+  }
+  if (solutionsToggle) {
+    solutionsToggle.checked = true;
+    solutionsToggle.onchange = () => renderClusterModalQuestions();
   }
 
   renderClusterModalQuestions();

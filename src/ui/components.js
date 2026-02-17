@@ -140,7 +140,7 @@ export function qMetaHtml(q, ordinal, { showTopics = true } = {}) {
           <strong>${Math.max(0, Number(q.clusterSize || 0) - 1)} ähnliche Fragen im Cluster erkannt.</strong>
           <span>${escHtml(q.clusterLabel || "Fragencluster")}</span>
           <span>Abstraktion: ${escHtml(q.questionAbstraction || "Keine Abstraktion hinterlegt.")}</span>
-          <button class="btn primary clusterBadge__action clusterBadge__action--cta" type="button" data-cluster-show="${q.id}">👉 Fragen anzeigen</button>
+          <button class="btn primary clusterBadge__action clusterBadge__action--cta" type="button" data-cluster-show="${q.id}">Fragen anzeigen</button>
         </span>
       </span>
     `
