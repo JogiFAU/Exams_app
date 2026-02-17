@@ -48,6 +48,17 @@ function normalizeQuestion(q) {
   );
 
   const aiChangedAnswers = indicesDiffer(originalCorrectIndices, finalCorrectIndices);
+  const aiConfidence = toNumberOrNull(
+    q.aiAnswerConfidence ??
+    q.aiAudit?.answerPlausibility?.verification?.confidence ??
+    q.aiAudit?.answerPlausibility?.passA?.confidence
+  );
+
+  const aiMaintenanceReasons = Array.isArray(q.aiMaintenanceReasons)
+    ? q.aiMaintenanceReasons.map(x => normSpace(String(x || ""))).filter(Boolean)
+    : (Array.isArray(q.aiAudit?.maintenance?.reasons)
+      ? q.aiAudit.maintenance.reasons.map(x => normSpace(String(x || ""))).filter(Boolean)
+      : []);
 
   return {
     id,
@@ -55,6 +66,8 @@ function normalizeQuestion(q) {
     aiSuperTopic: normSpace(q.aiSuperTopic || "") || null,
     aiSubtopic: normSpace(q.aiSubtopic || "") || null,
     aiMaintenanceSeverity: toNumberOrNull(q.aiMaintenanceSeverity ?? q.aiAudit?.maintenance?.severity),
+    aiMaintenanceReasons,
+    aiConfidence,
     aiChangedAnswers,
     originalCorrectIndices,
     examYear: (q.examYear != null ? Number(q.examYear) : null),

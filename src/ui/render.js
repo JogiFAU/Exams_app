@@ -1232,9 +1232,18 @@ async function renderQuestionList(qs, { allowSubmit, showSolutions }) {
 
     if (q.aiReasonDetailed && allowSubmit && submitted && showSolutions) {
       const aiHint = document.createElement("div");
-      aiHint.className = "small";
-      aiHint.style.marginTop = "10px";
-      aiHint.textContent = `Hinweis (KI generiert): ${q.aiReasonDetailed}`;
+      aiHint.className = "aiHintBox";
+
+      const aiHintTitle = document.createElement("div");
+      aiHintTitle.className = "aiHintBox__title";
+      aiHintTitle.textContent = "Hinweis (KI-generiert):";
+
+      const aiHintText = document.createElement("p");
+      aiHintText.className = "aiHintBox__text";
+      aiHintText.textContent = q.aiReasonDetailed;
+
+      aiHint.appendChild(aiHintTitle);
+      aiHint.appendChild(aiHintText);
       card.appendChild(aiHint);
     }
 
