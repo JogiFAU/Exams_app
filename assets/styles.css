@@ -54,6 +54,7 @@
   --bg-gradient-accent: rgba(229,0,125,.18);
   --text-on-selected: #ffffff;
   --text-on-focus: #ffffff;
+  --question-option-text: #f8fbff;
 }
 
 * { box-sizing: border-box; }
@@ -269,7 +270,7 @@ hr.sep { border:0; border-top:1px solid var(--border); margin:14px 0; }
 .origMarker { color: var(--focus); font-weight: 700; }
 
 .opt input { margin-top: 2px; cursor: pointer; }
-.opt .t { font-size: 14px; line-height: 1.35; }
+.opt .t { font-size: 14px; line-height: 1.35; color: var(--question-option-text); }
 
 .actions { display: flex; gap: 10px; margin-top: 10px; flex-wrap: wrap; }
 

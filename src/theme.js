@@ -157,9 +157,10 @@ function toCssVars(themeData) {
   const overlayBase = stateColors.hoverOverlay || "#ffffff10";
   const textLight = text.onAccentLight || "#ffffff";
   const textDark = text.onAccentDark || "#12091f";
-  const selectedBg = stateColors.selectedOverlay || hexToRgba(accent3, 0.14);
-  const selectedBgSoft = hexToRgba(accent3, 0.08);
-  const focusColor = accent3 || component.input?.focusBorder || "#7aa2ff";
+  const uiAccent = component.input?.focusBorder || accent1 || accent3;
+  const selectedBg = stateColors.selectedOverlay || hexToRgba(uiAccent, 0.14);
+  const selectedBgSoft = hexToRgba(uiAccent, 0.08);
+  const focusColor = component.input?.focusBorder || accent1 || accent3 || "#7aa2ff";
   const primaryText = aliases.Text1 || text.text1 || "#e8eefc";
   const mutedText = aliases.Text2 || text.text2 || "#a9b4cc";
   const successBase = semantic.success?.bg || aliases.Greenlight || "#2e7d32";
@@ -193,6 +194,14 @@ function toCssVars(themeData) {
     light: textLight,
     dark: textDark,
     minRatio: 4.5,
+  });
+  const questionOptionText = pickReadableText({
+    background: surface1,
+    baseBackground: bg1,
+    preferred: textLight,
+    light: textLight,
+    dark: textSafe,
+    minRatio: 6,
   });
 
   return {
@@ -246,6 +255,7 @@ function toCssVars(themeData) {
     "--surface-overlay": overlayBase,
     "--text-on-selected": textOnSelected,
     "--text-on-focus": textOnFocus,
+    "--question-option-text": questionOptionText,
   };
 }
 
