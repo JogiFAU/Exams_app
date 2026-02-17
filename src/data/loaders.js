@@ -36,6 +36,13 @@ function normalizeQuestion(q) {
     ""
   ) || null;
 
+  const aiTopicReason = normSpace(
+    q.aiTopicReason ||
+    q.aiAudit?.topicFinal?.reasonShort ||
+    q.aiAudit?.topicInitial?.reasonShort ||
+    ""
+  ) || null;
+
   const originalCorrectIndices = normalizeIndices(
     q.originalCorrectIndices ||
     q.aiAudit?.answerPlausibility?.originalCorrectIndices
@@ -47,7 +54,10 @@ function normalizeQuestion(q) {
     q.correctIndices
   );
 
-  const aiChangedAnswers = indicesDiffer(originalCorrectIndices, finalCorrectIndices);
+  const changedInDataset = q.aiAudit?.answerPlausibility?.changedInDataset;
+  const aiChangedAnswers = (typeof changedInDataset === "boolean")
+    ? changedInDataset
+    : (originalCorrectIndices.length > 0 && finalCorrectIndices.length > 0 && indicesDiffer(originalCorrectIndices, finalCorrectIndices));
   const aiConfidence = toNumberOrNull(
     q.aiAnswerConfidence ??
     q.aiAudit?.answerPlausibility?.verification?.confidence ??
@@ -74,6 +84,7 @@ function normalizeQuestion(q) {
     text: normSpace(q.questionText || ""),
     explanation: normSpace(q.explanationText || "") || null,
     aiReasonDetailed,
+    aiTopicReason,
     answers: (q.answers || []).map(a => ({
       text: normSpace(a.text || ""),
       isCorrect: !!a.isCorrect

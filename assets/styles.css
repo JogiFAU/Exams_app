@@ -235,9 +235,6 @@ hr.sep { border:0; border-top:1px solid var(--border); margin:14px 0; }
   display: inline-flex;
   align-items: center;
   gap: 6px;
-}
-
-.qmetaTraffic {
   position: relative;
   cursor: help;
 }
@@ -273,6 +270,37 @@ hr.sep { border:0; border-top:1px solid var(--border); margin:14px 0; }
 .qmetaTraffic:focus-within .qmetaTraffic__tip {
   opacity: 1;
 }
+
+.qmetaTopic {
+  position: relative;
+  cursor: help;
+}
+.qmetaTopic__tip {
+  position: absolute;
+  left: 0;
+  top: calc(100% + 8px);
+  width: min(340px, 78vw);
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: var(--surface-header);
+  color: var(--text);
+  box-shadow: 0 10px 24px var(--shadow-color);
+  font-size: 12px;
+  line-height: 1.4;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .12s ease;
+  z-index: 7;
+}
+.qmetaTopic__tip strong {
+  display: block;
+  margin-bottom: 6px;
+}
+.qmetaTopic:hover .qmetaTopic__tip,
+.qmetaTopic:focus-within .qmetaTopic__tip {
+  opacity: 1;
+}
 .qmetaTraffic__dot {
   width: 10px;
   height: 10px;
@@ -285,6 +313,14 @@ hr.sep { border:0; border-top:1px solid var(--border); margin:14px 0; }
 .qmetaTraffic__dot--red { background: var(--traffic-red); }
 .qmetaTraffic__dot--unknown { background: var(--traffic-unknown); }
 .qtext { margin-top: 8px; font-size: 16px; font-weight: 750; line-height: 1.35; }
+
+.qsignal {
+  background: color-mix(in srgb, var(--traffic-yellow) 35%, transparent);
+  color: var(--text);
+  padding: 0 3px;
+  border-radius: 4px;
+  font-weight: 800;
+}
 
 .aiHintBox {
   margin-top: 10px;
@@ -385,6 +421,10 @@ hr.sep { border:0; border-top:1px solid var(--border); margin:14px 0; }
   .qmetaTraffic__tip {
     right: auto;
     left: 0;
+    width: min(320px, 85vw);
+  }
+
+  .qmetaTopic__tip {
     width: min(320px, 85vw);
   }
 }

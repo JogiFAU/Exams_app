@@ -1,5 +1,16 @@
 import { letter } from "../utils.js";
 
+const INDEX_CONTEXT_RE = /\b(Antwort(?:option)?|Option|Index(?:es)?|Indices?)\s*([:#(\[]\s*)?(\d+)\b/gi;
+
+export function formatAiTextForDisplay(text) {
+  const raw = String(text || "");
+  return raw.replace(INDEX_CONTEXT_RE, (_, prefix, sep = " ", n) => {
+    const idx = Number(n);
+    if (!Number.isInteger(idx)) return _;
+    return `${prefix}${sep}${idx + 1}`;
+  });
+}
+
 function questionMentionsImageWithoutAttachment(q) {
   const text = String(q?.text || "").toLowerCase();
   const hasImageRef = /(abbildung|bildanhang|siehe bild|grafik|schaubild|darstellung|anhang)/i.test(text);
@@ -18,43 +29,46 @@ function hasAmbiguousAnswerOptions(q) {
 
 function evaluateQualityTraffic(q) {
   const reasons = [];
-  let score = 0;
+  let hardIssue = false;
+  let softIssueCount = 0;
 
   const severity = Number(q?.aiMaintenanceSeverity);
   if (Number.isFinite(severity)) {
-    score += severity - 1;
     reasons.push(`KI-Wartungsbedarf: Severity ${severity}`);
+    if (severity >= 3) hardIssue = true;
+    else if (severity >= 2) softIssueCount += 1;
   } else {
     reasons.push("Kein KI-Severity-Wert vorhanden");
   }
 
   if (Array.isArray(q?.aiMaintenanceReasons) && q.aiMaintenanceReasons.length) {
-    reasons.push(...q.aiMaintenanceReasons.map(r => `KI-Hinweis: ${r}`));
+    reasons.push(...q.aiMaintenanceReasons.map(r => `KI-Hinweis: ${formatAiTextForDisplay(r)}`));
   }
 
   const answerCount = Array.isArray(q?.answers) ? q.answers.length : 0;
   if (answerCount <= 2) {
-    score += 2;
-    reasons.push("Nur 2 Antwortoptionen vorhanden (geringere Trennschärfe)");
+    softIssueCount += 1;
+    reasons.push("Nur 2 Antwortoptionen vorhanden (maximal gelb/orange ohne weitere Probleme)");
   }
 
   const confidence = Number(q?.aiConfidence);
   if (Number.isFinite(confidence) && confidence < 0.6) {
-    score += confidence < 0.45 ? 3 : 2;
+    if (confidence < 0.45) hardIssue = true;
+    else softIssueCount += 1;
     reasons.push(`Niedrige KI-Confidence zur Korrektheit (${Math.round(confidence * 100)}%)`);
   }
 
   if (questionMentionsImageWithoutAttachment(q)) {
-    score += 3;
-    reasons.push("Frage verweist auf Bild/Anhang, aber es ist kein Bild hinterlegt");
+    softIssueCount += 1;
+    reasons.push("Frage verweist auf Bild/Anhang, aber es ist kein Bild hinterlegt (allein max. gelb/orange)");
   }
 
   if (hasAmbiguousAnswerOptions(q)) {
-    score += 2;
+    softIssueCount += 1;
     reasons.push("Antwortoptionen wirken mehrdeutig/unklar");
   }
 
-  const level = score >= 4 ? "red" : score >= 2 ? "yellow" : "green";
+  const level = hardIssue || softIssueCount >= 2 ? "red" : softIssueCount === 1 ? "yellow" : "green";
   const label = level === "red" ? "kritisch" : level === "yellow" ? "mittel" : "gut";
   return { level, label, reasons };
 }
@@ -66,7 +80,7 @@ function maintenanceTrafficLightHtml(q) {
     : "<li>Keine Auffälligkeiten erkannt.</li>";
 
   return `
-    <span class="pill qmetaTraffic" aria-label="Qualitätsampel: ${quality.label}">
+    <span class="pill qmetaTraffic" aria-label="Qualitätsampel: ${quality.label}" tabindex="0">
       <span class="qmetaTraffic__dot qmetaTraffic__dot--${quality.level}" aria-hidden="true"></span>
       <span class="qmetaTraffic__tip" role="tooltip">
         <strong>Qualitätseinstufung: ${quality.label}</strong>
@@ -76,13 +90,27 @@ function maintenanceTrafficLightHtml(q) {
   `;
 }
 
+function topicInfoHtml(q) {
+  const topicPath = [q.aiSuperTopic, q.aiSubtopic].filter(Boolean).join(" → ");
+  if (!topicPath) return "";
+
+  const reasonRaw = q.aiTopicReason || "Keine KI-Begründung zur Themenzuordnung vorhanden.";
+  const reason = formatAiTextForDisplay(reasonRaw);
+  return `
+    <span class="pill qmetaTopic" tabindex="0" aria-label="Themenzuordnung mit KI-Begründung">
+      ${topicPath}
+      <span class="qmetaTopic__tip" role="tooltip">
+        <strong>KI-Themenzuordnung</strong>
+        <span>${reason}</span>
+      </span>
+    </span>
+  `;
+}
+
 export function qMetaHtml(q, ordinal, { showTopics = true } = {}) {
   const img = (q.imageFiles && q.imageFiles.length) ? `<span class="pill">🖼️ ${q.imageFiles.length}</span>` : "";
   const exam = q.examName ? `<span class="pill">${q.examName}</span>` : "";
-  const topicPath = showTopics
-    ? [q.aiSuperTopic, q.aiSubtopic].filter(Boolean).join(" → ")
-    : "";
-  const topic = topicPath ? `<span class="pill">${topicPath}</span>` : "";
+  const topic = showTopics ? topicInfoHtml(q) : "";
 
   const aiChangedBadge = q.aiChangedAnswers
     ? `<span class="pill" title="KI-Hinweis: Die Antwortoption(en) wurden gegenüber der ursprünglichen Markierung verändert." aria-label="Antwortoptionen wurden durch KI verändert">🤖 Antwort geändert</span>`

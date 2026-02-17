@@ -3,7 +3,7 @@ import { $, letter, toast } from "../utils.js";
 import { isMultiCorrect, getCorrectIndices } from "../quiz/evaluate.js";
 import { submitAnswer, unsubmitAnswer } from "../quiz/session.js";
 import { getImageUrl } from "../data/zipImages.js";
-import { qMetaHtml, buildExplainPrompt } from "./components.js";
+import { qMetaHtml, buildExplainPrompt, formatAiTextForDisplay } from "./components.js";
 import { questionIdIndex } from "../quiz/filters.js";
 import { getLatestAnsweredResultsByQuestion } from "../data/storage.js";
 
@@ -174,6 +174,46 @@ function highlightText(el, text, query) {
     el.appendChild(mark);
     start = idx + needle.length;
   }
+}
+
+
+const QUESTION_SIGNAL_RE = /\b(nicht|kein(?:e|er|en|em)?|am meisten|am wenigsten)\b/gi;
+
+function escapeRegExp(input) {
+  return String(input || "").replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+function renderQuestionText(el, text, query) {
+  const raw = String(text || "");
+  const q = String(query || "").trim();
+  const escapedNeedle = q ? escapeRegExp(q) : "";
+  const combined = q
+    ? new RegExp(`${escapedNeedle}|${QUESTION_SIGNAL_RE.source}`, "gi")
+    : new RegExp(QUESTION_SIGNAL_RE.source, "gi");
+
+  el.textContent = "";
+  let start = 0;
+  for (const m of raw.matchAll(combined)) {
+    const idx = m.index ?? -1;
+    if (idx < 0) continue;
+    if (idx > start) el.appendChild(document.createTextNode(raw.slice(start, idx)));
+
+    const hit = m[0];
+    const isQuery = q && hit.toLowerCase() === q.toLowerCase();
+    if (isQuery) {
+      const mark = document.createElement("mark");
+      mark.className = "hl";
+      mark.textContent = hit;
+      el.appendChild(mark);
+    } else {
+      const sig = document.createElement("span");
+      sig.className = "qsignal";
+      sig.textContent = hit;
+      el.appendChild(sig);
+    }
+    start = idx + hit.length;
+  }
+  if (start < raw.length) el.appendChild(document.createTextNode(raw.slice(start)));
 }
 
 function getQuestionsByOrder(order) {
@@ -610,7 +650,7 @@ function computeTopicPerformance({ answeredOnly = false } = {}) {
             color: reviewPalette(i + subIdx + 2)
           };
         })
-        .sort((a, b) => b.total - a.total || a.name.localeCompare(b.name, "de"));
+        .sort((a, b) => b.denominator - a.denominator || a.name.localeCompare(b.name, "de"));
 
       return {
         ...topic,
@@ -622,7 +662,7 @@ function computeTopicPerformance({ answeredOnly = false } = {}) {
         subtopics
       };
     })
-    .sort((a, b) => b.total - a.total || a.name.localeCompare(b.name, "de"));
+    .sort((a, b) => b.denominator - a.denominator || a.name.localeCompare(b.name, "de"));
 
   return result;
 }
@@ -702,7 +742,7 @@ function renderReviewAnalytics(summaryEl, data) {
   const bars = data.map((topic, idx) => `
     <button class="topicBar" type="button" data-topic-index="${idx}" data-mode="bar" style="--topic-color:${topic.color}">
       <div class="topicBar__head">
-        <span>${escapeHtml(topic.name)} (${topic.total})</span>
+        <span>${escapeHtml(topic.name)} (${topic.denominator || 0})</span>
         <span>${topic.correctPct}% richtig</span>
       </div>
       <div class="topicBar__track">
@@ -1117,8 +1157,7 @@ async function renderQuestionList(qs, { allowSubmit, showSolutions }) {
 
     const text = document.createElement("div");
     text.className = "qtext";
-    if (state.view === "search") highlightText(text, q.text, state.searchConfig?.query || "");
-    else text.textContent = q.text;
+    renderQuestionText(text, q.text, state.view === "search" ? (state.searchConfig?.query || "") : "");
 
     card.appendChild(meta);
     card.appendChild(text);
@@ -1240,7 +1279,7 @@ async function renderQuestionList(qs, { allowSubmit, showSolutions }) {
 
       const aiHintText = document.createElement("p");
       aiHintText.className = "aiHintBox__text";
-      aiHintText.textContent = q.aiReasonDetailed;
+      aiHintText.textContent = formatAiTextForDisplay(q.aiReasonDetailed);
 
       aiHint.appendChild(aiHintTitle);
       aiHint.appendChild(aiHintText);
