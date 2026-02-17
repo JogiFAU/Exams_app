@@ -49,6 +49,26 @@ function parseColor(value) {
   return { r, g, b, a };
 }
 
+function toRgbaString({ r, g, b, a = 1 }) {
+  const rr = Math.round(Math.max(0, Math.min(255, r)));
+  const gg = Math.round(Math.max(0, Math.min(255, g)));
+  const bb = Math.round(Math.max(0, Math.min(255, b)));
+  const aa = Math.max(0, Math.min(1, a));
+  return `rgba(${rr},${gg},${bb},${aa})`;
+}
+
+function darken(color, amount = 0.2) {
+  const c = parseColor(color);
+  if (!c) return color;
+  const t = Math.max(0, Math.min(1, amount));
+  return toRgbaString({
+    r: c.r * (1 - t),
+    g: c.g * (1 - t),
+    b: c.b * (1 - t),
+    a: 1,
+  });
+}
+
 function blend(fg, bg) {
   const a = Math.max(0, Math.min(1, fg.a));
   return {
@@ -137,11 +157,13 @@ function toCssVars(themeData) {
   const overlayBase = stateColors.hoverOverlay || "#ffffff10";
   const textLight = text.onAccentLight || "#ffffff";
   const textDark = text.onAccentDark || "#12091f";
-  const selectedBg = stateColors.selectedOverlay || hexToRgba(accent3, 0.18);
-  const selectedBgSoft = hexToRgba(accent3, 0.1);
+  const selectedBg = stateColors.selectedOverlay || hexToRgba(accent3, 0.14);
+  const selectedBgSoft = hexToRgba(accent3, 0.08);
   const focusColor = accent3 || component.input?.focusBorder || "#7aa2ff";
   const primaryText = aliases.Text1 || text.text1 || "#e8eefc";
   const mutedText = aliases.Text2 || text.text2 || "#a9b4cc";
+  const successBase = semantic.success?.bg || aliases.Greenlight || "#2e7d32";
+  const dangerBase = semantic.danger?.bg || aliases.Danger || "#c62828";
 
   const textSafe = pickReadableText({
     background: bg1,
@@ -160,14 +182,14 @@ function toCssVars(themeData) {
   const textOnSelected = pickReadableText({
     background: selectedBg,
     baseBackground: bg1,
-    preferred: textDark,
+    preferred: textLight,
     light: textLight,
     dark: textDark,
-    minRatio: 4.5,
+    minRatio: 5,
   });
   const textOnFocus = pickReadableText({
     background: focusColor,
-    preferred: textDark,
+    preferred: textLight,
     light: textLight,
     dark: textDark,
     minRatio: 4.5,
@@ -188,10 +210,10 @@ function toCssVars(themeData) {
     "--focus": focusColor,
     "--bg-gradient-start": heroGradient.from || bg2,
     "--bg-gradient-accent": hexToRgba(heroGradient.via || accent1, 0.22),
-    "--theme-progress-correct-1": semantic.success?.bg || aliases.Greenlight || "#34d399",
-    "--theme-progress-correct-2": component.progress?.successFill || semantic.success?.bg || "#22c55e",
-    "--theme-progress-wrong-1": semantic.danger?.softBg || "rgba(252,165,165,.95)",
-    "--theme-progress-wrong-2": component.progress?.dangerFill || semantic.danger?.bg || "#c62828",
+    "--theme-progress-correct-1": darken(component.progress?.successFill || successBase, 0.08),
+    "--theme-progress-correct-2": darken(component.progress?.successFill || successBase, 0.25),
+    "--theme-progress-wrong-1": darken(dangerBase, 0.08),
+    "--theme-progress-wrong-2": darken(component.progress?.dangerFill || dangerBase, 0.25),
     "--theme-pie-label": text.onAccentLight || "#f8fbff",
     "--theme-pie-inner": hexToRgba(bg1, 0.82),
 
@@ -199,7 +221,7 @@ function toCssVars(themeData) {
     "--surface-card": hexToRgba(surface2, 0.74),
     "--surface-soft": hexToRgba(surface1, 0.6),
     "--surface-soft-strong": hexToRgba(surface1, 0.8),
-    "--surface-hover": hexToRgba(accent2, 0.28),
+    "--surface-hover": hexToRgba(accent2, 0.2),
 
     "--interactive-border-hover": hexToRgba(accent3, 0.55),
     "--interactive-border-active": hexToRgba(accent3, 0.8),
@@ -215,8 +237,8 @@ function toCssVars(themeData) {
     "--traffic-red": semantic.danger?.bg || aliases.Danger || "#f43f5e",
     "--traffic-unknown": text.text3 || aliases.TextMuted || "#64748b",
 
-    "--bad-soft-border": hexToRgba(semantic.danger?.bg || aliases.Danger || "#c62828", 0.55),
-    "--bad-soft-border-strong": hexToRgba(semantic.danger?.bg || aliases.Danger || "#c62828", 0.82),
+    "--bad-soft-border": hexToRgba(dangerBase, 0.5),
+    "--bad-soft-border-strong": hexToRgba(dangerBase, 0.78),
     "--neutral-strong": hexToRgba(text.text3 || aliases.TextMuted || "#607d8b", 0.9),
     "--selected-bg": selectedBg,
     "--selected-bg-soft": selectedBgSoft,
