@@ -993,6 +993,57 @@ function renderToc() {
   });
 }
 
+
+function buildClusterModalQuestionCard(q, ordinal) {
+  const correctSet = new Set(getCorrectIndices(q));
+  const answers = (q.answers || []).map((a, idx) => {
+    const cls = correctSet.has(idx) ? "opt ok" : "opt";
+    return `
+      <div class="${cls}">
+        <input type="checkbox" disabled ${correctSet.has(idx) ? "checked" : ""} />
+        <div class="t">${escapeHtml(`${letter(idx)}) ${a?.text || ""}`)}</div>
+      </div>
+    `;
+  }).join("");
+
+  return `
+    <div class="qcard clusterModal__card">
+      <div class="qmeta">
+        <span class="pill">#${ordinal}</span>
+        ${q.examName ? `<span class="pill">${escapeHtml(q.examName)}</span>` : ""}
+      </div>
+      <div class="qtext">${escapeHtml(q.text || "")}</div>
+      <div class="opts">${answers}</div>
+    </div>
+  `;
+}
+
+export function openClusterQuestionsDialog(questionId) {
+  const source = state.questionsAll.find(q => q.id === questionId);
+  if (!source || !source.clusterId) return;
+
+  const dialog = $("clusterQuestionsDialog");
+  if (!dialog || typeof dialog.showModal !== "function") return;
+
+  const title = $("clusterDialogTitle");
+  const subtitle = $("clusterDialogSubtitle");
+  const body = $("clusterDialogBody");
+
+  const relatedIds = [source.id, ...(source.clusterRelatedIds || [])];
+  const idx = questionIdIndex(state.questionsAll);
+  const clusterQuestions = relatedIds.map(id => idx.get(id)).filter(Boolean);
+
+  if (title) title.textContent = "Verwandte klausurrelevante Fragen";
+  if (subtitle) subtitle.textContent = `${clusterQuestions.length} Fragen · ${source.clusterLabel || "Fragencluster"}`;
+  if (body) {
+    body.innerHTML = clusterQuestions
+      .map((q, i) => buildClusterModalQuestionCard(q, i + 1))
+      .join("");
+  }
+
+  dialog.showModal();
+}
+
 async function jumpToQuestion(qid) {
   const idx = state.questionOrder.indexOf(qid);
   if (idx < 0) return;
@@ -1195,6 +1246,15 @@ async function renderQuestionList(qs, { allowSubmit, showSolutions }) {
 
     card.appendChild(meta);
     card.appendChild(text);
+
+    const showClusterBtn = meta.querySelector("[data-cluster-show]");
+    if (showClusterBtn) {
+      showClusterBtn.addEventListener("click", (ev) => {
+        ev.preventDefault();
+        ev.stopPropagation();
+        openClusterQuestionsDialog(q.id);
+      });
+    }
 
     // Images
     if (q.imageFiles && q.imageFiles.length) {

@@ -147,6 +147,47 @@ function normalizeQuestion(q) {
   };
 }
 
+function annotateQuestionClusters(questions) {
+  const clusterMap = new Map();
+
+  for (const q of questions) {
+    const superTopic = (q.aiSuperTopic || "").trim();
+    const subtopic = (q.aiSubtopic || "").trim();
+    if (!subtopic) continue;
+
+    const clusterId = `${superTopic}::${subtopic}`;
+    const label = superTopic ? `${superTopic} → ${subtopic}` : subtopic;
+
+    if (!clusterMap.has(clusterId)) {
+      clusterMap.set(clusterId, { clusterId, label, ids: [] });
+    }
+    clusterMap.get(clusterId).ids.push(q.id);
+  }
+
+  const clusterSizes = Array.from(clusterMap.values())
+    .map(c => c.ids.length)
+    .sort((a, b) => b - a);
+
+  const percentileIndex = Math.max(0, Math.floor(clusterSizes.length * 0.2) - 1);
+  const percentileThreshold = clusterSizes[percentileIndex] || 0;
+  const largeClusterThreshold = Math.max(6, percentileThreshold);
+
+  for (const q of questions) {
+    const superTopic = (q.aiSuperTopic || "").trim();
+    const subtopic = (q.aiSubtopic || "").trim();
+    const clusterId = subtopic ? `${superTopic}::${subtopic}` : null;
+    const cluster = clusterId ? clusterMap.get(clusterId) : null;
+    const related = cluster ? cluster.ids.filter(id => id !== q.id) : [];
+    const size = cluster ? cluster.ids.length : 0;
+
+    q.clusterId = cluster?.clusterId || null;
+    q.clusterLabel = cluster?.label || null;
+    q.clusterSize = size;
+    q.clusterRelatedIds = related;
+    q.isHighRelevanceCluster = size >= largeClusterThreshold;
+  }
+}
+
 export async function loadJsonUrls(urls) {
   const byId = new Map();
   for (const url of urls) {
@@ -160,4 +201,5 @@ export async function loadJsonUrls(urls) {
     }
   }
   state.questionsAll = Array.from(byId.values());
+  annotateQuestionClusters(state.questionsAll);
 }

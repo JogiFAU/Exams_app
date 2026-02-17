@@ -1127,3 +1127,68 @@ summary { cursor: pointer; color: var(--muted); }
 .filterSection:not([open]) .filterSection__summary::before {
   content: "▸";
 }
+
+.clusterBadge {
+  position: relative;
+  cursor: pointer;
+  border-color: var(--interactive-border-hover);
+}
+.clusterBadge__tip {
+  position: absolute;
+  left: 0;
+  top: calc(100% + 8px);
+  width: min(360px, 82vw);
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: var(--surface-header);
+  color: var(--text);
+  box-shadow: 0 10px 24px var(--shadow-color);
+  font-size: 12px;
+  line-height: 1.35;
+  display: grid;
+  gap: 8px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .12s ease;
+  z-index: 8;
+}
+.clusterBadge:hover .clusterBadge__tip,
+.clusterBadge:focus-within .clusterBadge__tip {
+  opacity: 1;
+  pointer-events: auto;
+}
+.clusterBadge__tip strong { display: block; }
+.clusterBadge__action {
+  justify-self: start;
+  padding: 6px 10px;
+  font-size: 12px;
+}
+
+.appdialog--wide {
+  width: min(960px, 92vw);
+}
+.appdialog__head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+.appdialog__close {
+  border: 1px solid var(--border);
+  background: var(--surface-soft);
+  color: var(--text);
+  border-radius: 8px;
+  width: 30px;
+  height: 30px;
+  cursor: pointer;
+}
+.clusterDialogBody {
+  margin-top: 12px;
+  max-height: 70vh;
+  overflow: auto;
+  padding-right: 4px;
+}
+.clusterModal__card {
+  margin-bottom: 10px;
+}

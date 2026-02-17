@@ -122,12 +122,25 @@ export function qMetaHtml(q, ordinal, { showTopics = true } = {}) {
     : "";
 
   const maintenance = maintenanceTrafficLightHtml(q);
+  const clusterBadge = q.isHighRelevanceCluster
+    ? `
+      <span class="pill clusterBadge" tabindex="0" aria-label="Klausurrelevanter Cluster mit ähnlichen Fragen">
+        ⭐ Klausurrelevant
+        <span class="clusterBadge__tip" role="tooltip">
+          <strong>${Math.max(0, Number(q.clusterSize || 0) - 1)} ähnliche Fragen im Cluster erkannt.</strong>
+          <span>${q.clusterLabel || "Fragencluster"}</span>
+          <button class="btn clusterBadge__action" type="button" data-cluster-show="${q.id}">Fragen anzeigen</button>
+        </span>
+      </span>
+    `
+    : "";
 
   return `
     <span class="pill">#${ordinal}</span>
     ${exam}
     ${topic}
     ${img}
+    ${clusterBadge}
     ${aiChangedBadge}
     <span class="qmetaRight">${maintenance}</span>
   `;
