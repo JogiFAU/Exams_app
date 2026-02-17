@@ -7,6 +7,7 @@ import { filterByExams, filterByTopics, filterByImageMode, applyRandomAndShuffle
 import { startQuizSession, startSearchView, finishQuizSession, abortQuizSession, exitToConfig } from "../quiz/session.js";
 import { renderAll, updateFilterLists } from "./render.js";
 import { listSessions, deleteSession, exportBackupAllDatasets, importBackupAllDatasets, getLatestAnsweredResultsByQuestion, clearAllSessionData } from "../data/storage.js";
+import { applyTheme } from "../theme.js";
 
 function selectedExamsFromList(containerId) {
   const el = $(containerId);
@@ -272,6 +273,12 @@ function resetAllConfigs() {
 
 
 export function wireUiEvents() {
+  $("themeSelect")?.addEventListener("change", async (ev) => {
+    const nextTheme = ev.target?.value;
+    await applyTheme(nextTheme);
+    await renderAll();
+  });
+
   // Tabs
   $("tabQuiz").addEventListener("click", async () => {
     if (state.view === "search") {
