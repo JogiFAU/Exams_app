@@ -134,12 +134,16 @@ function setSidebarVisibility() {
   }
 
   const repeatActions = $("reviewRepeatActions");
-  if (repeatActions) repeatActions.hidden = (state.view !== "review");
+  const showRepeatActions = (state.view === "review");
+  if (repeatActions) repeatActions.hidden = !showRepeatActions;
+
+  const repeatQuizBtn = $("repeatQuizBtn");
+  if (repeatQuizBtn) repeatQuizBtn.disabled = !showRepeatActions;
 
   const repeatWrongBtn = $("repeatWrongQuizBtn");
   if (repeatWrongBtn) {
     const wrongCount = Array.from(state.results.values()).filter(v => v === false).length;
-    repeatWrongBtn.disabled = (state.view !== "review" || wrongCount === 0);
+    repeatWrongBtn.disabled = (!showRepeatActions || wrongCount === 0);
     repeatWrongBtn.textContent = wrongCount > 0
       ? `Nur falsche wiederholen (${wrongCount})`
       : "Nur falsche wiederholen";

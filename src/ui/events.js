@@ -151,6 +151,11 @@ function getQuestionsByOrder(order) {
   return order.map(qid => idToQuestion.get(qid)).filter(Boolean);
 }
 
+function hideReviewRepeatActions() {
+  const container = $("reviewRepeatActions");
+  if (container) container.hidden = true;
+}
+
 function restartQuizFromReview({ wrongOnly = false } = {}) {
   if (state.view !== "review") return;
 
@@ -417,6 +422,7 @@ export function wireUiEvents() {
   });
 
   $("repeatQuizBtn")?.addEventListener("click", async () => {
+    hideReviewRepeatActions();
     restartQuizFromReview({ wrongOnly: false });
     if (state.view !== "quiz") return;
     initNavObserver();
@@ -427,6 +433,7 @@ export function wireUiEvents() {
   });
 
   $("repeatWrongQuizBtn")?.addEventListener("click", async () => {
+    hideReviewRepeatActions();
     restartQuizFromReview({ wrongOnly: true });
     if (state.view !== "quiz") return;
     initNavObserver();
