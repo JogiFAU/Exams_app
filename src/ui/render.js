@@ -1026,9 +1026,6 @@ export async function renderMain() {
       `;
     summary.innerHTML = `
       <div class="hero__title" style="font-size:18px;">Auswertung</div>
-      <div class="hero__lead" style="margin-bottom:0;">
-        Platzhalter: Hier können später Klausur-Statistiken, Themenverteilung und Lernempfehlungen angezeigt werden.
-      </div>
       <label class="summarySwitch">
         <input id="reviewAnsweredOnlyToggle" type="checkbox" ${state.reviewAnsweredOnly ? "checked" : ""} />
         <span>Auswertung nur auf beantwortete Fragen beziehen</span>
