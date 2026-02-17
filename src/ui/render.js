@@ -1106,12 +1106,14 @@ export async function renderMain() {
   list.innerHTML = "";
 
   if (!state.activeDataset) {
+    const datasetCount = Array.isArray(state.manifest?.datasets) ? state.manifest.datasets.length : 0;
     mainInfo.innerHTML = `
       <div class="hero">
         <div class="hero__title">Willkommen bei DocsDocs für Arme in besser</div>
         <div class="hero__stats">
-          <div class="pill">📚 2 Datensätze im Manifest hinterlegt</div>
+          <div class="pill">📚 ${datasetCount} Datensätze im Manifest hinterlegt</div>
           <div class="pill">🧠 Abfrage + Suchmodus in einer App</div>
+          <div class="pill">📌 Erkennung häufiger Altfragen per Cluster</div>
           <div class="pill">💾 Lokale Lernstände inkl. Backup/Import</div>
           <div class="pill">🖼️ Bildfragen via ZIP-Support</div>
         </div>

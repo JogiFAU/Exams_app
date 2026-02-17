@@ -265,7 +265,7 @@ input:hover, select:hover {
 }
 .btn:hover { background: var(--btn2); border-color: var(--interactive-border-hover); }
 .btn:active { transform: translateY(1px); }
-.btn.primary { border-color: var(--interactive-border-hover); }
+.btn.primary { border-color: var(--interactive-border-soft); background: var(--surface-soft-strong); }
 .btn.danger { border-color: var(--bad-soft-border); }
 .btn.danger:hover { border-color: var(--bad-soft-border-strong); }
 .btn:disabled { opacity: .45; cursor: not-allowed; }
@@ -283,7 +283,7 @@ input:hover, select:hover {
   transition: border-color .12s ease, background .12s ease;
 }
 .tab:hover { border-color: var(--interactive-border-hover); }
-.tab.active { border-color: var(--interactive-border-active); background: var(--selected-bg); color: var(--text-on-selected); }
+.tab.active { border-color: var(--interactive-border-hover); background: var(--surface-soft); color: var(--text); }
 
 .checkrow {
   margin-top: 10px;
@@ -815,11 +815,14 @@ summary { cursor: pointer; color: var(--muted); }
 .muted{ opacity:.72; font-weight:700; }
 
 .filterbox{
-  margin-top: 8px;
-  padding: 10px 12px;
-  border-radius: 14px;
-  border: 1px solid var(--interactive-border-soft);
-  background: var(--surface-soft);
+  margin-top: 6px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+}
+
+.filterbox > * + * {
+  margin-top: 2px;
 }
 
 .qtext mark.hl,

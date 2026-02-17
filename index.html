@@ -154,35 +154,41 @@
           <div id="topicListSearch" class="examlist"></div>
         </details>
 
-        <label>Bilder</label>
-        <select id="imageFilterSearch">
-          <option value="all">Alle Fragen</option>
-          <option value="with">Nur Fragen mit Bildern</option>
-          <option value="without">Nur Fragen ohne Bilder</option>
-        </select>
+        <div class="subhead">Filterkriterien</div>
+        <div class="filterbox">
+          <label>Bilder</label>
+          <select id="imageFilterSearch">
+            <option value="all">Alle Fragen</option>
+            <option value="with">Nur Fragen mit Bildern</option>
+            <option value="without">Nur Fragen ohne Bilder</option>
+          </select>
 
-        <label>Suche</label>
-        <input id="searchText" type="text" placeholder="Suchbegriff für den Suchmodus (z.B. Trisomie, Hardy-Weinberg, ...)" />
+          <label>Suche</label>
+          <input id="searchText" type="text" placeholder="Suchbegriff für den Suchmodus (z.B. Trisomie, Hardy-Weinberg, ...)" />
 
-        <label class="checkrow">
-          <input id="searchInAnswers" type="checkbox" />
-          <span>Auch in Antwortmöglichkeiten suchen</span>
-        </label>
+          <label class="checkrow">
+            <input id="searchInAnswers" type="checkbox" />
+            <span>Auch in Antwortmöglichkeiten suchen</span>
+          </label>
 
-        <label class="checkrow">
-          <input id="wrongOnlySearch" type="checkbox" />
-          <span id="wrongOnlySearchLabel">Nur aktuell falsch beantwortete Fragen</span>
-        </label>
+          <label class="checkrow">
+            <input id="wrongOnlySearch" type="checkbox" />
+            <span id="wrongOnlySearchLabel">Nur aktuell falsch beantwortete Fragen</span>
+          </label>
+        </div>
 
-        <label class="checkrow">
-          <input id="searchShowSolutions" type="checkbox" />
-          <span>Lösungen anzeigen</span>
-        </label>
+        <div class="subhead">Anzeigeoptionen</div>
+        <div class="filterbox">
+          <label class="checkrow">
+            <input id="searchShowSolutions" type="checkbox" />
+            <span>Lösungen anzeigen</span>
+          </label>
 
-        <label class="checkrow">
-          <input id="onlyAiModifiedSearch" type="checkbox" />
-          <span>Nur KI-modifizierte Fragen</span>
-        </label>
+          <label class="checkrow">
+            <input id="onlyAiModifiedSearch" type="checkbox" />
+            <span>Nur KI-modifizierte Fragen</span>
+          </label>
+        </div>
 
         <div class="row2" style="margin-top:12px;">
           <button class="btn primary" id="startSearchBtn">Suche aktualisieren</button>
