@@ -1006,12 +1006,12 @@ function buildClusterModalQuestionCard(q, ordinal, { showExplanations = true } =
     `;
   }).join("");
 
-  const explanation = formatAiTextForDisplay(q.explanation || "");
+  const explanation = formatAiTextForDisplay(q.aiReasonDetailed || "");
   const explanationHtml = showExplanations
     ? `
       <details class="clusterModal__explain" open>
-        <summary>Antwort-Erklärung</summary>
-        <div class="clusterModal__explainText">${explanation ? escapeHtml(explanation) : "Keine Erklärung vorhanden."}</div>
+        <summary>KI-Hinweis zur richtigen Antwort</summary>
+        <div class="clusterModal__explainText">${explanation ? escapeHtml(explanation) : "Kein KI-Hinweis vorhanden."}</div>
       </details>
     `
     : "";

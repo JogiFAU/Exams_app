@@ -1225,3 +1225,13 @@ summary { cursor: pointer; color: var(--muted); }
   font-size: 13px;
   line-height: 1.45;
 }
+
+
+.clusterBadge__action--cta {
+  font-weight: 800;
+  border-color: var(--interactive-border-active);
+  box-shadow: 0 0 0 2px var(--focus-ring);
+}
+.clusterBadge__action--cta:hover {
+  transform: translateY(-1px);
+}
