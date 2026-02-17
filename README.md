@@ -2,6 +2,8 @@
 
 https://jogifau.github.io/Exams_app/
 
+Noch zu implementieren: Nach Abfrage Falsch beantwortete noch mal wiederholen
+
 ## Daten
 - `datasets/manifest.json` steuert die Datensätze im Dropdown.
 - Pro Datensatz: `export.json` + optional `images.zip`.
