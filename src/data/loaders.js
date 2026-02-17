@@ -1,5 +1,9 @@
 import { normSpace } from "../utils.js";
 import { state } from "../state.js";
+import {
+  evaluateAiChangedLabel,
+  resolveAiDisplayText
+} from "../rules/questionPresentationRules.js";
 
 function toNumberOrNull(value) {
   const n = Number(value);
@@ -13,16 +17,6 @@ function normalizeIndices(indices) {
     .filter(Number.isInteger)
     .sort((a, b) => a - b);
 }
-
-function indicesDiffer(a, b) {
-  if (!Array.isArray(a) || !Array.isArray(b)) return false;
-  if (a.length !== b.length) return true;
-  for (let i = 0; i < a.length; i++) {
-    if (a[i] !== b[i]) return true;
-  }
-  return false;
-}
-
 
 function normalizeAiSources(q) {
   const ap = q.aiAudit?.answerPlausibility || {};
@@ -96,28 +90,8 @@ function normalizeQuestion(q) {
   const id = String(q.id || "").trim();
   if (!id) return null;
 
-  const aiReasonDetailed = normSpace(
-    q.AnswerReasonDetailed ||
-    q.answerReasonDetailed ||
-    q.aiAnswerReasonDetailed ||
-    q.AnswerReasonShort ||
-    q.answerReasonShort ||
-    q.aiAnswerReasonShort ||
-    q.aiAudit?.answerPlausibility?.verification?.reasonDetailed ||
-    q.aiAudit?.answerPlausibility?.verification?.reasonShort ||
-    q.aiAudit?.answerPlausibility?.passA?.reasonDetailed ||
-    q.aiAudit?.answerPlausibility?.passA?.reasonShort ||
-    q.aiAudit?.answerPlausibility?.passB?.reasonDetailed ||
-    q.aiAudit?.answerPlausibility?.passB?.reasonShort ||
-    ""
-  ) || null;
-
-  const aiTopicReason = normSpace(
-    q.aiTopicReason ||
-    q.aiAudit?.topicFinal?.reasonShort ||
-    q.aiAudit?.topicInitial?.reasonShort ||
-    ""
-  ) || null;
+  const aiReasonDetailed = resolveAiDisplayText(q, "solutionHint");
+  const aiTopicReason = resolveAiDisplayText(q, "topicReason");
 
   const originalCorrectIndices = normalizeIndices(
     q.originalCorrectIndices ||
@@ -131,9 +105,11 @@ function normalizeQuestion(q) {
   );
 
   const changedInDataset = q.aiAudit?.answerPlausibility?.changedInDataset;
-  const aiChangedAnswers = (typeof changedInDataset === "boolean")
-    ? changedInDataset
-    : (originalCorrectIndices.length > 0 && finalCorrectIndices.length > 0 && indicesDiffer(originalCorrectIndices, finalCorrectIndices));
+  const aiChangedAnswers = evaluateAiChangedLabel({
+    changedInDataset,
+    originalCorrectIndices,
+    finalCorrectIndices
+  });
   const aiConfidence = toNumberOrNull(
     q.aiAnswerConfidence ??
     q.aiAudit?.answerPlausibility?.verification?.confidence ??
