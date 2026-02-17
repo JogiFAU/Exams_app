@@ -1298,7 +1298,7 @@ async function renderQuestionList(qs, { allowSubmit, showSolutions }) {
     if (shouldShowAiHint) {
       const aiHint = document.createElement("details");
       aiHint.className = "aiHintBox";
-      const openByDefault = state.explainOpen.has(qid) || state.view === "review" || state.view === "search";
+      const openByDefault = state.explainOpen.has(qid) || state.view === "review" || state.view === "search" || practiceAnswered;
       aiHint.open = openByDefault;
 
       const aiHintTitle = document.createElement("summary");

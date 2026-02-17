@@ -100,8 +100,15 @@ function normalizeQuestion(q) {
     q.AnswerReasonDetailed ||
     q.answerReasonDetailed ||
     q.aiAnswerReasonDetailed ||
+    q.AnswerReasonShort ||
+    q.answerReasonShort ||
+    q.aiAnswerReasonShort ||
     q.aiAudit?.answerPlausibility?.verification?.reasonDetailed ||
+    q.aiAudit?.answerPlausibility?.verification?.reasonShort ||
     q.aiAudit?.answerPlausibility?.passA?.reasonDetailed ||
+    q.aiAudit?.answerPlausibility?.passA?.reasonShort ||
+    q.aiAudit?.answerPlausibility?.passB?.reasonDetailed ||
+    q.aiAudit?.answerPlausibility?.passB?.reasonShort ||
     ""
   ) || null;
 

@@ -56,7 +56,7 @@
   --text-on-focus: #ffffff;
   --question-option-text: #f8fbff;
 
-  --font-family-base: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial;
+  --font-family-base: "Inter", "Segoe UI Variable", "SF Pro Text", "Helvetica Neue", Arial, sans-serif;
 }
 
 * { box-sizing: border-box; }
