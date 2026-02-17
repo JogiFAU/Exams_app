@@ -1,28 +1,28 @@
 :root {
-  --bg: #0b0f17;
-  --panel: #121a27;
-  --panel2: #0f1622;
-  --text: #e8eefc;
-  --muted: #a9b4cc;
-  --border: #22304a;
+  --bg: #10081b;
+  --panel: #251b35;
+  --panel2: #170c28;
+  --text: #ede9f2;
+  --muted: #a09ba9;
+  --border: #292338;
 
-  --ok: #2e7d32;
-  --bad: #c62828;
-  --neutral: #607d8b;
+  --ok: #2bd9a7;
+  --bad: #e20712;
+  --neutral: #746f80;
 
   --okbg: rgba(15,36,21,.55);
   --badbg: rgba(42,16,16,.55);
   --neubg: rgba(16,26,34,.55);
 
-  --btn: #1d2a44;
-  --btn2: #22304a;
-  --focus: #7aa2ff;
-  --bg-gradient-start: #070a10;
+  --btn: #251b35;
+  --btn2: #2e243e;
+  --focus: #f7ba00;
+  --bg-gradient-start: #110b22;
 
-  --theme-progress-correct-1: #34d399;
-  --theme-progress-correct-2: #22c55e;
-  --theme-progress-wrong-1: rgba(252,165,165,.95);
-  --theme-progress-wrong-2: #c62828;
+  --theme-progress-correct-1: #2bd9a7;
+  --theme-progress-correct-2: #2bd9a7;
+  --theme-progress-wrong-1: rgba(226,7,18,.24);
+  --theme-progress-wrong-2: #e20712;
   --theme-pie-label: #f8fbff;
   --theme-pie-inner: rgba(11,15,23,.82);
 }

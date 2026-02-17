@@ -110,8 +110,11 @@ function applyCssVars(vars) {
 function hydrateThemeSelect() {
   const select = $("themeSelect");
   if (!select) return;
-  select.innerHTML = "";
+
+  // Falls Optionen bereits serverseitig im HTML hinterlegt sind, respektieren wir sie als Fallback.
+  const existingValues = new Set(Array.from(select.options).map((opt) => opt.value));
   for (const [id, cfg] of Object.entries(THEME_REGISTRY)) {
+    if (existingValues.has(id)) continue;
     const opt = document.createElement("option");
     opt.value = id;
     opt.textContent = cfg.label;
@@ -147,5 +150,14 @@ export async function initTheme() {
     stored = null;
   }
 
-  await applyTheme(stored || DEFAULT_THEME_ID);
+  try {
+    await applyTheme(stored || DEFAULT_THEME_ID);
+  } catch (err) {
+    console.error("Theme-Initialisierung fehlgeschlagen:", err);
+    // App soll trotz Theme-Fehler nutzbar bleiben; CSS-Fallback aus styles.css bleibt aktiv.
+    state.themeId = DEFAULT_THEME_ID;
+    state.themeTokens = null;
+    const select = $("themeSelect");
+    if (select) select.value = DEFAULT_THEME_ID;
+  }
 }
