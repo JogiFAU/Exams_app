@@ -1195,15 +1195,20 @@ summary { cursor: pointer; color: var(--muted); }
 
 
 .clusterDialog__toggle {
-  margin-top: 8px;
-  display: inline-flex;
+  margin-top: 0;
+  display: flex;
   align-items: center;
   gap: 8px;
   font-size: 12px;
+  line-height: 1.2;
+  font-weight: 600;
   color: var(--muted);
+  min-height: 22px;
+  white-space: nowrap;
 }
 .clusterDialog__toggle input {
-  transform: translateY(-0.5px);
+  transform: none;
+  flex: 0 0 auto;
 }
 .clusterModal__explain {
   margin-top: 10px;
@@ -1238,8 +1243,10 @@ summary { cursor: pointer; color: var(--muted); }
 
 
 .clusterDialog__toggles {
-  display: grid;
-  gap: 6px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px 16px;
   margin-top: 8px;
 }
 .clusterDialog__toggles .clusterDialog__toggle {
