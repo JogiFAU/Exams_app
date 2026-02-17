@@ -1,7 +1,7 @@
 {
   "datasets": [
     {
-      "id": "informatik",
+      "id": "informatik roh",
       "label": "Informatik",
       "json": [
         "datasets/informatik/export.json"
@@ -10,7 +10,7 @@
       "notebookUrl": "https://notebooklm.google.com/notebook/38cdb701-fe88-408d-b9ab-a09c1e77e32a"
     },
     {
-      "id": "MiBi",
+      "id": "MiBi roh",
       "label": "Mibi (Praktikum)",
       "json": [
         "datasets/mibi_prac/export_AIannotated.json"
