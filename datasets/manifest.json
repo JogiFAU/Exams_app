@@ -4,7 +4,7 @@
       "id": "informatik roh",
       "label": "Informatik",
       "json": [
-        "datasets/informatik/export.json"
+        "datasets/informatik//export_AIannotated.json"
       ],
       "zip": "datasets/informatik/images.zip",
       "notebookUrl": "https://notebooklm.google.com/notebook/38cdb701-fe88-408d-b9ab-a09c1e77e32a"
