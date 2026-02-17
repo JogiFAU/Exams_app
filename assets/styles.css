@@ -55,13 +55,15 @@
   --text-on-selected: #ffffff;
   --text-on-focus: #ffffff;
   --question-option-text: #f8fbff;
+
+  --font-family-base: "Inter", "Segoe UI Variable", "SF Pro Text", "Helvetica Neue", Arial, sans-serif;
 }
 
 * { box-sizing: border-box; }
 
 body {
   margin: 0;
-  font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
+  font-family: var(--font-family-base);
   background: radial-gradient(900px 280px at 15% -10%, var(--bg-gradient-accent), transparent 65%),
               linear-gradient(180deg, var(--bg-gradient-start), var(--bg));
   color: var(--text);
@@ -235,6 +237,71 @@ hr.sep { border:0; border-top:1px solid var(--border); margin:14px 0; }
   display: inline-flex;
   align-items: center;
   gap: 6px;
+  position: relative;
+  cursor: help;
+}
+.qmetaTraffic__tip {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 8px);
+  width: min(360px, 78vw);
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: var(--surface-header);
+  color: var(--text);
+  box-shadow: 0 10px 24px var(--shadow-color);
+  font-size: 12px;
+  line-height: 1.4;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .12s ease;
+  z-index: 7;
+}
+.qmetaTraffic__tip strong {
+  display: block;
+  margin-bottom: 6px;
+}
+.qmetaTraffic__tip ul {
+  margin: 0;
+  padding-left: 16px;
+  display: grid;
+  gap: 4px;
+}
+.qmetaTraffic:hover .qmetaTraffic__tip,
+.qmetaTraffic:focus-within .qmetaTraffic__tip {
+  opacity: 1;
+}
+
+.qmetaTopic {
+  position: relative;
+  cursor: help;
+}
+.qmetaTopic__tip {
+  position: absolute;
+  left: 0;
+  top: calc(100% + 8px);
+  width: min(340px, 78vw);
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: var(--surface-header);
+  color: var(--text);
+  box-shadow: 0 10px 24px var(--shadow-color);
+  font-size: 12px;
+  line-height: 1.4;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .12s ease;
+  z-index: 7;
+}
+.qmetaTopic__tip strong {
+  display: block;
+  margin-bottom: 6px;
+}
+.qmetaTopic:hover .qmetaTopic__tip,
+.qmetaTopic:focus-within .qmetaTopic__tip {
+  opacity: 1;
 }
 .qmetaTraffic__dot {
   width: 10px;
@@ -248,6 +315,93 @@ hr.sep { border:0; border-top:1px solid var(--border); margin:14px 0; }
 .qmetaTraffic__dot--red { background: var(--traffic-red); }
 .qmetaTraffic__dot--unknown { background: var(--traffic-unknown); }
 .qtext { margin-top: 8px; font-size: 16px; font-weight: 750; line-height: 1.35; }
+
+.qsignal {
+  color: var(--traffic-yellow);
+  font-weight: 850;
+}
+
+.aiHintBox {
+  margin-top: 10px;
+  border: 1px solid var(--interactive-border-soft);
+  border-radius: 10px;
+  background: var(--surface-soft);
+  padding: 8px 12px;
+}
+.aiHintBox__title {
+  font-size: 12px;
+  color: var(--muted);
+  font-weight: 700;
+  cursor: pointer;
+  list-style: none;
+}
+.aiHintBox__title::-webkit-details-marker { display: none; }
+.aiHintBox__title::before {
+  content: "▸";
+  margin-right: 6px;
+  color: var(--muted);
+}
+.aiHintBox[open] .aiHintBox__title::before {
+  content: "▾";
+}
+.aiHintBox__body {
+  margin-top: 8px;
+}
+.aiHintBox__text {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--text);
+}
+.aiHintBox__meta {
+  margin-top: 8px;
+  display: inline-flex;
+  align-items: center;
+}
+.aiHintSource {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  cursor: help;
+}
+.aiHintSource__icon {
+  font-size: 15px;
+  line-height: 1;
+  opacity: .92;
+}
+.aiHintSource__tip {
+  position: absolute;
+  left: 18px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: min(340px, 80vw);
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: var(--surface-header);
+  color: var(--text);
+  box-shadow: 0 10px 24px var(--shadow-color);
+  font-size: 12px;
+  line-height: 1.35;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .12s ease;
+  z-index: 8;
+}
+.aiHintSource__tip strong {
+  display: block;
+  margin-bottom: 6px;
+}
+.aiHintSource__tip ul {
+  margin: 0;
+  padding-left: 16px;
+  display: grid;
+  gap: 4px;
+}
+.aiHintSource:hover .aiHintSource__tip,
+.aiHintSource:focus-within .aiHintSource__tip {
+  opacity: 1;
+}
 
 .opts { margin-top: 10px; display: grid; gap: 8px; }
 .opt {
@@ -324,6 +478,25 @@ hr.sep { border:0; border-top:1px solid var(--border); margin:14px 0; }
   opacity: 1;
 }
 
+
+@media (max-width: 820px) {
+  .qmetaTraffic__tip {
+    right: auto;
+    left: 0;
+    width: min(320px, 85vw);
+  }
+
+  .qmetaTopic__tip {
+    width: min(320px, 85vw);
+  }
+
+  .aiHintSource__tip {
+    left: 0;
+    top: calc(100% + 8px);
+    transform: none;
+    width: min(320px, 85vw);
+  }
+}
 @media (max-width: 820px) {
   .tooltipHint__text {
     left: 0;
