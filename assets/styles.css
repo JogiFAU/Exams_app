@@ -17,6 +17,14 @@
   --btn: #1d2a44;
   --btn2: #22304a;
   --focus: #7aa2ff;
+  --bg-gradient-start: #070a10;
+
+  --theme-progress-correct-1: #34d399;
+  --theme-progress-correct-2: #22c55e;
+  --theme-progress-wrong-1: rgba(252,165,165,.95);
+  --theme-progress-wrong-2: #c62828;
+  --theme-pie-label: #f8fbff;
+  --theme-pie-inner: rgba(11,15,23,.82);
 }
 
 * { box-sizing: border-box; }
@@ -24,7 +32,7 @@
 body {
   margin: 0;
   font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
-  background: linear-gradient(180deg, #070a10, var(--bg));
+  background: linear-gradient(180deg, var(--bg-gradient-start), var(--bg));
   color: var(--text);
 }
 

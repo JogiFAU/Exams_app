@@ -1,6 +1,10 @@
 export const state = {
   questionsAll: [],
 
+  // Theme
+  themeId: "spezi",
+  themeTokens: null,
+
   // Dataset meta
   activeDataset: null, // { id, label, notebookUrl, ... }
   manifest: null,

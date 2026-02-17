@@ -10,6 +10,22 @@ import { getLatestAnsweredResultsByQuestion } from "../data/storage.js";
 const MAX_RENDER_NO_PAGING = 1000;
 let notebookLmWindow = null;
 
+function getThemeTokens() {
+  return state.themeTokens || {
+    chartSeries: ["#7aa2ff", "#4cc9f0", "#72efdd", "#ffd166", "#f4978e", "#ff99c8"],
+    progress: {
+      correct1: "rgba(52,211,153,.95)",
+      correct2: "rgba(22,163,74,.95)",
+      wrong1: "rgba(252,165,165,.95)",
+      wrong2: "rgba(198,40,40,.95)",
+    },
+    pie: {
+      label: "#f8fbff",
+      inner: "rgba(11,15,23,.82)",
+    }
+  };
+}
+
 function getQuizMode() {
   return $("quizMode")?.value || state.quizConfig?.quizMode || "practice";
 }
@@ -71,8 +87,9 @@ export function renderHeaderProgress() {
   if (!canShowQuality || submitted === 0) {
     bar.style.background = "";
   } else {
+    const { progress } = getThemeTokens();
     const corrPct = Math.round((correct / submitted) * 100);
-    bar.style.background = `linear-gradient(90deg, rgba(52,211,153,.95) 0%, rgba(22,163,74,.95) ${corrPct}%, rgba(252,165,165,.95) ${corrPct}%, rgba(198,40,40,.95) 100%)`;
+    bar.style.background = `linear-gradient(90deg, ${progress.correct1} 0%, ${progress.correct2} ${corrPct}%, ${progress.wrong1} ${corrPct}%, ${progress.wrong2} 100%)`;
   }
 
   if (!canShowQuality) pctEl.textContent = "—";
@@ -424,10 +441,7 @@ function escapeHtml(text) {
 }
 
 function reviewPalette(i) {
-  const colors = [
-    "#7aa2ff", "#4cc9f0", "#72efdd", "#ffd166", "#f4978e", "#ff99c8",
-    "#84a59d", "#c77dff", "#90be6d", "#f9c74f", "#43aa8b", "#577590"
-  ];
+  const colors = getThemeTokens().chartSeries;
   return colors[i % colors.length];
 }
 
@@ -450,6 +464,7 @@ function createPieChartSvg(segments, { size = 240, innerRatio = 0.58, showLabels
     const labelRadius = innerR + ((outerR - innerR) * 0.5);
     const textPos = polarToCartesian(c, c, labelRadius, -Math.PI / 2);
 
+    const { pie } = getThemeTokens();
     return `
       <svg viewBox="0 0 ${size} ${size}" role="img" aria-label="Themenverteilung">
         <circle
@@ -460,9 +475,9 @@ function createPieChartSvg(segments, { size = 240, innerRatio = 0.58, showLabels
           r="${outerR}"
           fill="${seg.color}"
         />
-        <circle cx="${c}" cy="${c}" r="${innerR}" fill="rgba(11,15,23,.82)" />
+        <circle cx="${c}" cy="${c}" r="${innerR}" fill="${pie.inner}" />
         ${showLabels ? `
-          <text class="pieLabel" x="${textPos.x.toFixed(2)}" y="${textPos.y.toFixed(2)}" fill="#f8fbff" text-anchor="middle" dominant-baseline="middle">
+          <text class="pieLabel" x="${textPos.x.toFixed(2)}" y="${textPos.y.toFixed(2)}" fill="${pie.label}" text-anchor="middle" dominant-baseline="middle">
             <tspan x="${textPos.x.toFixed(2)}" dy="-0.38em">${seg.value}</tspan>
             <tspan x="${textPos.x.toFixed(2)}" dy="1.05em">100%</tspan>
           </text>
@@ -472,6 +487,7 @@ function createPieChartSvg(segments, { size = 240, innerRatio = 0.58, showLabels
   }
 
   const c = size / 2;
+  const { pie } = getThemeTokens();
   const outerR = c - 2;
   const innerR = outerR * innerRatio;
   let angleStart = -Math.PI / 2;
@@ -508,7 +524,7 @@ function createPieChartSvg(segments, { size = 240, innerRatio = 0.58, showLabels
       const textPos = polarToCartesian(c, c, labelRadius, midAngle);
       const pct = Math.round(frac * 100);
       labels.push(`
-        <text class="pieLabel" x="${textPos.x.toFixed(2)}" y="${textPos.y.toFixed(2)}" fill="#f8fbff" text-anchor="middle" dominant-baseline="middle">
+        <text class="pieLabel" x="${textPos.x.toFixed(2)}" y="${textPos.y.toFixed(2)}" fill="${pie.label}" text-anchor="middle" dominant-baseline="middle">
           <tspan x="${textPos.x.toFixed(2)}" dy="-0.38em">${seg.value}</tspan>
           <tspan x="${textPos.x.toFixed(2)}" dy="1.05em">${pct}%</tspan>
         </text>
@@ -522,7 +538,7 @@ function createPieChartSvg(segments, { size = 240, innerRatio = 0.58, showLabels
     <svg viewBox="0 0 ${size} ${size}" role="img" aria-label="Themenverteilung">
       ${paths.join("\n")}
       ${labels.join("\n")}
-      <circle cx="${c}" cy="${c}" r="${innerR - 3}" fill="rgba(11,15,23,.82)" />
+      <circle cx="${c}" cy="${c}" r="${innerR - 3}" fill="${pie.inner}" />
     </svg>
   `;
 }
