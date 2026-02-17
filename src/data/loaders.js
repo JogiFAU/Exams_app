@@ -25,15 +25,34 @@ function indicesDiffer(a, b) {
 
 
 function normalizeAiSources(q) {
+  const ap = q.aiAudit?.answerPlausibility || {};
   const candidates = [
     q.aiSources,
-    q.aiAudit?.answerPlausibility?.sources,
-    q.aiAudit?.answerPlausibility?.verification?.sources,
-    q.aiAudit?.answerPlausibility?.passA?.sources,
-    q.aiAudit?.answerPlausibility?.passB?.sources,
+    ap.sources,
+    ap.evidence,
+    ap.Evidence,
+    ap.finalPass?.sources,
+    ap.finalPass?.evidence,
+    ap.finalPass?.Evidence,
+    ap.passA?.sources,
+    ap.passA?.evidence,
+    ap.passA?.Evidence,
+    ap.passB?.sources,
+    ap.passB?.evidence,
+    ap.passB?.Evidence,
+    ap.verification?.sources,
+    ap.verification?.evidence,
+    ap.verification?.Evidence,
   ];
 
   const out = [];
+  const pushSource = (pdf, page) => {
+    const file = normSpace(String(pdf || ""));
+    if (!file) return;
+    const pageText = normSpace(String(page ?? ""));
+    out.push(pageText ? `${file} · S. ${pageText}` : file);
+  };
+
   for (const src of candidates) {
     if (!Array.isArray(src)) continue;
     for (const entry of src) {
@@ -44,19 +63,35 @@ function normalizeAiSources(q) {
         continue;
       }
       if (typeof entry === "object") {
-        const pdf = normSpace(
-          entry.pdf || entry.file || entry.filename || entry.document || entry.name || ""
+        pushSource(
+          entry.source || entry.pdf || entry.file || entry.filename || entry.document || entry.name,
+          entry.page ?? entry.pages ?? entry.seite ?? entry.pageRange
         );
-        const page = entry.page ?? entry.pages ?? entry.seite ?? entry.pageRange;
-        const pageText = normSpace(String(page ?? ""));
-        if (pdf && pageText) out.push(`${pdf} · S. ${pageText}`);
-        else if (pdf) out.push(pdf);
       }
+    }
+  }
+
+  const chunkLists = [
+    ap.evidenceChunkIds,
+    ap.finalPass?.evidenceChunkIds,
+    ap.passA?.evidenceChunkIds,
+    ap.passB?.evidenceChunkIds,
+    ap.verification?.evidenceChunkIds,
+  ];
+  for (const chunks of chunkLists) {
+    if (!Array.isArray(chunks)) continue;
+    for (const chunkId of chunks) {
+      const txt = normSpace(String(chunkId || ""));
+      if (!txt) continue;
+      const m = txt.match(/^(.+?)#p(\d+)(?:c\d+)?$/i);
+      if (m) out.push(`${m[1]} · S. ${m[2]}`);
+      else out.push(txt);
     }
   }
 
   return Array.from(new Set(out));
 }
+
 function normalizeQuestion(q) {
   const id = String(q.id || "").trim();
   if (!id) return null;

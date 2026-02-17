@@ -1287,13 +1287,12 @@ async function renderQuestionList(qs, { allowSubmit, showSolutions }) {
       card.appendChild(originalModeInfo);
     }
 
+    const practiceAnswered = allowSubmit && submitted && getQuizMode() === "practice";
     const shouldShowAiHint = (
       !!q.aiReasonDetailed &&
-      showSolutions &&
       (
-        state.view === "review" ||
-        state.view === "search" ||
-        (allowSubmit && submitted)
+        (showSolutions && (state.view === "review" || state.view === "search" || (allowSubmit && submitted))) ||
+        practiceAnswered
       )
     );
     if (shouldShowAiHint) {
