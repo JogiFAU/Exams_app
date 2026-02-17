@@ -1,4 +1,8 @@
 import { letter } from "../utils.js";
+import {
+  evaluateMaintenanceTrafficRules,
+  MAINTENANCE_TRAFFIC_RULES
+} from "../rules/questionPresentationRules.js";
 
 const INDEX_CONTEXT_RE = /\b(Antwort(?:option)?|Option|Index(?:es)?|Indices?)\s*([:#(\[]\s*)?(\d+)\b/gi;
 
@@ -35,8 +39,8 @@ function evaluateQualityTraffic(q) {
   const severity = Number(q?.aiMaintenanceSeverity);
   if (Number.isFinite(severity)) {
     reasons.push(`KI-Wartungsbedarf: Severity ${severity}`);
-    if (severity >= 3) hardIssue = true;
-    else if (severity >= 2) softIssueCount += 1;
+    if (severity >= MAINTENANCE_TRAFFIC_RULES.thresholds.hardSeverityMin) hardIssue = true;
+    else if (severity >= MAINTENANCE_TRAFFIC_RULES.thresholds.softSeverityMin) softIssueCount += 1;
   } else {
     reasons.push("Kein KI-Severity-Wert vorhanden");
   }
@@ -46,14 +50,14 @@ function evaluateQualityTraffic(q) {
   }
 
   const answerCount = Array.isArray(q?.answers) ? q.answers.length : 0;
-  if (answerCount <= 2) {
+  if (answerCount < MAINTENANCE_TRAFFIC_RULES.thresholds.minAnswerOptions) {
     softIssueCount += 1;
     reasons.push("Nur 2 Antwortoptionen vorhanden (maximal gelb/orange ohne weitere Probleme)");
   }
 
   const confidence = Number(q?.aiConfidence);
-  if (Number.isFinite(confidence) && confidence < 0.6) {
-    if (confidence < 0.45) hardIssue = true;
+  if (Number.isFinite(confidence) && confidence < MAINTENANCE_TRAFFIC_RULES.thresholds.lowConfidenceSoftMax) {
+    if (confidence < MAINTENANCE_TRAFFIC_RULES.thresholds.lowConfidenceHardMax) hardIssue = true;
     else softIssueCount += 1;
     reasons.push(`Niedrige KI-Confidence zur Korrektheit (${Math.round(confidence * 100)}%)`);
   }
@@ -68,9 +72,10 @@ function evaluateQualityTraffic(q) {
     reasons.push("Antwortoptionen wirken mehrdeutig/unklar");
   }
 
-  const level = hardIssue || softIssueCount >= 2 ? "red" : softIssueCount === 1 ? "yellow" : "green";
-  const label = level === "red" ? "kritisch" : level === "yellow" ? "mittel" : "gut";
-  return { level, label, reasons };
+  return {
+    ...evaluateMaintenanceTrafficRules({ hardIssue, softIssueCount }),
+    reasons
+  };
 }
 
 function maintenanceTrafficLightHtml(q) {
