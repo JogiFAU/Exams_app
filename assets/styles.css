@@ -521,7 +521,58 @@ hr.sep { border:0; border-top:1px solid var(--border); margin:14px 0; }
 .opt.orig .t { color: var(--text-on-selected); }
 .origMarker { color: var(--focus); font-weight: 700; }
 
-.opt input { margin-top: 2px; cursor: pointer; }
+.opt input {
+  margin-top: 2px;
+  cursor: pointer;
+  appearance: none;
+  -webkit-appearance: none;
+  width: 18px;
+  height: 18px;
+  border: 1px solid var(--border);
+  background: var(--surface-soft);
+  display: inline-grid;
+  place-items: center;
+  transition: border-color .12s ease, background .12s ease, box-shadow .12s ease;
+}
+
+.opt input[type="radio"] { border-radius: 999px; }
+.opt input[type="checkbox"] { border-radius: 6px; }
+
+.opt input[type="radio"]::after {
+  content: "";
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background: var(--text-on-focus);
+  transform: scale(0);
+  transition: transform .12s ease;
+}
+
+.opt input[type="checkbox"]::after {
+  content: "";
+  width: 10px;
+  height: 6px;
+  border: 2px solid var(--text-on-focus);
+  border-top: 0;
+  border-right: 0;
+  transform: rotate(-45deg) scale(0);
+  transform-origin: center;
+  transition: transform .12s ease;
+}
+
+.opt input:checked {
+  background: var(--focus);
+  border-color: var(--focus);
+}
+
+.opt input[type="radio"]:checked::after { transform: scale(1); }
+.opt input[type="checkbox"]:checked::after { transform: rotate(-45deg) scale(1); }
+
+.opt input:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px var(--focus-ring);
+}
+
 .opt .t { font-size: 14px; line-height: 1.35; color: var(--question-option-text); }
 
 .actions { display: flex; gap: 10px; margin-top: 10px; flex-wrap: wrap; }
@@ -924,7 +975,7 @@ summary { cursor: pointer; color: var(--muted); }
   justify-content: center;
 }
 
-.topicPie svg{ width: 100%; height: auto; display: block; }
+.topicPie svg{ width: 100%; max-width: 220px; height: auto; display: block; }
 
 .pieSegment{
   opacity: .95;
@@ -950,7 +1001,7 @@ summary { cursor: pointer; color: var(--muted); }
   pointer-events: none;
 }
 
-.topicLegendList{ display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; overflow: hidden; align-content: center; }
+.topicLegendList{ display: grid; grid-template-columns: 1fr; gap: 6px; align-content: center; }
 
 .topicLegend{
   display: grid;
@@ -958,7 +1009,7 @@ summary { cursor: pointer; color: var(--muted); }
   gap: 8px;
   align-items: center;
   width: 100%;
-  min-height: 38px;
+  min-height: 32px;
   border: 1px solid var(--border);
   background: var(--surface-soft);
   color: var(--text);
@@ -970,7 +1021,7 @@ summary { cursor: pointer; color: var(--muted); }
 .topicLegend:hover,
 .topicLegend:focus{ border-color: var(--interactive-border-hover); outline: none; }
 .topicLegend__dot{ width: 10px; height: 10px; border-radius: 999px; background: var(--topic-color); }
-.topicLegend__name{ font-size: 12px; font-weight: 700; line-height: 1.25; overflow-wrap: anywhere; }
+.topicLegend__name{ font-size: 11px; font-weight: 700; line-height: 1.2; overflow-wrap: anywhere; }
 
 .topicBars{ display: grid; gap: 8px; }
 .topicBar{
@@ -1030,7 +1081,6 @@ summary { cursor: pointer; color: var(--muted); }
   .topicAnalytics__grid{ grid-template-columns: 1fr; }
   .topicPieWrap{ grid-template-columns: 1fr; min-height: 0; }
   .topicPie{ max-width: 260px; margin: 0 auto; height: auto; }
-  .topicLegendList{ grid-template-columns: 1fr; }
   .miniPanel__body{ grid-template-columns: 1fr; }
 }
 
