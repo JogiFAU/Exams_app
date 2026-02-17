@@ -133,6 +133,22 @@ function setSidebarVisibility() {
     ab.textContent = (state.view === "review") ? "Neue Abfrage" : "Abfrage abbrechen";
   }
 
+  const repeatActions = $("reviewRepeatActions");
+  const showRepeatActions = (state.view === "review");
+  if (repeatActions) repeatActions.hidden = !showRepeatActions;
+
+  const repeatQuizBtn = $("repeatQuizBtn");
+  if (repeatQuizBtn) repeatQuizBtn.disabled = !showRepeatActions;
+
+  const repeatWrongBtn = $("repeatWrongQuizBtn");
+  if (repeatWrongBtn) {
+    const wrongCount = Array.from(state.results.values()).filter(v => v === false).length;
+    repeatWrongBtn.disabled = (!showRepeatActions || wrongCount === 0);
+    repeatWrongBtn.textContent = wrongCount > 0
+      ? `Nur falsche wiederholen (${wrongCount})`
+      : "Nur falsche wiederholen";
+  }
+
   const hint = $("sessionHint");
   if (hint) {
     hint.textContent = (state.view === "review")
