@@ -138,6 +138,16 @@ function normalizeQuestion(q) {
     aiReasonDetailed,
     aiTopicReason,
     aiSources: normalizeAiSources(q),
+    abstractionClusterId: toNumberOrNull(
+      q.abstractionClusterId ??
+      q.aiAudit?.clusters?.abstractionClusterId
+    ),
+    questionAbstraction: normSpace(
+      q.questionAbstraction ||
+      q.aiAudit?.questionAbstraction?.summary ||
+      q.aiAudit?.questionAbstraction?.text ||
+      ""
+    ) || null,
     answers: (q.answers || []).map(a => ({
       text: normSpace(a.text || ""),
       isCorrect: !!a.isCorrect
@@ -151,15 +161,12 @@ function annotateQuestionClusters(questions) {
   const clusterMap = new Map();
 
   for (const q of questions) {
-    const superTopic = (q.aiSuperTopic || "").trim();
-    const subtopic = (q.aiSubtopic || "").trim();
-    if (!subtopic) continue;
+    const clusterIdRaw = q.abstractionClusterId;
+    if (clusterIdRaw == null) continue;
 
-    const clusterId = `${superTopic}::${subtopic}`;
-    const label = superTopic ? `${superTopic} → ${subtopic}` : subtopic;
-
+    const clusterId = String(clusterIdRaw);
     if (!clusterMap.has(clusterId)) {
-      clusterMap.set(clusterId, { clusterId, label, ids: [] });
+      clusterMap.set(clusterId, { clusterId, ids: [] });
     }
     clusterMap.get(clusterId).ids.push(q.id);
   }
@@ -170,18 +177,17 @@ function annotateQuestionClusters(questions) {
 
   const percentileIndex = Math.max(0, Math.floor(clusterSizes.length * 0.2) - 1);
   const percentileThreshold = clusterSizes[percentileIndex] || 0;
-  const largeClusterThreshold = Math.max(6, percentileThreshold);
+  const largeClusterThreshold = Math.max(4, percentileThreshold);
 
   for (const q of questions) {
-    const superTopic = (q.aiSuperTopic || "").trim();
-    const subtopic = (q.aiSubtopic || "").trim();
-    const clusterId = subtopic ? `${superTopic}::${subtopic}` : null;
+    const clusterIdRaw = q.abstractionClusterId;
+    const clusterId = clusterIdRaw != null ? String(clusterIdRaw) : null;
     const cluster = clusterId ? clusterMap.get(clusterId) : null;
     const related = cluster ? cluster.ids.filter(id => id !== q.id) : [];
     const size = cluster ? cluster.ids.length : 0;
 
     q.clusterId = cluster?.clusterId || null;
-    q.clusterLabel = cluster?.label || null;
+    q.clusterLabel = cluster ? `Cluster ${cluster.clusterId}` : null;
     q.clusterSize = size;
     q.clusterRelatedIds = related;
     q.isHighRelevanceCluster = size >= largeClusterThreshold;
