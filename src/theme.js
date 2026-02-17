@@ -47,27 +47,68 @@ function toCssVars(themeData) {
   const semantic = dark.semantic || {};
   const component = dark.component || {};
   const text = dark.text || {};
+  const accent = dark.accent || {};
+  const stateColors = dark.state || {};
+  const heroGradient = dark.gradient?.hero || {};
+
+  const bg1 = aliases.Background1 || "#0b0f17";
+  const bg2 = aliases.Background2 || bg1;
+  const surface1 = aliases.Surface1 || "#0f1622";
+  const surface2 = aliases.Surface2 || "#121a27";
+  const accent1 = aliases.Accent1 || accent.accent1 || "#7aa2ff";
+  const accent2 = aliases.Accent2 || accent.accent2 || accent1;
+  const accent3 = aliases.Accent3 || accent.accent3 || accent1;
+  const overlayBase = stateColors.hoverOverlay || "#ffffff10";
 
   return {
-    "--bg": aliases.Background1 || "#0b0f17",
-    "--panel": aliases.Surface2 || "#121a27",
-    "--panel2": aliases.Surface1 || "#0f1622",
+    "--bg": bg1,
+    "--panel": surface2,
+    "--panel2": surface1,
     "--text": aliases.Text1 || "#e8eefc",
     "--muted": aliases.Text2 || "#a9b4cc",
     "--border": aliases.Border1 || "#22304a",
     "--ok": aliases.Greenlight || semantic.success?.bg || "#2e7d32",
     "--bad": aliases.Danger || semantic.danger?.bg || "#c62828",
     "--neutral": aliases.TextMuted || "#607d8b",
-    "--btn": component.button?.secondary?.bg || "#1d2a44",
-    "--btn2": component.button?.secondary?.hoverBg || "#22304a",
-    "--focus": aliases.Accent3 || component.input?.focusBorder || "#7aa2ff",
-    "--bg-gradient-start": aliases.Background2 || aliases.Background1 || "#070a10",
+    "--btn": component.button?.secondary?.bg || surface2,
+    "--btn2": component.button?.secondary?.hoverBg || surface1,
+    "--focus": accent3 || component.input?.focusBorder || "#7aa2ff",
+    "--bg-gradient-start": heroGradient.from || bg2,
+    "--bg-gradient-accent": hexToRgba(heroGradient.via || accent1, 0.22),
     "--theme-progress-correct-1": semantic.success?.bg || aliases.Greenlight || "#34d399",
     "--theme-progress-correct-2": component.progress?.successFill || semantic.success?.bg || "#22c55e",
     "--theme-progress-wrong-1": semantic.danger?.softBg || "rgba(252,165,165,.95)",
     "--theme-progress-wrong-2": component.progress?.dangerFill || semantic.danger?.bg || "#c62828",
     "--theme-pie-label": text.onAccentLight || "#f8fbff",
-    "--theme-pie-inner": hexToRgba(aliases.Background1 || "#0b0f17", 0.82),
+    "--theme-pie-inner": hexToRgba(bg1, 0.82),
+
+    "--surface-header": hexToRgba(surface2, 0.9),
+    "--surface-card": hexToRgba(surface2, 0.74),
+    "--surface-soft": hexToRgba(surface1, 0.6),
+    "--surface-soft-strong": hexToRgba(surface1, 0.8),
+    "--surface-hover": hexToRgba(accent2, 0.28),
+
+    "--interactive-border-hover": hexToRgba(accent3, 0.55),
+    "--interactive-border-active": hexToRgba(accent3, 0.8),
+    "--interactive-border-soft": hexToRgba(accent3, 0.22),
+    "--focus-ring": hexToRgba(accent3, 0.2),
+
+    "--surface-track": bg2,
+    "--progress-fill-from": component.progress?.fillGradient?.from || accent1,
+    "--progress-fill-to": component.progress?.fillGradient?.to || accent3,
+
+    "--traffic-green": semantic.success?.bg || aliases.Greenlight || "#2e7d32",
+    "--traffic-yellow": semantic.attention?.bg || accent3 || "#f59e0b",
+    "--traffic-red": semantic.danger?.bg || aliases.Danger || "#f43f5e",
+    "--traffic-unknown": text.text3 || aliases.TextMuted || "#64748b",
+
+    "--bad-soft-border": hexToRgba(semantic.danger?.bg || aliases.Danger || "#c62828", 0.55),
+    "--bad-soft-border-strong": hexToRgba(semantic.danger?.bg || aliases.Danger || "#c62828", 0.82),
+    "--neutral-strong": hexToRgba(text.text3 || aliases.TextMuted || "#607d8b", 0.9),
+    "--selected-bg": stateColors.selectedOverlay || hexToRgba(accent3, 0.18),
+    "--selected-bg-soft": hexToRgba(accent3, 0.1),
+    "--shadow-color": stateColors.shadowColor || "rgba(0,0,0,.35)",
+    "--surface-overlay": overlayBase,
   };
 }
 
