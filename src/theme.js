@@ -25,6 +25,82 @@ function hexToRgba(hex, alpha = 1) {
   return `rgba(${r},${g},${b},${alpha})`;
 }
 
+function parseColor(value) {
+  if (typeof value !== "string") return null;
+  const v = value.trim();
+  if (isHexColor(v)) {
+    const raw = v.slice(1);
+    const r = Number.parseInt(raw.slice(0, 2), 16);
+    const g = Number.parseInt(raw.slice(2, 4), 16);
+    const b = Number.parseInt(raw.slice(4, 6), 16);
+    const a = raw.length === 8 ? Number.parseInt(raw.slice(6, 8), 16) / 255 : 1;
+    return { r, g, b, a };
+  }
+
+  const rgba = v.match(/^rgba?\(([^)]+)\)$/i);
+  if (!rgba) return null;
+  const parts = rgba[1].split(",").map((x) => x.trim());
+  if (parts.length < 3) return null;
+  const r = Number.parseFloat(parts[0]);
+  const g = Number.parseFloat(parts[1]);
+  const b = Number.parseFloat(parts[2]);
+  const a = parts.length >= 4 ? Number.parseFloat(parts[3]) : 1;
+  if (![r, g, b, a].every(Number.isFinite)) return null;
+  return { r, g, b, a };
+}
+
+function blend(fg, bg) {
+  const a = Math.max(0, Math.min(1, fg.a));
+  return {
+    r: (fg.r * a) + (bg.r * (1 - a)),
+    g: (fg.g * a) + (bg.g * (1 - a)),
+    b: (fg.b * a) + (bg.b * (1 - a)),
+    a: 1,
+  };
+}
+
+function luminance({ r, g, b }) {
+  const toLin = (c) => {
+    const x = c / 255;
+    return x <= 0.03928 ? x / 12.92 : ((x + 0.055) / 1.055) ** 2.4;
+  };
+  const R = toLin(r);
+  const G = toLin(g);
+  const B = toLin(b);
+  return (0.2126 * R) + (0.7152 * G) + (0.0722 * B);
+}
+
+function contrastRatio(a, b) {
+  const l1 = luminance(a);
+  const l2 = luminance(b);
+  const hi = Math.max(l1, l2);
+  const lo = Math.min(l1, l2);
+  return (hi + 0.05) / (lo + 0.05);
+}
+
+function pickReadableText({ background, baseBackground = "#000000", preferred, light = "#ffffff", dark = "#000000", minRatio = 4.5 }) {
+  const bgRaw = parseColor(background) || parseColor(baseBackground);
+  const base = parseColor(baseBackground) || { r: 0, g: 0, b: 0, a: 1 };
+  if (!bgRaw) return preferred || light;
+
+  const bg = bgRaw.a < 1 ? blend(bgRaw, base) : { ...bgRaw, a: 1 };
+  const candidates = [preferred, light, dark].filter(Boolean);
+
+  let best = candidates[0] || light;
+  let bestRatio = -1;
+  for (const c of candidates) {
+    const parsed = parseColor(c);
+    if (!parsed) continue;
+    const ratio = contrastRatio({ ...parsed, a: 1 }, bg);
+    if (ratio >= minRatio) return c;
+    if (ratio > bestRatio) {
+      best = c;
+      bestRatio = ratio;
+    }
+  }
+  return best;
+}
+
 function resolveThemeId(themeId) {
   if (themeId && THEME_REGISTRY[themeId]) return themeId;
   return DEFAULT_THEME_ID;
@@ -59,20 +135,57 @@ function toCssVars(themeData) {
   const accent2 = aliases.Accent2 || accent.accent2 || accent1;
   const accent3 = aliases.Accent3 || accent.accent3 || accent1;
   const overlayBase = stateColors.hoverOverlay || "#ffffff10";
+  const textLight = text.onAccentLight || "#ffffff";
+  const textDark = text.onAccentDark || "#12091f";
+  const selectedBg = stateColors.selectedOverlay || hexToRgba(accent3, 0.18);
+  const selectedBgSoft = hexToRgba(accent3, 0.1);
+  const focusColor = accent3 || component.input?.focusBorder || "#7aa2ff";
+  const primaryText = aliases.Text1 || text.text1 || "#e8eefc";
+  const mutedText = aliases.Text2 || text.text2 || "#a9b4cc";
+
+  const textSafe = pickReadableText({
+    background: bg1,
+    preferred: primaryText,
+    light: textLight,
+    dark: textDark,
+    minRatio: 4.5,
+  });
+  const mutedSafe = pickReadableText({
+    background: bg1,
+    preferred: mutedText,
+    light: textLight,
+    dark: textDark,
+    minRatio: 3.4,
+  });
+  const textOnSelected = pickReadableText({
+    background: selectedBg,
+    baseBackground: bg1,
+    preferred: textDark,
+    light: textLight,
+    dark: textDark,
+    minRatio: 4.5,
+  });
+  const textOnFocus = pickReadableText({
+    background: focusColor,
+    preferred: textDark,
+    light: textLight,
+    dark: textDark,
+    minRatio: 4.5,
+  });
 
   return {
     "--bg": bg1,
     "--panel": surface2,
     "--panel2": surface1,
-    "--text": aliases.Text1 || "#e8eefc",
-    "--muted": aliases.Text2 || "#a9b4cc",
+    "--text": textSafe,
+    "--muted": mutedSafe,
     "--border": aliases.Border1 || "#22304a",
     "--ok": aliases.Greenlight || semantic.success?.bg || "#2e7d32",
     "--bad": aliases.Danger || semantic.danger?.bg || "#c62828",
     "--neutral": aliases.TextMuted || "#607d8b",
     "--btn": component.button?.secondary?.bg || surface2,
     "--btn2": component.button?.secondary?.hoverBg || surface1,
-    "--focus": accent3 || component.input?.focusBorder || "#7aa2ff",
+    "--focus": focusColor,
     "--bg-gradient-start": heroGradient.from || bg2,
     "--bg-gradient-accent": hexToRgba(heroGradient.via || accent1, 0.22),
     "--theme-progress-correct-1": semantic.success?.bg || aliases.Greenlight || "#34d399",
@@ -105,10 +218,12 @@ function toCssVars(themeData) {
     "--bad-soft-border": hexToRgba(semantic.danger?.bg || aliases.Danger || "#c62828", 0.55),
     "--bad-soft-border-strong": hexToRgba(semantic.danger?.bg || aliases.Danger || "#c62828", 0.82),
     "--neutral-strong": hexToRgba(text.text3 || aliases.TextMuted || "#607d8b", 0.9),
-    "--selected-bg": stateColors.selectedOverlay || hexToRgba(accent3, 0.18),
-    "--selected-bg-soft": hexToRgba(accent3, 0.1),
+    "--selected-bg": selectedBg,
+    "--selected-bg-soft": selectedBgSoft,
     "--shadow-color": stateColors.shadowColor || "rgba(0,0,0,.35)",
     "--surface-overlay": overlayBase,
+    "--text-on-selected": textOnSelected,
+    "--text-on-focus": textOnFocus,
   };
 }
 
