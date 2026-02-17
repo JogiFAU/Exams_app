@@ -704,6 +704,7 @@ summary { cursor: pointer; color: var(--muted); }
 }
 .topicBar__ok{ background: linear-gradient(90deg, var(--theme-progress-correct-1), var(--theme-progress-correct-2)); }
 .topicBar__bad{ background: linear-gradient(270deg, var(--theme-progress-wrong-1), var(--theme-progress-wrong-2)); }
+.topicBar__neu{ background: var(--neutral-strong); }
 
 .topicOverlay{
   margin-top: 12px;
@@ -726,6 +727,7 @@ summary { cursor: pointer; color: var(--muted); }
 .miniBarRow__track{ height: 10px; border-radius: 999px; overflow: hidden; background: var(--surface-track); border: 1px solid var(--border); display: flex; }
 .miniBarRow__ok{ background: linear-gradient(90deg, var(--theme-progress-correct-1), var(--theme-progress-correct-2)); }
 .miniBarRow__bad{ background: linear-gradient(270deg, var(--theme-progress-wrong-1), var(--theme-progress-wrong-2)); }
+.miniBarRow__neu{ background: var(--neutral-strong); }
 .miniBarRow__pct{ font-size: 11px; font-weight: 700; text-align: right; font-variant-numeric: tabular-nums; }
 
 .topicCard--recommendations{ margin-top: 12px; }
@@ -741,6 +743,14 @@ summary { cursor: pointer; color: var(--muted); }
 
 .topicitem-sub .examleft {
   padding-left: 18px;
+}
+
+.topicitem {
+  grid-template-columns: 1fr;
+}
+
+.topicitem .examstats {
+  display: none;
 }
 
 .topicitem-sub .examname {

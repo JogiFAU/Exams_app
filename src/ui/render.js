@@ -409,14 +409,6 @@ function renderTopicItem({ superTopic, subTopic = null, level = "super" }) {
 
   const right = document.createElement("div");
   right.className = "examstats";
-  const label = document.createElement("div");
-  label.className = "exampct placeholder";
-  if (level === "super") {
-    label.textContent = subTopic ? subTopic : "Überthema";
-  } else {
-    label.textContent = "Unterthema";
-  }
-  right.appendChild(label);
   item.appendChild(right);
 
   const syncSelected = () => item.classList.toggle("selected", cb.checked);
@@ -598,16 +590,20 @@ function computeTopicPerformance() {
 
   const result = Array.from(topics.values())
     .map((topic, i) => {
-      const answerBase = topic.answered || topic.total || 1;
+      const answerBase = topic.total || 1;
       const correctPct = Math.round((topic.correct / answerBase) * 100);
       const wrongPct = Math.round((topic.wrong / answerBase) * 100);
+      const unansweredPct = Math.max(0, 100 - correctPct - wrongPct);
       const subtopics = Array.from(topic.subtopics.values())
         .map((sub, subIdx) => {
-          const subBase = sub.answered || sub.total || 1;
+          const subBase = sub.total || 1;
+          const subCorrectPct = Math.round((sub.correct / subBase) * 100);
+          const subWrongPct = Math.round((sub.wrong / subBase) * 100);
           return {
             ...sub,
-            correctPct: Math.round((sub.correct / subBase) * 100),
-            wrongPct: Math.round((sub.wrong / subBase) * 100),
+            correctPct: subCorrectPct,
+            wrongPct: subWrongPct,
+            unansweredPct: Math.max(0, 100 - subCorrectPct - subWrongPct),
             color: reviewPalette(i + subIdx + 2)
           };
         })
@@ -618,6 +614,7 @@ function computeTopicPerformance() {
         color: reviewPalette(i),
         correctPct,
         wrongPct,
+        unansweredPct,
         subtopics
       };
     })
@@ -659,6 +656,7 @@ function buildSubtopicBars(topic) {
       <div class="miniBarRow__track">
         <span class="miniBarRow__ok" style="width:${sub.correctPct}%"></span>
         <span class="miniBarRow__bad" style="width:${sub.wrongPct}%"></span>
+        <span class="miniBarRow__neu" style="width:${sub.unansweredPct}%"></span>
       </div>
       <div class="miniBarRow__pct">${sub.correctPct}%</div>
     </div>
@@ -706,6 +704,7 @@ function renderReviewAnalytics(summaryEl, data) {
       <div class="topicBar__track">
         <span class="topicBar__ok" style="width:${topic.correctPct}%"></span>
         <span class="topicBar__bad" style="width:${topic.wrongPct}%"></span>
+        <span class="topicBar__neu" style="width:${topic.unansweredPct}%"></span>
       </div>
     </button>
   `).join("");
