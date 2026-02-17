@@ -1159,6 +1159,15 @@ summary { cursor: pointer; color: var(--muted); }
   pointer-events: auto;
 }
 .clusterBadge__tip strong { display: block; }
+
+.clusterBadge__cluster {
+  font-weight: 500;
+  opacity: .9;
+}
+.clusterBadge__abstraction {
+  color: var(--muted);
+  opacity: .92;
+}
 .clusterBadge__action {
   justify-self: start;
   padding: 6px 10px;
