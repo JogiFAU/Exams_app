@@ -216,6 +216,24 @@ function renderQuestionText(el, text, query) {
   if (start < raw.length) el.appendChild(document.createTextNode(raw.slice(start)));
 }
 
+
+function aiSourcesTooltipHtml(q) {
+  const list = Array.isArray(q?.aiSources) ? q.aiSources : [];
+  const items = list.length
+    ? list.map((x) => `<li>${escapeHtml(x)}</li>`).join("")
+    : "<li>Keine Quellenangaben verfügbar.</li>";
+
+  return `
+    <span class="aiHintSource" tabindex="0" aria-label="Quellen zum KI-Hinweis anzeigen">
+      <span class="aiHintSource__icon" aria-hidden="true">📚</span>
+      <span class="aiHintSource__tip" role="tooltip">
+        <strong>Quellen</strong>
+        <ul>${items}</ul>
+      </span>
+    </span>
+  `;
+}
+
 function getQuestionsByOrder(order) {
   const idx = questionIdIndex(state.questionsAll);
   const out = [];
@@ -1269,20 +1287,44 @@ async function renderQuestionList(qs, { allowSubmit, showSolutions }) {
       card.appendChild(originalModeInfo);
     }
 
-    if (q.aiReasonDetailed && allowSubmit && submitted && showSolutions) {
-      const aiHint = document.createElement("div");
+    const shouldShowAiHint = (
+      !!q.aiReasonDetailed &&
+      showSolutions &&
+      (
+        state.view === "review" ||
+        state.view === "search" ||
+        (allowSubmit && submitted)
+      )
+    );
+    if (shouldShowAiHint) {
+      const aiHint = document.createElement("details");
       aiHint.className = "aiHintBox";
+      const openByDefault = state.explainOpen.has(qid) || state.view === "review" || state.view === "search";
+      aiHint.open = openByDefault;
 
-      const aiHintTitle = document.createElement("div");
+      const aiHintTitle = document.createElement("summary");
       aiHintTitle.className = "aiHintBox__title";
       aiHintTitle.textContent = "Hinweis (KI-generiert):";
+
+      const aiHintBody = document.createElement("div");
+      aiHintBody.className = "aiHintBox__body";
 
       const aiHintText = document.createElement("p");
       aiHintText.className = "aiHintBox__text";
       aiHintText.textContent = formatAiTextForDisplay(q.aiReasonDetailed);
 
+      const aiHintMeta = document.createElement("div");
+      aiHintMeta.className = "aiHintBox__meta";
+      aiHintMeta.innerHTML = aiSourcesTooltipHtml(q);
+
+      aiHintBody.appendChild(aiHintText);
+      aiHintBody.appendChild(aiHintMeta);
       aiHint.appendChild(aiHintTitle);
-      aiHint.appendChild(aiHintText);
+      aiHint.appendChild(aiHintBody);
+      aiHint.addEventListener("toggle", () => {
+        if (aiHint.open) state.explainOpen.add(qid);
+        else state.explainOpen.delete(qid);
+      });
       card.appendChild(aiHint);
     }
 

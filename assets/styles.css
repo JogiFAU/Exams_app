@@ -315,11 +315,8 @@ hr.sep { border:0; border-top:1px solid var(--border); margin:14px 0; }
 .qtext { margin-top: 8px; font-size: 16px; font-weight: 750; line-height: 1.35; }
 
 .qsignal {
-  background: color-mix(in srgb, var(--traffic-yellow) 35%, transparent);
-  color: var(--text);
-  padding: 0 3px;
-  border-radius: 4px;
-  font-weight: 800;
+  color: var(--traffic-yellow);
+  font-weight: 850;
 }
 
 .aiHintBox {
@@ -327,18 +324,81 @@ hr.sep { border:0; border-top:1px solid var(--border); margin:14px 0; }
   border: 1px solid var(--interactive-border-soft);
   border-radius: 10px;
   background: var(--surface-soft);
-  padding: 10px 12px;
+  padding: 8px 12px;
 }
 .aiHintBox__title {
   font-size: 12px;
   color: var(--muted);
   font-weight: 700;
+  cursor: pointer;
+  list-style: none;
+}
+.aiHintBox__title::-webkit-details-marker { display: none; }
+.aiHintBox__title::before {
+  content: "▸";
+  margin-right: 6px;
+  color: var(--muted);
+}
+.aiHintBox[open] .aiHintBox__title::before {
+  content: "▾";
+}
+.aiHintBox__body {
+  margin-top: 8px;
 }
 .aiHintBox__text {
-  margin: 8px 0 0;
+  margin: 0;
   font-size: 13px;
   line-height: 1.5;
   color: var(--text);
+}
+.aiHintBox__meta {
+  margin-top: 8px;
+  display: inline-flex;
+  align-items: center;
+}
+.aiHintSource {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  cursor: help;
+}
+.aiHintSource__icon {
+  font-size: 15px;
+  line-height: 1;
+  opacity: .92;
+}
+.aiHintSource__tip {
+  position: absolute;
+  left: 18px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: min(340px, 80vw);
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: var(--surface-header);
+  color: var(--text);
+  box-shadow: 0 10px 24px var(--shadow-color);
+  font-size: 12px;
+  line-height: 1.35;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .12s ease;
+  z-index: 8;
+}
+.aiHintSource__tip strong {
+  display: block;
+  margin-bottom: 6px;
+}
+.aiHintSource__tip ul {
+  margin: 0;
+  padding-left: 16px;
+  display: grid;
+  gap: 4px;
+}
+.aiHintSource:hover .aiHintSource__tip,
+.aiHintSource:focus-within .aiHintSource__tip {
+  opacity: 1;
 }
 
 .opts { margin-top: 10px; display: grid; gap: 8px; }
@@ -425,6 +485,13 @@ hr.sep { border:0; border-top:1px solid var(--border); margin:14px 0; }
   }
 
   .qmetaTopic__tip {
+    width: min(320px, 85vw);
+  }
+
+  .aiHintSource__tip {
+    left: 0;
+    top: calc(100% + 8px);
+    transform: none;
     width: min(320px, 85vw);
   }
 }

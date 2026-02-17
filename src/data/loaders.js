@@ -23,6 +23,40 @@ function indicesDiffer(a, b) {
   return false;
 }
 
+
+function normalizeAiSources(q) {
+  const candidates = [
+    q.aiSources,
+    q.aiAudit?.answerPlausibility?.sources,
+    q.aiAudit?.answerPlausibility?.verification?.sources,
+    q.aiAudit?.answerPlausibility?.passA?.sources,
+    q.aiAudit?.answerPlausibility?.passB?.sources,
+  ];
+
+  const out = [];
+  for (const src of candidates) {
+    if (!Array.isArray(src)) continue;
+    for (const entry of src) {
+      if (!entry) continue;
+      if (typeof entry === "string") {
+        const txt = normSpace(entry);
+        if (txt) out.push(txt);
+        continue;
+      }
+      if (typeof entry === "object") {
+        const pdf = normSpace(
+          entry.pdf || entry.file || entry.filename || entry.document || entry.name || ""
+        );
+        const page = entry.page ?? entry.pages ?? entry.seite ?? entry.pageRange;
+        const pageText = normSpace(String(page ?? ""));
+        if (pdf && pageText) out.push(`${pdf} · S. ${pageText}`);
+        else if (pdf) out.push(pdf);
+      }
+    }
+  }
+
+  return Array.from(new Set(out));
+}
 function normalizeQuestion(q) {
   const id = String(q.id || "").trim();
   if (!id) return null;
@@ -85,6 +119,7 @@ function normalizeQuestion(q) {
     explanation: normSpace(q.explanationText || "") || null,
     aiReasonDetailed,
     aiTopicReason,
+    aiSources: normalizeAiSources(q),
     answers: (q.answers || []).map(a => ({
       text: normSpace(a.text || ""),
       isCorrect: !!a.isCorrect
