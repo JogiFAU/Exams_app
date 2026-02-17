@@ -138,6 +138,16 @@ function normalizeQuestion(q) {
     aiReasonDetailed,
     aiTopicReason,
     aiSources: normalizeAiSources(q),
+    abstractionClusterId: toNumberOrNull(
+      q.abstractionClusterId ??
+      q.aiAudit?.clusters?.abstractionClusterId
+    ),
+    questionAbstraction: normSpace(
+      q.questionAbstraction ||
+      q.aiAudit?.questionAbstraction?.summary ||
+      q.aiAudit?.questionAbstraction?.text ||
+      ""
+    ) || null,
     answers: (q.answers || []).map(a => ({
       text: normSpace(a.text || ""),
       isCorrect: !!a.isCorrect
@@ -145,6 +155,43 @@ function normalizeQuestion(q) {
     correctIndices: Array.isArray(q.correctIndices) ? q.correctIndices.slice() : [],
     imageFiles: Array.isArray(q.imageFiles) ? q.imageFiles.slice() : []
   };
+}
+
+function annotateQuestionClusters(questions) {
+  const clusterMap = new Map();
+
+  for (const q of questions) {
+    const clusterIdRaw = q.abstractionClusterId;
+    if (clusterIdRaw == null) continue;
+
+    const clusterId = String(clusterIdRaw);
+    if (!clusterMap.has(clusterId)) {
+      clusterMap.set(clusterId, { clusterId, ids: [] });
+    }
+    clusterMap.get(clusterId).ids.push(q.id);
+  }
+
+  const clusterSizes = Array.from(clusterMap.values())
+    .map(c => c.ids.length)
+    .sort((a, b) => b - a);
+
+  const percentileIndex = Math.max(0, Math.floor(clusterSizes.length * 0.2) - 1);
+  const percentileThreshold = clusterSizes[percentileIndex] || 0;
+  const largeClusterThreshold = Math.max(4, percentileThreshold);
+
+  for (const q of questions) {
+    const clusterIdRaw = q.abstractionClusterId;
+    const clusterId = clusterIdRaw != null ? String(clusterIdRaw) : null;
+    const cluster = clusterId ? clusterMap.get(clusterId) : null;
+    const related = cluster ? cluster.ids.filter(id => id !== q.id) : [];
+    const size = cluster ? cluster.ids.length : 0;
+
+    q.clusterId = cluster?.clusterId || null;
+    q.clusterLabel = cluster ? `Cluster ${cluster.clusterId}` : null;
+    q.clusterSize = size;
+    q.clusterRelatedIds = related;
+    q.isHighRelevanceCluster = size >= largeClusterThreshold;
+  }
 }
 
 export async function loadJsonUrls(urls) {
@@ -160,4 +207,5 @@ export async function loadJsonUrls(urls) {
     }
   }
   state.questionsAll = Array.from(byId.values());
+  annotateQuestionClusters(state.questionsAll);
 }

@@ -488,6 +488,14 @@ export function wireUiEvents() {
     });
   });
 
+  const clusterDialog = $("clusterQuestionsDialog");
+  $("clusterDialogClose")?.addEventListener("click", () => {
+    clusterDialog?.close();
+  });
+  clusterDialog?.addEventListener("click", (ev) => {
+    if (ev.target === clusterDialog) clusterDialog.close();
+  });
+
   // Storage
   $("deleteSessionBtn").addEventListener("click", () => {
     const datasetId = state.activeDataset?.id;

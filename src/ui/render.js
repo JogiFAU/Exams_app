@@ -993,6 +993,85 @@ function renderToc() {
   });
 }
 
+
+function buildClusterModalQuestionCard(q, ordinal, { showExplanations = true, showSolutions = true } = {}) {
+  const correctSet = new Set(getCorrectIndices(q));
+  const answers = (q.answers || []).map((a, idx) => {
+    const isCorrect = correctSet.has(idx);
+    const cls = showSolutions && isCorrect ? "opt ok" : "opt";
+    const checked = showSolutions && isCorrect ? "checked" : "";
+    return `
+      <div class="${cls}">
+        <input type="checkbox" disabled ${checked} />
+        <div class="t">${escapeHtml(`${letter(idx)}) ${a?.text || ""}`)}</div>
+      </div>
+    `;
+  }).join("");
+
+  const explanation = formatAiTextForDisplay(q.aiReasonDetailed || "");
+  const explanationHtml = showExplanations
+    ? `
+      <details class="clusterModal__explain" open>
+        <summary>KI-Hinweis zur richtigen Antwort</summary>
+        <div class="clusterModal__explainText">${explanation ? escapeHtml(explanation) : "Kein KI-Hinweis vorhanden."}</div>
+      </details>
+    `
+    : "";
+
+  return `
+    <div class="qcard clusterModal__card">
+      <div class="qmeta">
+        <span class="pill">#${ordinal}</span>
+        ${q.examName ? `<span class="pill">${escapeHtml(q.examName)}</span>` : ""}
+      </div>
+      <div class="qtext">${escapeHtml(q.text || "")}</div>
+      <div class="opts">${answers}</div>
+      ${explanationHtml}
+    </div>
+  `;
+}
+
+export function openClusterQuestionsDialog(questionId) {
+  const source = state.questionsAll.find(q => q.id === questionId);
+  if (!source || !source.clusterId) return;
+
+  const dialog = $("clusterQuestionsDialog");
+  if (!dialog || typeof dialog.showModal !== "function") return;
+
+  const title = $("clusterDialogTitle");
+  const subtitle = $("clusterDialogSubtitle");
+  const body = $("clusterDialogBody");
+  const explainToggle = $("clusterDialogShowExplanations");
+  const solutionsToggle = $("clusterDialogShowSolutions");
+
+  const relatedIds = [source.id, ...(source.clusterRelatedIds || [])];
+  const idx = questionIdIndex(state.questionsAll);
+  const clusterQuestions = relatedIds.map(id => idx.get(id)).filter(Boolean);
+
+  const renderClusterModalQuestions = () => {
+    if (!body) return;
+    const showExplanations = explainToggle ? explainToggle.checked : true;
+    const showSolutions = solutionsToggle ? solutionsToggle.checked : true;
+    body.innerHTML = clusterQuestions
+      .map((q, i) => buildClusterModalQuestionCard(q, i + 1, { showExplanations, showSolutions }))
+      .join("");
+  };
+
+  if (title) title.textContent = "Verwandte klausurrelevante Fragen";
+  if (subtitle) subtitle.textContent = `${clusterQuestions.length} Fragen · ${source.clusterLabel || "Fragencluster"}`;
+  if (explainToggle) {
+    explainToggle.checked = true;
+    explainToggle.onchange = () => renderClusterModalQuestions();
+  }
+  if (solutionsToggle) {
+    solutionsToggle.checked = true;
+    solutionsToggle.onchange = () => renderClusterModalQuestions();
+  }
+
+  renderClusterModalQuestions();
+  dialog.showModal();
+}
+
 async function jumpToQuestion(qid) {
   const idx = state.questionOrder.indexOf(qid);
   if (idx < 0) return;
@@ -1195,6 +1274,15 @@ async function renderQuestionList(qs, { allowSubmit, showSolutions }) {
 
     card.appendChild(meta);
     card.appendChild(text);
+
+    const showClusterBtn = meta.querySelector("[data-cluster-show]");
+    if (showClusterBtn) {
+      showClusterBtn.addEventListener("click", (ev) => {
+        ev.preventDefault();
+        ev.stopPropagation();
+        openClusterQuestionsDialog(q.id);
+      });
+    }
 
     // Images
     if (q.imageFiles && q.imageFiles.length) {

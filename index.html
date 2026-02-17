@@ -307,6 +307,30 @@
 
 <button id="jumpToNavBtn" class="fab" type="button" hidden>↑ Navigation</button>
 
+
+<dialog id="clusterQuestionsDialog" class="appdialog appdialog--wide">
+  <div class="appdialog__form">
+    <div class="appdialog__head">
+      <div>
+        <h3 id="clusterDialogTitle" class="appdialog__title">Verwandte Fragen</h3>
+        <p id="clusterDialogSubtitle" class="appdialog__message"></p>
+        <div class="clusterDialog__toggles">
+          <label class="clusterDialog__toggle" for="clusterDialogShowExplanations">
+            <input id="clusterDialogShowExplanations" type="checkbox" checked />
+            <span>Erklärungen anzeigen</span>
+          </label>
+          <label class="clusterDialog__toggle" for="clusterDialogShowSolutions">
+            <input id="clusterDialogShowSolutions" type="checkbox" checked />
+            <span>Lösungen anzeigen</span>
+          </label>
+        </div>
+      </div>
+      <button id="clusterDialogClose" class="appdialog__close" type="button" aria-label="Fenster schließen">✕</button>
+    </div>
+    <div id="clusterDialogBody" class="clusterDialogBody"></div>
+  </div>
+</dialog>
+
 <dialog id="appConfirmDialog" class="appdialog">
   <form method="dialog" class="appdialog__form">
     <h3 id="appConfirmTitle" class="appdialog__title">Bestätigung</h3>
