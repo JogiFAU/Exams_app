@@ -39,6 +39,8 @@ export const state = {
 
   // UI-only
   explainOpen: new Set(), // qids
+
+  reviewAnsweredOnly: false,
 };
 
 export function resetAnswers() {
@@ -46,6 +48,7 @@ export function resetAnswers() {
   state.submitted = new Set();
   state.results = new Map();
   state.explainOpen = new Set();
+  state.reviewAnsweredOnly = false;
 }
 
 export function resetQuizSession() {
@@ -61,4 +64,5 @@ export function resetSearch() {
   state.searchConfig = null;
   state.searchOrder = [];
   state.explainOpen = new Set();
+  state.reviewAnsweredOnly = false;
 }

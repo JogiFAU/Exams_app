@@ -554,6 +554,18 @@ summary { cursor: pointer; color: var(--muted); }
   background: linear-gradient(180deg, var(--selected-bg), var(--selected-bg-soft));
   color: var(--text-on-selected);
 }
+.summarySwitch{
+  margin-top: 10px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-on-selected);
+  cursor: pointer;
+}
+.summarySwitch input{ transform: scale(1.08); cursor: pointer; }
+
 .summary__grid{
   display: grid;
   grid-template-columns: repeat(4, minmax(0,1fr));

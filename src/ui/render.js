@@ -535,7 +535,7 @@ function createPieChartSvg(segments, { size = 240, innerRatio = 0.58, showLabels
   `;
 }
 
-function computeTopicPerformance() {
+function computeTopicPerformance({ answeredOnly = false } = {}) {
   const byId = questionIdIndex(state.questionsAll);
   const topics = new Map();
 
@@ -590,20 +590,23 @@ function computeTopicPerformance() {
 
   const result = Array.from(topics.values())
     .map((topic, i) => {
-      const answerBase = topic.total || 1;
+      const denominator = answeredOnly ? topic.answered : topic.total;
+      const answerBase = denominator || 1;
       const correctPct = Math.round((topic.correct / answerBase) * 100);
       const wrongPct = Math.round((topic.wrong / answerBase) * 100);
-      const unansweredPct = Math.max(0, 100 - correctPct - wrongPct);
+      const unansweredPct = answeredOnly ? 0 : Math.max(0, 100 - correctPct - wrongPct);
       const subtopics = Array.from(topic.subtopics.values())
         .map((sub, subIdx) => {
-          const subBase = sub.total || 1;
+          const subDenominator = answeredOnly ? sub.answered : sub.total;
+          const subBase = subDenominator || 1;
           const subCorrectPct = Math.round((sub.correct / subBase) * 100);
           const subWrongPct = Math.round((sub.wrong / subBase) * 100);
           return {
             ...sub,
+            denominator: subDenominator,
             correctPct: subCorrectPct,
             wrongPct: subWrongPct,
-            unansweredPct: Math.max(0, 100 - subCorrectPct - subWrongPct),
+            unansweredPct: answeredOnly ? 0 : Math.max(0, 100 - subCorrectPct - subWrongPct),
             color: reviewPalette(i + subIdx + 2)
           };
         })
@@ -611,6 +614,7 @@ function computeTopicPerformance() {
 
       return {
         ...topic,
+        denominator,
         color: reviewPalette(i),
         correctPct,
         wrongPct,
@@ -712,7 +716,7 @@ function renderReviewAnalytics(summaryEl, data) {
   const recommendations = data
     .filter((topic) => topic.correctPct < 55)
     .sort((a, b) => a.correctPct - b.correctPct)
-    .map((topic) => `<li><strong>${escapeHtml(topic.name)}</strong> · ${topic.correctPct}% richtig (${topic.correct}/${topic.answered || topic.total})</li>`)
+    .map((topic) => `<li><strong>${escapeHtml(topic.name)}</strong> · ${topic.correctPct}% richtig (${topic.correct}/${topic.denominator || topic.total})</li>`)
     .join("");
 
   panel.innerHTML = `
@@ -1025,6 +1029,10 @@ export async function renderMain() {
       <div class="hero__lead" style="margin-bottom:0;">
         Platzhalter: Hier können später Klausur-Statistiken, Themenverteilung und Lernempfehlungen angezeigt werden.
       </div>
+      <label class="summarySwitch">
+        <input id="reviewAnsweredOnlyToggle" type="checkbox" ${state.reviewAnsweredOnly ? "checked" : ""} />
+        <span>Auswertung nur auf beantwortete Fragen beziehen</span>
+      </label>
       <div class="summary__grid">
         <div class="sumcard"><div class="sumcard__k">Richtig</div><div class="sumcard__v">${correct}</div></div>
         <div class="sumcard"><div class="sumcard__k">Falsch</div><div class="sumcard__v">${wrong}</div></div>
@@ -1032,7 +1040,23 @@ export async function renderMain() {
         ${pctCards}
       </div>
     `;
-    renderReviewAnalytics(summary, computeTopicPerformance());
+
+    const analyticsHost = document.createElement("div");
+    const refreshReviewAnalytics = () => {
+      analyticsHost.innerHTML = "";
+      renderReviewAnalytics(analyticsHost, computeTopicPerformance({ answeredOnly: state.reviewAnsweredOnly }));
+    };
+
+    const answeredOnlyToggle = summary.querySelector("#reviewAnsweredOnlyToggle");
+    if (answeredOnlyToggle) {
+      answeredOnlyToggle.addEventListener("change", () => {
+        state.reviewAnsweredOnly = answeredOnlyToggle.checked;
+        refreshReviewAnalytics();
+      });
+    }
+
+    refreshReviewAnalytics();
+    summary.appendChild(analyticsHost);
     list.appendChild(summary);
   }
 
