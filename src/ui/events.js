@@ -146,6 +146,34 @@ function computeSearchSubset(config) {
   return qs;
 }
 
+function getQuestionsByOrder(order) {
+  const idToQuestion = new Map(state.questionsAll.map(q => [q.id, q]));
+  return order.map(qid => idToQuestion.get(qid)).filter(Boolean);
+}
+
+function restartQuizFromReview({ wrongOnly = false } = {}) {
+  if (state.view !== "review") return;
+
+  const allQuestions = getQuestionsByOrder(state.questionOrder || []);
+  const subset = wrongOnly
+    ? allQuestions.filter(q => state.results.get(q.id) === false)
+    : allQuestions;
+
+  if (!subset.length) {
+    alert(wrongOnly
+      ? "Keine falsch beantworteten Fragen vorhanden."
+      : "Die vorherige Abfrage enthält keine Fragen.");
+    return;
+  }
+
+  const nextConfig = {
+    ...(state.quizConfig || {}),
+    wrongOnly: wrongOnly ? true : !!state.quizConfig?.wrongOnly,
+  };
+
+  startQuizSession({ subset, config: nextConfig });
+}
+
 function refreshSavedSessionsUi() {
   const datasetId = state.activeDataset?.id;
   const sel = $("savedSessionsSelect");
@@ -385,6 +413,26 @@ export function wireUiEvents() {
     resetAllConfigs();
     updateFilterLists();
     refreshSavedSessionsUi();
+    await renderAll();
+  });
+
+  $("repeatQuizBtn")?.addEventListener("click", async () => {
+    restartQuizFromReview({ wrongOnly: false });
+    if (state.view !== "quiz") return;
+    initNavObserver();
+    $("pageNumber").value = "1";
+    $("pageNumber2").value = "1";
+    $("pageSize2").value = $("pageSize").value;
+    await renderAll();
+  });
+
+  $("repeatWrongQuizBtn")?.addEventListener("click", async () => {
+    restartQuizFromReview({ wrongOnly: true });
+    if (state.view !== "quiz") return;
+    initNavObserver();
+    $("pageNumber").value = "1";
+    $("pageNumber2").value = "1";
+    $("pageSize2").value = $("pageSize").value;
     await renderAll();
   });
 
