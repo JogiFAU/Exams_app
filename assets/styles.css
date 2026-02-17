@@ -1192,3 +1192,36 @@ summary { cursor: pointer; color: var(--muted); }
 .clusterModal__card {
   margin-bottom: 10px;
 }
+
+
+.clusterDialog__toggle {
+  margin-top: 8px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: var(--muted);
+}
+.clusterDialog__toggle input {
+  transform: translateY(-0.5px);
+}
+.clusterModal__explain {
+  margin-top: 10px;
+  border: 1px solid var(--interactive-border-soft);
+  border-radius: 10px;
+  background: var(--surface-soft);
+  padding: 8px 10px;
+}
+.clusterModal__explain summary {
+  cursor: default;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 700;
+  list-style: none;
+}
+.clusterModal__explain summary::-webkit-details-marker { display: none; }
+.clusterModal__explainText {
+  margin-top: 6px;
+  font-size: 13px;
+  line-height: 1.45;
+}

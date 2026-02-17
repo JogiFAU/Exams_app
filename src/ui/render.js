@@ -994,7 +994,7 @@ function renderToc() {
 }
 
 
-function buildClusterModalQuestionCard(q, ordinal) {
+function buildClusterModalQuestionCard(q, ordinal, { showExplanations = true } = {}) {
   const correctSet = new Set(getCorrectIndices(q));
   const answers = (q.answers || []).map((a, idx) => {
     const cls = correctSet.has(idx) ? "opt ok" : "opt";
@@ -1006,6 +1006,16 @@ function buildClusterModalQuestionCard(q, ordinal) {
     `;
   }).join("");
 
+  const explanation = formatAiTextForDisplay(q.explanation || "");
+  const explanationHtml = showExplanations
+    ? `
+      <details class="clusterModal__explain" open>
+        <summary>Antwort-Erklärung</summary>
+        <div class="clusterModal__explainText">${explanation ? escapeHtml(explanation) : "Keine Erklärung vorhanden."}</div>
+      </details>
+    `
+    : "";
+
   return `
     <div class="qcard clusterModal__card">
       <div class="qmeta">
@@ -1014,6 +1024,7 @@ function buildClusterModalQuestionCard(q, ordinal) {
       </div>
       <div class="qtext">${escapeHtml(q.text || "")}</div>
       <div class="opts">${answers}</div>
+      ${explanationHtml}
     </div>
   `;
 }
@@ -1028,19 +1039,28 @@ export function openClusterQuestionsDialog(questionId) {
   const title = $("clusterDialogTitle");
   const subtitle = $("clusterDialogSubtitle");
   const body = $("clusterDialogBody");
+  const explainToggle = $("clusterDialogShowExplanations");
 
   const relatedIds = [source.id, ...(source.clusterRelatedIds || [])];
   const idx = questionIdIndex(state.questionsAll);
   const clusterQuestions = relatedIds.map(id => idx.get(id)).filter(Boolean);
 
+  const renderClusterModalQuestions = () => {
+    if (!body) return;
+    const showExplanations = explainToggle ? explainToggle.checked : true;
+    body.innerHTML = clusterQuestions
+      .map((q, i) => buildClusterModalQuestionCard(q, i + 1, { showExplanations }))
+      .join("");
+  };
+
   if (title) title.textContent = "Verwandte klausurrelevante Fragen";
   if (subtitle) subtitle.textContent = `${clusterQuestions.length} Fragen · ${source.clusterLabel || "Fragencluster"}`;
-  if (body) {
-    body.innerHTML = clusterQuestions
-      .map((q, i) => buildClusterModalQuestionCard(q, i + 1))
-      .join("");
+  if (explainToggle) {
+    explainToggle.checked = true;
+    explainToggle.onchange = () => renderClusterModalQuestions();
   }
 
+  renderClusterModalQuestions();
   dialog.showModal();
 }
 
