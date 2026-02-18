@@ -30,6 +30,68 @@ function getQuizMode() {
   return $("quizMode")?.value || state.quizConfig?.quizMode || "practice";
 }
 
+function selectedExamsFromList(containerId) {
+  const el = $(containerId);
+  if (!el) return [];
+  return Array.from(el.querySelectorAll("input[type=checkbox][data-exam]:checked"))
+    .map(x => x.dataset.exam)
+    .filter(Boolean)
+    .sort();
+}
+
+function selectedTopicsFromList(containerId) {
+  const el = $(containerId);
+  if (!el) return { superTopics: [], subTopics: [] };
+
+  const superTopics = Array.from(el.querySelectorAll("input[type=checkbox][data-topic-super]:checked"))
+    .map(x => x.dataset.topicSuper)
+    .filter(Boolean)
+    .sort();
+
+  const subTopics = Array.from(el.querySelectorAll("input[type=checkbox][data-topic-sub]:checked"))
+    .map(x => x.dataset.topicSub)
+    .filter(Boolean)
+    .sort();
+
+  return { superTopics, subTopics };
+}
+
+function normalizedSearchConfigFromUi() {
+  const topics = selectedTopicsFromList("topicListSearch");
+  return {
+    exams: selectedExamsFromList("examListSearch"),
+    superTopics: topics.superTopics,
+    subTopics: topics.subTopics,
+    imageFilter: $("imageFilterSearch")?.value || "all",
+    query: ($("searchText")?.value || "").trim(),
+    inAnswers: !!$("searchInAnswers")?.checked,
+    wrongOnly: !!$("wrongOnlySearch")?.checked,
+    showSolutions: !!$("searchShowSolutions")?.checked,
+    onlyAiModified: !!$("onlyAiModifiedSearch")?.checked,
+  };
+}
+
+function normalizedSearchConfigFromState() {
+  const cfg = state.searchConfig || null;
+  if (!cfg) return null;
+  return {
+    exams: Array.isArray(cfg.exams) ? cfg.exams.slice().sort() : [],
+    superTopics: Array.isArray(cfg.superTopics) ? cfg.superTopics.slice().sort() : [],
+    subTopics: Array.isArray(cfg.subTopics) ? cfg.subTopics.slice().sort() : [],
+    imageFilter: cfg.imageFilter || "all",
+    query: String(cfg.query || "").trim(),
+    inAnswers: !!cfg.inAnswers,
+    wrongOnly: !!cfg.wrongOnly,
+    showSolutions: !!cfg.showSolutions,
+    onlyAiModified: !!cfg.onlyAiModified,
+  };
+}
+
+function sameSearchConfig(a, b) {
+  if (!a || !b) return false;
+  return JSON.stringify(a) === JSON.stringify(b);
+}
+
 function computeQuizProgress() {
   const total = state.questionOrder.length;
   const submitted = state.submitted.size;
@@ -116,9 +178,35 @@ function setSidebarVisibility() {
   const configDisplay = $("displayControlsConfig");
   if (configDisplay && state.view === "config") configDisplay.hidden = true;
 
+  const loadDatasetBtn = $("loadDatasetBtn");
+  const datasetSelect = $("datasetSelect");
+  if (loadDatasetBtn && datasetSelect) {
+    const selectedDatasetId = datasetSelect.value;
+    const activeDatasetId = state.activeDataset?.id || null;
+    const hasSelection = !!selectedDatasetId;
+    const isSameAsLoaded = !!activeDatasetId && selectedDatasetId === activeDatasetId;
+    const shouldHighlight = !activeDatasetId || !isSameAsLoaded;
+
+    loadDatasetBtn.disabled = !hasSelection || isSameAsLoaded;
+    loadDatasetBtn.classList.toggle("cta", shouldHighlight && hasSelection);
+    loadDatasetBtn.classList.toggle("subtle", !shouldHighlight || !hasSelection);
+    if (!loadDatasetBtn.classList.contains("primary")) loadDatasetBtn.classList.add("primary");
+  }
+
   // Search view controls
   const startSearchBtn = $("startSearchBtn");
-  if (startSearchBtn) startSearchBtn.textContent = "Suche aktualisieren";
+  if (startSearchBtn) {
+    startSearchBtn.textContent = "Suche aktualisieren";
+    const hasDataset = !!state.activeDataset;
+    const uiConfig = normalizedSearchConfigFromUi();
+    const runningConfig = normalizedSearchConfigFromState();
+    const unchangedActiveSearch = !!runningConfig && sameSearchConfig(uiConfig, runningConfig);
+
+    startSearchBtn.disabled = !hasDataset || unchangedActiveSearch;
+    startSearchBtn.classList.toggle("cta", hasDataset && !unchangedActiveSearch);
+    startSearchBtn.classList.toggle("subtle", !hasDataset || unchangedActiveSearch);
+    if (!startSearchBtn.classList.contains("primary")) startSearchBtn.classList.add("primary");
+  }
 
   // Session buttons
   const endBtn = $("endQuizBtn");

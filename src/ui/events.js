@@ -260,7 +260,7 @@ function bindExamListChange(containerId) {
   const el = $(containerId);
   el.addEventListener("change", async () => {
     updatePreviewTexts();
-    if (state.view === "config") await renderAll();
+    if (state.view !== "quiz" && state.view !== "review") await renderAll();
   });
 }
 
@@ -333,6 +333,11 @@ export function wireUiEvents() {
     await loadDatasetFromManifest(true);
   });
 
+  $("datasetSelect")?.addEventListener("change", async () => {
+    if (state.view === "quiz" || state.view === "review") return;
+    await renderAll();
+  });
+
   $("resetConfigQuizBtn").addEventListener("click", () => resetQuizConfig());
   $("resetConfigSearchBtn").addEventListener("click", async () => {
     resetSearchConfig();
@@ -353,7 +358,7 @@ export function wireUiEvents() {
     const el = $(id);
     el.addEventListener(el.tagName === "INPUT" ? "input" : "change", async () => {
       updatePreviewTexts();
-      if (state.view === "config") await renderAll();
+      if (state.view !== "quiz" && state.view !== "review") await renderAll();
     });
   });
   bindExamListChange("examListQuiz");
