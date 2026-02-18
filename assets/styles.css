@@ -284,6 +284,33 @@ input:hover, select:hover {
 .btn.danger:hover { border-color: var(--bad-soft-border-strong); }
 .btn:disabled { opacity: .45; cursor: not-allowed; }
 
+.btn.subtle {
+  background: transparent;
+  border-color: var(--border);
+  color: var(--muted);
+}
+.btn.subtle:hover {
+  background: var(--surface-soft);
+  border-color: var(--interactive-border-soft);
+  color: var(--text);
+}
+
+.btn.cta {
+  border-color: var(--interactive-border-active);
+  background: linear-gradient(180deg, var(--selected-bg), var(--selected-bg-soft));
+  color: var(--text-on-selected);
+  font-weight: 800;
+  box-shadow: 0 0 0 2px var(--focus-ring);
+}
+.btn.cta:hover {
+  border-color: var(--interactive-border-active);
+  background: linear-gradient(180deg, var(--selected-bg-soft), var(--selected-bg));
+  transform: translateY(-1px);
+}
+.btn.cta:active {
+  transform: translateY(0);
+}
+
 .tabs { display: flex; gap: 10px; }
 .tab {
   flex: 1;
@@ -297,7 +324,12 @@ input:hover, select:hover {
   transition: border-color .12s ease, background .12s ease;
 }
 .tab:hover { border-color: var(--interactive-border-hover); }
-.tab.active { border-color: var(--interactive-border-hover); background: var(--surface-soft); color: var(--text); }
+.tab.active {
+  border-color: var(--interactive-border-active);
+  background: linear-gradient(180deg, var(--selected-bg), var(--selected-bg-soft));
+  color: var(--text-on-selected);
+  box-shadow: 0 0 0 1px var(--interactive-border-active);
+}
 
 .checkrow {
   margin-top: 10px;
@@ -837,7 +869,7 @@ summary { cursor: pointer; color: var(--muted); }
 }
 
 .filterbox > * + * {
-  margin-top: 4px;
+  margin-top: 8px;
 }
 
 .qtext mark.hl,
@@ -1125,8 +1157,12 @@ summary { cursor: pointer; color: var(--muted); }
   display: none;
 }
 
+.topicitem-super .examname {
+  font-weight: 780;
+}
+
 .topicitem-sub .examname {
-  font-weight: 600;
+  font-weight: 450;
   opacity: 0.95;
 }
 
