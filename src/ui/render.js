@@ -120,6 +120,23 @@ function getDisplayedQuestion(q) {
   return getQuizQuestionVariant(q, state.quizConfig);
 }
 
+function isAiModeEnabled() {
+  const cfg = state.quizConfig || {};
+  return (cfg.aiModeEnabled ?? cfg.useAiModifiedAnswers) !== false;
+}
+
+function aiExplanationTooltipForOption(q, answerIndex, correctSet) {
+  if (correctSet.has(answerIndex)) {
+    return q.aiCorrectnessExplanation || null;
+  }
+
+  const wrongExplanations = Array.isArray(q.aiWrongOptionExplanations)
+    ? q.aiWrongOptionExplanations
+    : [];
+  const wrong = wrongExplanations.find((entry) => entry.answerIndex === answerIndex);
+  return wrong?.whyWrong || null;
+}
+
 export function renderHeaderProgress() {
   const subtitle = $("headerSubtitle");
   const progText = $("headerProgressText");
@@ -1384,14 +1401,18 @@ async function renderQuestionList(qs, { allowSubmit, showSolutions }) {
       else card.classList.add("neu");
     }
 
+    const displayedQuestion = getDisplayedQuestion(q);
+
     const meta = document.createElement("div");
     meta.className = "qmeta";
     const showTopicsInBanner = state.view === "search" ? true : (state.quizConfig?.showTopicsInBanner !== false);
-    meta.innerHTML = qMetaHtml(q, offset + idx + 1, { showTopics: showTopicsInBanner });
+    meta.innerHTML = qMetaHtml(q, offset + idx + 1, {
+      showTopics: showTopicsInBanner,
+      showAiReconstructionBadge: displayedQuestion.usedAiReconstruction
+    });
 
     const text = document.createElement("div");
     text.className = "qtext";
-    const displayedQuestion = getDisplayedQuestion(q);
     renderQuestionText(text, displayedQuestion.text, state.view === "search" ? (state.searchConfig?.query || "") : "");
 
     card.appendChild(meta);
@@ -1436,6 +1457,7 @@ async function renderQuestionList(qs, { allowSubmit, showSolutions }) {
     const preferOriginal = usesOriginalSolutionInQuiz(q);
     const effectiveCorrectIndices = getCorrectIndices(q, { preferOriginal });
     const correctSet = new Set(effectiveCorrectIndices);
+    const showAiExplanationTooltips = (state.view === "quiz" || state.view === "review") && submitted && !isAiModeEnabled();
     const multi = preferOriginal ? effectiveCorrectIndices.length > 1 : isMultiCorrect(q);
     const displayAnswers = Array.isArray(displayedQuestion.answers) ? displayedQuestion.answers : [];
     const displayOrder = state.answerOrder.get(qid) || [...Array(displayAnswers.length).keys()];
@@ -1484,6 +1506,14 @@ async function renderQuestionList(qs, { allowSubmit, showSolutions }) {
         }
       }
 
+      if (showAiExplanationTooltips) {
+        const tooltipText = aiExplanationTooltipForOption(q, origIdx, correctSet);
+        if (tooltipText) {
+          wrap.title = `KI-Erklärung:\n${formatAiTextForDisplay(tooltipText)}`;
+          wrap.setAttribute("aria-label", `KI-Erklärung: ${formatAiTextForDisplay(tooltipText)}`);
+        }
+      }
+
       const shouldMarkOriginalInSearch = (
         state.view === "search" &&
         state.searchConfig?.onlyAiModified &&
@@ -1512,14 +1542,6 @@ async function renderQuestionList(qs, { allowSubmit, showSolutions }) {
       originalModeInfo.style.marginTop = "8px";
       originalModeInfo.textContent = "Bewertung mit ursprünglicher Lösung (KI-Bearbeitung deaktiviert).";
       card.appendChild(originalModeInfo);
-    }
-
-    if (displayedQuestion.usedAiReconstruction) {
-      const reconstructionInfo = document.createElement("div");
-      reconstructionInfo.className = "small";
-      reconstructionInfo.style.marginTop = "6px";
-      reconstructionInfo.textContent = "AI-Modus aktiv: Rekonstruierte Fragendarstellung.";
-      card.appendChild(reconstructionInfo);
     }
 
     const practiceAnswered = allowSubmit && submitted && getQuizMode() === "practice";

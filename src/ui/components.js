@@ -114,13 +114,17 @@ function topicInfoHtml(q) {
   `;
 }
 
-export function qMetaHtml(q, ordinal, { showTopics = true } = {}) {
+export function qMetaHtml(q, ordinal, { showTopics = true, showAiReconstructionBadge = false } = {}) {
   const img = (q.imageFiles && q.imageFiles.length) ? `<span class="pill">🖼️ ${q.imageFiles.length}</span>` : "";
   const exam = q.examName ? `<span class="pill">${q.examName}</span>` : "";
   const topic = showTopics ? topicInfoHtml(q) : "";
 
   const aiChangedBadge = q.aiChangedAnswers
     ? `<span class="pill" title="KI-Hinweis: Die Antwortoption(en) wurden gegenüber der ursprünglichen Markierung verändert." aria-label="Antwortoptionen wurden durch KI verändert">🤖 Antwort geändert</span>`
+    : "";
+
+  const aiReconstructionBadge = showAiReconstructionBadge
+    ? `<span class="pill" title="Texte wurden KI-modifiziert, um die Frage prüfungsnaher und inhaltlich stimmiger darzustellen." aria-label="KI-modifizierte Fragendarstellung">🤖 KI-modifiziert</span>`
     : "";
 
   const maintenance = maintenanceTrafficLightHtml(q);
@@ -144,6 +148,7 @@ export function qMetaHtml(q, ordinal, { showTopics = true } = {}) {
     ${topic}
     ${img}
     ${clusterBadge}
+    ${aiReconstructionBadge}
     ${aiChangedBadge}
     <span class="qmetaRight">${maintenance}</span>
   `;

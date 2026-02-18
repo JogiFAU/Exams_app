@@ -138,6 +138,27 @@ function normalizeQuestion(q) {
       ? q.aiAudit.maintenance.reasons.map(x => normSpace(String(x || ""))).filter(Boolean)
       : []);
 
+  const explainer = q.aiAudit?.explainer;
+  const aiCorrectnessExplanation = normSpace(explainer?.correctnessExplanation || "") || null;
+  const aiWrongOptionExplanations = Array.isArray(explainer?.wrongOptionExplanations)
+    ? explainer.wrongOptionExplanations
+        .map((entry) => {
+          const whyWrong = normSpace(entry?.whyWrong || "") || null;
+          if (!whyWrong) return null;
+
+          const rawIndex = Number(entry?.answerIndex);
+          if (!Number.isInteger(rawIndex)) return null;
+
+          let normalizedIndex = null;
+          if (rawIndex >= 1 && rawIndex <= answerCount) normalizedIndex = rawIndex - 1;
+          else if (rawIndex >= 0 && rawIndex < answerCount) normalizedIndex = rawIndex;
+
+          if (!Number.isInteger(normalizedIndex)) return null;
+          return { answerIndex: normalizedIndex, whyWrong };
+        })
+        .filter(Boolean)
+    : [];
+
   const reconstructedQuestion = q.aiAudit?.reconstruction?.reconstructedQuestion;
 
   return {
@@ -149,6 +170,8 @@ function normalizeQuestion(q) {
     aiMaintenanceReasons,
     aiConfidence,
     aiChangedAnswers,
+    aiCorrectnessExplanation,
+    aiWrongOptionExplanations,
     originalCorrectIndices,
     examYear: (q.examYear != null ? Number(q.examYear) : null),
     text: normSpace(q.questionText || ""),
