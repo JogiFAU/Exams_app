@@ -1,5 +1,21 @@
 import { state } from "../state.js";
 
+function assignQuestionImagesFromZip() {
+  if (!Array.isArray(state.questionsAll) || !state.questionsAll.length) return;
+
+  const imageBases = Array.from(state.zipIndex.keys());
+  for (const q of state.questionsAll) {
+    const qid = String(q?.id || "").trim();
+    if (!qid) continue;
+
+    const matchedBases = imageBases.filter((base) => base.includes(qid)).sort();
+    if (!matchedBases.length) continue;
+
+    const existing = Array.isArray(q.imageFiles) ? q.imageFiles.slice() : [];
+    q.imageFiles = Array.from(new Set([...existing, ...matchedBases]));
+  }
+}
+
 export function clearZipObjectUrls() {
   for (const url of state.zipObjectUrls.values()) {
     try { URL.revokeObjectURL(url); } catch {}
@@ -32,6 +48,8 @@ export async function loadZipUrl(url) {
     const m = base.match(/^(.+)\.(png|jpg|jpeg|webp|gif)$/i);
     if (m) state.zipIndex.set(m[1], path);
   });
+
+  assignQuestionImagesFromZip();
 }
 
 export async function getImageUrl(fileBase) {
