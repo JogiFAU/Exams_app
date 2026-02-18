@@ -215,9 +215,10 @@ function setSidebarVisibility() {
     endBtn.disabled = (state.view !== "quiz");
 
     const allAnswered = state.questionOrder.length > 0 && state.submitted.size >= state.questionOrder.length;
-    endBtn.classList.toggle("cta", state.view === "quiz" && allAnswered);
-    endBtn.classList.toggle("subtle", state.view === "quiz" && !allAnswered);
-    if (!endBtn.classList.contains("primary")) endBtn.classList.add("primary");
+    const inActiveQuiz = state.view === "quiz";
+    endBtn.classList.toggle("cta", inActiveQuiz && allAnswered);
+    endBtn.classList.toggle("subtle", false);
+    endBtn.classList.toggle("primary", inActiveQuiz && !allAnswered);
   }
 
   const ab = $("abortQuizBtn");
@@ -1568,7 +1569,7 @@ async function renderQuestionList(qs, { allowSubmit, showSolutions }) {
       actionsRow = actions;
 
       const submitBtn = document.createElement("button");
-      submitBtn.className = "btn primary";
+      submitBtn.className = "btn";
       submitBtn.textContent = "Antwort abgeben";
       submitBtn.disabled = submitted;
       submitBtn.addEventListener("click", async () => {
