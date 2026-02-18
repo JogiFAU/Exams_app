@@ -373,7 +373,7 @@ hr.sep { border:0; border-top:1px solid var(--border); margin:14px 0; }
 
 .qwrap { padding: 0 0 14px 0; }
 .qcard {
-  border: 2px solid var(--border);
+  border: 2px solid var(--interactive-border-soft);
   border-radius: 14px;
   background: var(--surface-card);
   padding: 14px;
@@ -598,7 +598,7 @@ hr.sep { border:0; border-top:1px solid var(--border); margin:14px 0; }
   width: 8px;
   height: 8px;
   border-radius: 999px;
-  background: var(--text);
+  background: var(--muted);
   transform: scale(0);
   transition: transform .12s ease;
 }
@@ -621,8 +621,8 @@ hr.sep { border:0; border-top:1px solid var(--border); margin:14px 0; }
 }
 
 .opt input[type="radio"]:checked {
-  background: var(--interactive-border-hover);
-  border-color: var(--interactive-border-hover);
+  background: var(--interactive-border-soft);
+  border-color: var(--interactive-border-soft);
 }
 
 .opt input[type="radio"]:checked::after { transform: scale(1); }
@@ -631,6 +631,10 @@ hr.sep { border:0; border-top:1px solid var(--border); margin:14px 0; }
 .opt input:focus-visible {
   outline: none;
   box-shadow: 0 0 0 3px var(--focus-ring);
+}
+
+.opt input[type="radio"]:focus-visible {
+  box-shadow: 0 0 0 3px rgba(255,255,255,.14);
 }
 
 .opt .t { font-size: 14px; line-height: 1.35; color: var(--question-option-text); }
@@ -643,6 +647,10 @@ hr.sep { border:0; border-top:1px solid var(--border); margin:14px 0; }
   align-items: center;
   gap: 10px;
   flex-wrap: wrap;
+}
+
+.notebookActions--inline {
+  margin-top: 0;
 }
 
 .tooltipHint {

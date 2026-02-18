@@ -213,6 +213,11 @@ function setSidebarVisibility() {
   if (endBtn) {
     endBtn.hidden = !(state.view === "quiz" || state.view === "review");
     endBtn.disabled = (state.view !== "quiz");
+
+    const allAnswered = state.questionOrder.length > 0 && state.submitted.size >= state.questionOrder.length;
+    endBtn.classList.toggle("cta", state.view === "quiz" && allAnswered);
+    endBtn.classList.toggle("subtle", state.view === "quiz" && !allAnswered);
+    if (!endBtn.classList.contains("primary")) endBtn.classList.add("primary");
   }
 
   const ab = $("abortQuizBtn");
@@ -1556,9 +1561,11 @@ async function renderQuestionList(qs, { allowSubmit, showSolutions }) {
       card.appendChild(oldCorrectInfo);
     }
 
+    let actionsRow = null;
     if (allowSubmit) {
       const actions = document.createElement("div");
       actions.className = "actions";
+      actionsRow = actions;
 
       const submitBtn = document.createElement("button");
       submitBtn.className = "btn primary";
@@ -1600,7 +1607,7 @@ async function renderQuestionList(qs, { allowSubmit, showSolutions }) {
     // NotebookLM Explain
     if (!allowSubmit || submitted) {
       const explainWrap = document.createElement("div");
-      explainWrap.className = "notebookActions";
+      explainWrap.className = actionsRow ? "actions notebookActions notebookActions--inline" : "notebookActions";
 
       const explainBtn = document.createElement("button");
       explainBtn.className = "btn";
@@ -1625,7 +1632,8 @@ async function renderQuestionList(qs, { allowSubmit, showSolutions }) {
 
       explainWrap.appendChild(explainBtn);
       explainWrap.appendChild(hint);
-      card.appendChild(explainWrap);
+      if (actionsRow) actionsRow.appendChild(explainWrap);
+      else card.appendChild(explainWrap);
     }
 
     list.appendChild(card);
