@@ -65,16 +65,21 @@
       <section id="configQuiz" class="majorBlock">
         <h2>3) Abfragemodus konfigurieren</h2>
 
-        <details class="filterSection" open>
-          <summary class="filterSection__summary">Klausurauswahl</summary>
-          <div id="examListQuiz" class="examlist"></div>
-        </details>
+        <div class="configSubgroup">
+          <details class="filterSection" open>
+            <summary class="filterSection__summary">Klausurauswahl</summary>
+            <div id="examListQuiz" class="examlist"></div>
+          </details>
+        </div>
 
-        <details class="filterSection" open>
-          <summary class="filterSection__summary">Themenauswahl</summary>
-          <div id="topicListQuiz" class="examlist"></div>
-        </details>
+        <div class="configSubgroup">
+          <details class="filterSection" open>
+            <summary class="filterSection__summary">Themenauswahl</summary>
+            <div id="topicListQuiz" class="examlist"></div>
+          </details>
+        </div>
 
+        <div class="configSubgroup">
         <div class="subhead">Weitere Filter</div>
         <div class="filterbox">
           <label>Bilder</label>
@@ -102,7 +107,9 @@
             <span>Auch in Antwortmöglichkeiten suchen</span>
           </label>
         </div>
+        </div>
 
+        <div class="configSubgroup">
         <div class="subhead">Abfrageeinstellungen</div>
         <div class="filterbox">
           <select id="quizMode">
@@ -130,6 +137,7 @@
             <span>KI-Bearbeitung verwenden (bei KI-modifizierten Fragen die KI-Lösung nutzen)</span>
           </label>
         </div>
+        </div>
 
         <div class="row2" style="margin-top:12px;">
           <button class="btn cta" id="startQuizBtn">Abfrage starten</button>
@@ -141,16 +149,21 @@
       <section id="configSearch" class="majorBlock" hidden>
         <h2>3) Suchmodus konfigurieren</h2>
 
-        <details class="filterSection" open>
-          <summary class="filterSection__summary">Klausurauswahl</summary>
-          <div id="examListSearch" class="examlist"></div>
-        </details>
+        <div class="configSubgroup">
+          <details class="filterSection" open>
+            <summary class="filterSection__summary">Klausurauswahl</summary>
+            <div id="examListSearch" class="examlist"></div>
+          </details>
+        </div>
 
-        <details class="filterSection" open>
-          <summary class="filterSection__summary">Themenauswahl</summary>
-          <div id="topicListSearch" class="examlist"></div>
-        </details>
+        <div class="configSubgroup">
+          <details class="filterSection" open>
+            <summary class="filterSection__summary">Themenauswahl</summary>
+            <div id="topicListSearch" class="examlist"></div>
+          </details>
+        </div>
 
+        <div class="configSubgroup">
         <div class="subhead">Filterkriterien</div>
         <div class="filterbox">
           <label>Bilder</label>
@@ -172,19 +185,22 @@
             <input id="wrongOnlySearch" type="checkbox" />
             <span id="wrongOnlySearchLabel">Nur aktuell falsch beantwortete Fragen</span>
           </label>
+
+          <label class="checkrow">
+            <input id="onlyAiModifiedSearch" type="checkbox" />
+            <span>Nur KI-modifizierte Fragen</span>
+          </label>
+        </div>
         </div>
 
+        <div class="configSubgroup">
         <div class="subhead">Anzeigeoptionen</div>
         <div class="filterbox">
           <label class="checkrow">
             <input id="searchShowSolutions" type="checkbox" />
             <span>Lösungen anzeigen</span>
           </label>
-
-          <label class="checkrow">
-            <input id="onlyAiModifiedSearch" type="checkbox" />
-            <span>Nur KI-modifizierte Fragen</span>
-          </label>
+        </div>
         </div>
 
         <div class="row2" style="margin-top:12px;">

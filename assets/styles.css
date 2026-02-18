@@ -189,6 +189,14 @@ body {
   margin-bottom: 12px;
 }
 
+.configSubgroup + .configSubgroup {
+  margin-top: 16px;
+}
+
+.configSubgroup .subhead {
+  margin-top: 0;
+}
+
 label { display: block; font-size: 12px; color: var(--muted); margin: 10px 0 6px; }
 
 input[type="checkbox"] {
