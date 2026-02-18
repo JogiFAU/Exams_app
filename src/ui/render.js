@@ -115,7 +115,7 @@ function usesOriginalSolutionInQuiz(q) {
 
 function getDisplayedQuestion(q) {
   if (state.view !== "quiz" && state.view !== "review") {
-    return { text: q.text, answers: q.answers, usedAiReconstruction: false };
+    return { text: q.text, answers: q.answers, imageReferenceText: null, usedAiReconstruction: false };
   }
   return getQuizQuestionVariant(q, state.quizConfig);
 }
@@ -1414,6 +1414,14 @@ async function renderQuestionList(qs, { allowSubmit, showSolutions }) {
     const text = document.createElement("div");
     text.className = "qtext";
     renderQuestionText(text, displayedQuestion.text, state.view === "search" ? (state.searchConfig?.query || "") : "");
+
+    if (displayedQuestion.usedAiReconstruction && displayedQuestion.imageReferenceText && Array.isArray(q.imageFiles) && q.imageFiles.length) {
+      const imageRef = document.createElement("div");
+      imageRef.className = "small";
+      imageRef.style.marginTop = "8px";
+      imageRef.textContent = `Bildreferenz (Originalfrage): ${displayedQuestion.imageReferenceText}`;
+      text.appendChild(imageRef);
+    }
 
     card.appendChild(meta);
     card.appendChild(text);

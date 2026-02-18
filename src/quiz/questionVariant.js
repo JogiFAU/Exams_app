@@ -14,6 +14,23 @@ function normalizeReconstructedAnswers(answers) {
     .map((entry) => ({ text: entry.text }));
 }
 
+function extractImageReferenceText(questionText) {
+  const text = String(questionText || "").trim();
+  if (!text) return null;
+
+  const lines = text
+    .split(/\r?\n/)
+    .map((line) => line.trim())
+    .filter(Boolean);
+
+  const imageRefLines = lines.filter((line) =>
+    /(abbildung|bild|grafik|schema|schaubild|siehe\s+.*bild|image|img\.?)/i.test(line)
+  );
+
+  if (!imageRefLines.length) return null;
+  return imageRefLines.join(" ");
+}
+
 export function getQuizQuestionVariant(q, quizConfig) {
   const aiModeEnabled = (quizConfig?.aiModeEnabled ?? quizConfig?.useAiModifiedAnswers) !== false;
   const reconstructed = q?.reconstructedQuestion;
@@ -27,6 +44,7 @@ export function getQuizQuestionVariant(q, quizConfig) {
     return {
       text: q?.text || "",
       answers: Array.isArray(q?.answers) ? q.answers : [],
+      imageReferenceText: null,
       usedAiReconstruction: false
     };
   }
@@ -39,6 +57,7 @@ export function getQuizQuestionVariant(q, quizConfig) {
   return {
     text: String(reconstructed.questionText || "").trim() || (q?.text || ""),
     answers,
+    imageReferenceText: extractImageReferenceText(q?.text || ""),
     usedAiReconstruction: true
   };
 }
