@@ -6,6 +6,7 @@ import { getImageUrl } from "../data/zipImages.js";
 import { qMetaHtml, buildExplainPrompt, formatAiTextForDisplay } from "./components.js";
 import { questionIdIndex } from "../quiz/filters.js";
 import { getLatestAnsweredResultsByQuestion } from "../data/storage.js";
+import { getQuizQuestionVariant } from "../quiz/questionVariant.js";
 
 const MAX_RENDER_NO_PAGING = 1000;
 let notebookLmWindow = null;
@@ -110,6 +111,13 @@ function usesOriginalSolutionInQuiz(q) {
   return (state.view === "quiz" || state.view === "review") &&
     state.quizConfig?.useAiModifiedAnswers === false &&
     q.aiChangedAnswers;
+}
+
+function getDisplayedQuestion(q) {
+  if (state.view !== "quiz" && state.view !== "review") {
+    return { text: q.text, answers: q.answers, usedAiReconstruction: false };
+  }
+  return getQuizQuestionVariant(q, state.quizConfig);
 }
 
 export function renderHeaderProgress() {
@@ -1151,7 +1159,7 @@ export function openClusterQuestionsDialog(questionId) {
       .join("");
   };
 
-  if (title) title.textContent = "Verwandte klausurrelevante Fragen";
+  if (title) title.textContent = "Verwandte häufige Altfragen";
   if (subtitle) subtitle.textContent = `${clusterQuestions.length} Fragen · ${source.clusterLabel || "Fragencluster"}`;
   if (explainToggle) {
     explainToggle.checked = true;
@@ -1218,7 +1226,7 @@ export async function renderMain() {
           <li><strong>Themenfokus:</strong> arbeite nur zu ausgewählten Über- und Unterthemen, um Wissenslücken systematisch zu schließen.</li>
           <li><strong>Prüfungssimulation:</strong> nutze den Prüfungsmodus ohne direkte Ergebnisanzeige und werte deinen Stand anschließend aus.</li>
           <li><strong>Wiederholungslernen:</strong> konzentriere dich auf falsch beantwortete Fragen und wiederhole kritische Inhalte effizient.</li>
-          <li><strong>Mustererkennung:</strong> erkenne häufig wiederkehrende Altfragen (Cluster) und priorisiere klausurrelevante Schwerpunkte.</li>
+          <li><strong>Mustererkennung:</strong> erkenne häufig wiederkehrende Altfragen (Cluster) und priorisiere häufige Schwerpunkte.</li>
         </ul>
       </div>
     `;
@@ -1383,7 +1391,8 @@ async function renderQuestionList(qs, { allowSubmit, showSolutions }) {
 
     const text = document.createElement("div");
     text.className = "qtext";
-    renderQuestionText(text, q.text, state.view === "search" ? (state.searchConfig?.query || "") : "");
+    const displayedQuestion = getDisplayedQuestion(q);
+    renderQuestionText(text, displayedQuestion.text, state.view === "search" ? (state.searchConfig?.query || "") : "");
 
     card.appendChild(meta);
     card.appendChild(text);
@@ -1428,10 +1437,11 @@ async function renderQuestionList(qs, { allowSubmit, showSolutions }) {
     const effectiveCorrectIndices = getCorrectIndices(q, { preferOriginal });
     const correctSet = new Set(effectiveCorrectIndices);
     const multi = preferOriginal ? effectiveCorrectIndices.length > 1 : isMultiCorrect(q);
-    const displayOrder = state.answerOrder.get(qid) || [...Array((q.answers || []).length).keys()];
+    const displayAnswers = Array.isArray(displayedQuestion.answers) ? displayedQuestion.answers : [];
+    const displayOrder = state.answerOrder.get(qid) || [...Array(displayAnswers.length).keys()];
 
     displayOrder.forEach((origIdx, displayIdx) => {
-      const a = (q.answers || [])[origIdx];
+      const a = displayAnswers[origIdx];
       const wrap = document.createElement("label");
       wrap.className = "opt";
 
@@ -1502,6 +1512,14 @@ async function renderQuestionList(qs, { allowSubmit, showSolutions }) {
       originalModeInfo.style.marginTop = "8px";
       originalModeInfo.textContent = "Bewertung mit ursprünglicher Lösung (KI-Bearbeitung deaktiviert).";
       card.appendChild(originalModeInfo);
+    }
+
+    if (displayedQuestion.usedAiReconstruction) {
+      const reconstructionInfo = document.createElement("div");
+      reconstructionInfo.className = "small";
+      reconstructionInfo.style.marginTop = "6px";
+      reconstructionInfo.textContent = "AI-Modus aktiv: Rekonstruierte Fragendarstellung.";
+      card.appendChild(reconstructionInfo);
     }
 
     const practiceAnswered = allowSubmit && submitted && getQuizMode() === "practice";

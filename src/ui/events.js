@@ -52,7 +52,8 @@ function buildQuizConfigFromUi() {
     shuffleAnswers: $("shuffleAnswers").checked,
     quizMode: $("quizMode").value,
     showTopicsInBanner: !!$("showTopicsInBanner")?.checked,
-    useAiModifiedAnswers: !!$("useAiModifiedAnswers")?.checked,
+    aiModeEnabled: !!$("aiModeEnabled")?.checked,
+    useAiModifiedAnswers: !!$("aiModeEnabled")?.checked,
   };
 }
 
@@ -279,8 +280,8 @@ function resetQuizConfig() {
   $("quizMode").value = "practice";
   const showTopics = $("showTopicsInBanner");
   if (showTopics) showTopics.checked = true;
-  const useAiModified = $("useAiModifiedAnswers");
-  if (useAiModified) useAiModified.checked = true;
+  const aiModeEnabled = $("aiModeEnabled");
+  if (aiModeEnabled) aiModeEnabled.checked = true;
   updatePreviewTexts();
 }
 
@@ -350,7 +351,7 @@ export function wireUiEvents() {
   });
 
   [
-    "imageFilterQuiz","wrongOnlyQuiz","randomN","keywordFilter","keywordInAnswers","shuffleQuestions","shuffleAnswers","quizMode","showTopicsInBanner","useAiModifiedAnswers",
+    "imageFilterQuiz","wrongOnlyQuiz","randomN","keywordFilter","keywordInAnswers","shuffleQuestions","shuffleAnswers","quizMode","showTopicsInBanner","aiModeEnabled",
     "imageFilterSearch","searchText","searchInAnswers","wrongOnlySearch","searchShowSolutions","onlyAiModifiedSearch"
   ].forEach(id => {
     const el = $(id);

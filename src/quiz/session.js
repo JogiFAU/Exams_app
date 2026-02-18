@@ -2,6 +2,7 @@ import { state, resetQuizSession } from "../state.js";
 import { hash32, mulberry32, shuffle, toast } from "../utils.js";
 import { evaluate } from "./evaluate.js";
 import { saveSession, deleteSession, loadSession } from "../data/storage.js";
+import { getQuizQuestionVariant } from "./questionVariant.js";
 
 function newSessionId() {
   return `s_${Date.now()}_${Math.random().toString(16).slice(2)}`;
@@ -20,9 +21,10 @@ export function startQuizSession({ subset, config }) {
   state.answerOrder = new Map();
   if (config.shuffleAnswers) {
     for (const q of subset) {
+      const questionVariant = getQuizQuestionVariant(q, config);
       const base = hash32((state.currentSessionId || "") + "|" + q.id);
       const rng = mulberry32(base);
-      const order = shuffle([...Array((q.answers || []).length).keys()], rng);
+      const order = shuffle([...Array((questionVariant.answers || []).length).keys()], rng);
       state.answerOrder.set(q.id, order);
     }
   }
@@ -70,8 +72,15 @@ export function submitAnswer(q) {
   const qid = q.id;
   const selected = state.answers.get(qid) || [];
   state.submitted.add(qid);
+  const questionVariant = getQuizQuestionVariant(q, state.quizConfig);
+  const evaluateQuestion = {
+    ...q,
+    text: questionVariant.text,
+    answers: questionVariant.answers,
+    correctIndices: q.correctIndices
+  };
   const preferOriginal = (state.quizConfig?.useAiModifiedAnswers === false) && q.aiChangedAnswers;
-  state.results.set(qid, evaluate(q, selected, { preferOriginal }));
+  state.results.set(qid, evaluate(evaluateQuestion, selected, { preferOriginal }));
   persistCurrentQuizSession();
 }
 

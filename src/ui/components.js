@@ -4,9 +4,6 @@ import {
   MAINTENANCE_TRAFFIC_RULES
 } from "../rules/questionPresentationRules.js";
 
-const INDEX_CONTEXT_RE = /\b(Antwort(?:option)?|Option|Index(?:es)?|Indices?)\s*([:#(\[]\s*)?(\d+)\b/gi;
-
-
 function escHtml(text) {
   return String(text || "")
     .replaceAll("&", "&amp;")
@@ -17,12 +14,7 @@ function escHtml(text) {
 }
 
 export function formatAiTextForDisplay(text) {
-  const raw = String(text || "");
-  return raw.replace(INDEX_CONTEXT_RE, (_, prefix, sep = " ", n) => {
-    const idx = Number(n);
-    if (!Number.isInteger(idx)) return _;
-    return `${prefix}${sep}${idx + 1}`;
-  });
+  return String(text || "");
 }
 
 function questionMentionsImageWithoutAttachment(q) {
@@ -134,8 +126,8 @@ export function qMetaHtml(q, ordinal, { showTopics = true } = {}) {
   const maintenance = maintenanceTrafficLightHtml(q);
   const clusterBadge = q.isHighRelevanceCluster
     ? `
-      <span class="pill clusterBadge" tabindex="0" aria-label="Klausurrelevanter Cluster mit ähnlichen Fragen">
-        ⭐ Klausurrelevant
+      <span class="pill clusterBadge" tabindex="0" aria-label="Häufige Altfrage mit ähnlichen Fragen">
+        ⭐ Häufige Altfrage
         <span class="clusterBadge__tip" role="tooltip">
           <strong>${Math.max(0, Number(q.clusterSize || 0) - 1)} ähnliche Fragen im Cluster erkannt.</strong>
           <span class="clusterBadge__cluster">${escHtml(q.clusterLabel || "Fragencluster")}</span>
