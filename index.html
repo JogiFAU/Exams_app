@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>DocsDocs, nur anders und besser</title>
+  <title>JocksJocks 2.0</title>
 
   <link rel="stylesheet" href="./assets/styles.css" />
 
@@ -14,7 +14,7 @@
 
 <header class="top">
   <div class="top__left">
-    <div class="top__title">DocsDocs, nur anders und besser</div>
+    <div class="top__title">JocksJocks 2.0</div>
     <div class="top__subtitle" id="headerSubtitle">Datensatz laden und Abfrage konfigurieren</div>
   </div>
 
@@ -42,6 +42,7 @@
 
     <!-- CONFIG SIDEBAR -->
     <section id="sidebarConfig">
+      <section class="majorBlock">
       <h2>1) Setup</h2>
 
       <label for="datasetSelect">Datensatz</label>
@@ -49,32 +50,36 @@
         <select id="datasetSelect"></select>
         <button class="btn primary" id="loadDatasetBtn">Datensatz laden</button>
       </div>
-      <div class="small" id="datasetMetaHint" style="margin-top:8px;"></div>
+      <div class="small" id="datasetMetaHint" style="margin-top:8px;">Kein Datensatz geladen</div>
+      </section>
 
-      <hr class="sep">
-
+      <section class="majorBlock">
       <h2>2) Arbeitsmodus</h2>
       <div class="tabs">
         <button class="tab" id="tabQuiz" type="button">Abfragemodus</button>
         <button class="tab" id="tabSearch" type="button">Fragen durchsuchen</button>
       </div>
-
-      <hr class="sep">
+      </section>
 
       <!-- QUIZ CONFIG -->
-      <section id="configQuiz">
+      <section id="configQuiz" class="majorBlock">
         <h2>3) Abfragemodus konfigurieren</h2>
 
-        <details class="filterSection" open>
-          <summary class="filterSection__summary">Klausuren auswählen (Mehrfachauswahl möglich)</summary>
-          <div id="examListQuiz" class="examlist"></div>
-        </details>
+        <div class="configSubgroup">
+          <details class="filterSection" open>
+            <summary class="filterSection__summary">Klausurauswahl</summary>
+            <div id="examListQuiz" class="examlist"></div>
+          </details>
+        </div>
 
-        <details class="filterSection" open>
-          <summary class="filterSection__summary">Themen auswählen (Mehrfachauswahl möglich)</summary>
-          <div id="topicListQuiz" class="examlist"></div>
-        </details>
+        <div class="configSubgroup">
+          <details class="filterSection" open>
+            <summary class="filterSection__summary">Themenauswahl</summary>
+            <div id="topicListQuiz" class="examlist"></div>
+          </details>
+        </div>
 
+        <div class="configSubgroup">
         <div class="subhead">Weitere Filter</div>
         <div class="filterbox">
           <label>Bilder</label>
@@ -89,11 +94,9 @@
             <span id="wrongOnlyQuizLabel">Nur aktuell falsch beantwortete Fragen</span>
           </label>
 
-          <div class="row2">
-            <div>
-              <label>Zufällig X Fragen aus Set <span class="muted">(leer = alle)</span></label>
-              <input id="randomN" type="number" min="1" placeholder="z.B. 50" />
-            </div>
+          <div>
+            <label>Zufällige Fragen aus Auswahl: <span class="muted">(leer = alle)</span></label>
+            <input id="randomN" type="number" min="1" placeholder="z.B. 50" />
           </div>
 
           <label>Schlagwort-Filter <span class="muted">(optional)</span></label>
@@ -104,9 +107,16 @@
             <span>Auch in Antwortmöglichkeiten suchen</span>
           </label>
         </div>
+        </div>
 
+        <div class="configSubgroup">
         <div class="subhead">Abfrageeinstellungen</div>
         <div class="filterbox">
+          <select id="quizMode">
+            <option value="practice">Übungsmodus (Feedback sofort)</option>
+            <option value="exam">Prüfungsmodus (Feedback am Ende)</option>
+          </select>
+
           <label class="checkrow">
             <input id="shuffleQuestions" type="checkbox" />
             <span>Fragenreihenfolge mischen</span>
@@ -116,12 +126,6 @@
             <input id="shuffleAnswers" type="checkbox" />
             <span>Antwortoptionen mischen</span>
           </label>
-
-          <label>Feedback</label>
-          <select id="quizMode">
-            <option value="practice">Übungsmodus (Feedback sofort)</option>
-            <option value="exam">Prüfungsmodus (Feedback am Ende)</option>
-          </select>
 
           <label class="checkrow">
             <input id="showTopicsInBanner" type="checkbox" checked />
@@ -133,56 +137,71 @@
             <span>KI-Bearbeitung verwenden (bei KI-modifizierten Fragen die KI-Lösung nutzen)</span>
           </label>
         </div>
+        </div>
 
         <div class="row2" style="margin-top:12px;">
-          <button class="btn primary" id="startQuizBtn">Abfrage starten</button>
-          <button class="btn" id="resetConfigQuizBtn" type="button">Zurücksetzen</button>
+          <button class="btn cta" id="startQuizBtn">Abfrage starten</button>
+          <button class="btn subtle" id="resetConfigQuizBtn" type="button">Zurücksetzen</button>
         </div>
       </section>
 
       <!-- SEARCH CONFIG -->
-      <section id="configSearch" hidden>
+      <section id="configSearch" class="majorBlock" hidden>
         <h2>3) Suchmodus konfigurieren</h2>
 
-        <details class="filterSection" open>
-          <summary class="filterSection__summary">Klausuren auswählen (optional)</summary>
-          <div id="examListSearch" class="examlist"></div>
-        </details>
+        <div class="configSubgroup">
+          <details class="filterSection" open>
+            <summary class="filterSection__summary">Klausurauswahl</summary>
+            <div id="examListSearch" class="examlist"></div>
+          </details>
+        </div>
 
-        <details class="filterSection" open>
-          <summary class="filterSection__summary">Themen auswählen (optional)</summary>
-          <div id="topicListSearch" class="examlist"></div>
-        </details>
+        <div class="configSubgroup">
+          <details class="filterSection" open>
+            <summary class="filterSection__summary">Themenauswahl</summary>
+            <div id="topicListSearch" class="examlist"></div>
+          </details>
+        </div>
 
-        <label>Bilder</label>
-        <select id="imageFilterSearch">
-          <option value="all">Alle Fragen</option>
-          <option value="with">Nur Fragen mit Bildern</option>
-          <option value="without">Nur Fragen ohne Bilder</option>
-        </select>
+        <div class="configSubgroup">
+        <div class="subhead">Filterkriterien</div>
+        <div class="filterbox">
+          <label>Bilder</label>
+          <select id="imageFilterSearch">
+            <option value="all">Alle Fragen</option>
+            <option value="with">Nur Fragen mit Bildern</option>
+            <option value="without">Nur Fragen ohne Bilder</option>
+          </select>
 
-        <label>Suche</label>
-        <input id="searchText" type="text" placeholder="Suchbegriff für den Suchmodus (z.B. Trisomie, Hardy-Weinberg, ...)" />
+          <label>Suche</label>
+          <input id="searchText" type="text" placeholder="Suchbegriff für den Suchmodus (z.B. Trisomie, Hardy-Weinberg, ...)" />
 
-        <label class="checkrow">
-          <input id="searchInAnswers" type="checkbox" />
-          <span>Auch in Antwortmöglichkeiten suchen</span>
-        </label>
+          <label class="checkrow">
+            <input id="searchInAnswers" type="checkbox" />
+            <span>Auch in Antwortmöglichkeiten suchen</span>
+          </label>
 
-        <label class="checkrow">
-          <input id="wrongOnlySearch" type="checkbox" />
-          <span id="wrongOnlySearchLabel">Nur aktuell falsch beantwortete Fragen</span>
-        </label>
+          <label class="checkrow">
+            <input id="wrongOnlySearch" type="checkbox" />
+            <span id="wrongOnlySearchLabel">Nur aktuell falsch beantwortete Fragen</span>
+          </label>
 
-        <label class="checkrow">
-          <input id="searchShowSolutions" type="checkbox" />
-          <span>Lösungen anzeigen</span>
-        </label>
+          <label class="checkrow">
+            <input id="onlyAiModifiedSearch" type="checkbox" />
+            <span>Nur KI-modifizierte Fragen</span>
+          </label>
+        </div>
+        </div>
 
-        <label class="checkrow">
-          <input id="onlyAiModifiedSearch" type="checkbox" />
-          <span>Nur KI-modifizierte Fragen</span>
-        </label>
+        <div class="configSubgroup">
+        <div class="subhead">Anzeigeoptionen</div>
+        <div class="filterbox">
+          <label class="checkrow">
+            <input id="searchShowSolutions" type="checkbox" />
+            <span>Lösungen anzeigen</span>
+          </label>
+        </div>
+        </div>
 
         <div class="row2" style="margin-top:12px;">
           <button class="btn primary" id="startSearchBtn">Suche aktualisieren</button>

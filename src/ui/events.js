@@ -211,9 +211,7 @@ async function loadDatasetFromManifest(autoToast = false) {
     state.activeDataset = { ...d };
     const datasetMetaHint = $("datasetMetaHint");
     if (datasetMetaHint) {
-      datasetMetaHint.textContent = d.notebookUrl
-        ? 'NotebookLM-Link hinterlegt. Beim Klick auf "In NotebookLM erklären" wird der Prompt in die Zwischenablage kopiert.'
-        : "Kein NotebookLM-Link hinterlegt (manifest.json: notebookUrl).";
+      datasetMetaHint.textContent = `Aktuell gewähltes Fach: ${d.label || d.id}`;
     }
 
     resetQuizSession();
@@ -260,7 +258,7 @@ function bindExamListChange(containerId) {
   const el = $(containerId);
   el.addEventListener("change", async () => {
     updatePreviewTexts();
-    if (state.view === "config") await renderAll();
+    if (state.view !== "quiz" && state.view !== "review") await renderAll();
   });
 }
 
@@ -333,6 +331,11 @@ export function wireUiEvents() {
     await loadDatasetFromManifest(true);
   });
 
+  $("datasetSelect")?.addEventListener("change", async () => {
+    if (state.view === "quiz" || state.view === "review") return;
+    await renderAll();
+  });
+
   $("resetConfigQuizBtn").addEventListener("click", () => resetQuizConfig());
   $("resetConfigSearchBtn").addEventListener("click", async () => {
     resetSearchConfig();
@@ -353,7 +356,7 @@ export function wireUiEvents() {
     const el = $(id);
     el.addEventListener(el.tagName === "INPUT" ? "input" : "change", async () => {
       updatePreviewTexts();
-      if (state.view === "config") await renderAll();
+      if (state.view !== "quiz" && state.view !== "review") await renderAll();
     });
   });
   bindExamListChange("examListQuiz");
@@ -430,6 +433,8 @@ export function wireUiEvents() {
     $("pageNumber2").value = "1";
     $("pageSize2").value = $("pageSize").value;
     await renderAll();
+    window.scrollTo({ top: 0, behavior: "auto" });
+    requestAnimationFrame(() => window.scrollTo({ top: 0, behavior: "auto" }));
   });
 
   $("repeatWrongQuizBtn")?.addEventListener("click", async () => {
@@ -441,6 +446,8 @@ export function wireUiEvents() {
     $("pageNumber2").value = "1";
     $("pageSize2").value = $("pageSize").value;
     await renderAll();
+    window.scrollTo({ top: 0, behavior: "auto" });
+    requestAnimationFrame(() => window.scrollTo({ top: 0, behavior: "auto" }));
   });
 
   

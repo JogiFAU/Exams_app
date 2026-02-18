@@ -30,6 +30,68 @@ function getQuizMode() {
   return $("quizMode")?.value || state.quizConfig?.quizMode || "practice";
 }
 
+function selectedExamsFromList(containerId) {
+  const el = $(containerId);
+  if (!el) return [];
+  return Array.from(el.querySelectorAll("input[type=checkbox][data-exam]:checked"))
+    .map(x => x.dataset.exam)
+    .filter(Boolean)
+    .sort();
+}
+
+function selectedTopicsFromList(containerId) {
+  const el = $(containerId);
+  if (!el) return { superTopics: [], subTopics: [] };
+
+  const superTopics = Array.from(el.querySelectorAll("input[type=checkbox][data-topic-super]:checked"))
+    .map(x => x.dataset.topicSuper)
+    .filter(Boolean)
+    .sort();
+
+  const subTopics = Array.from(el.querySelectorAll("input[type=checkbox][data-topic-sub]:checked"))
+    .map(x => x.dataset.topicSub)
+    .filter(Boolean)
+    .sort();
+
+  return { superTopics, subTopics };
+}
+
+function normalizedSearchConfigFromUi() {
+  const topics = selectedTopicsFromList("topicListSearch");
+  return {
+    exams: selectedExamsFromList("examListSearch"),
+    superTopics: topics.superTopics,
+    subTopics: topics.subTopics,
+    imageFilter: $("imageFilterSearch")?.value || "all",
+    query: ($("searchText")?.value || "").trim(),
+    inAnswers: !!$("searchInAnswers")?.checked,
+    wrongOnly: !!$("wrongOnlySearch")?.checked,
+    showSolutions: !!$("searchShowSolutions")?.checked,
+    onlyAiModified: !!$("onlyAiModifiedSearch")?.checked,
+  };
+}
+
+function normalizedSearchConfigFromState() {
+  const cfg = state.searchConfig || null;
+  if (!cfg) return null;
+  return {
+    exams: Array.isArray(cfg.exams) ? cfg.exams.slice().sort() : [],
+    superTopics: Array.isArray(cfg.superTopics) ? cfg.superTopics.slice().sort() : [],
+    subTopics: Array.isArray(cfg.subTopics) ? cfg.subTopics.slice().sort() : [],
+    imageFilter: cfg.imageFilter || "all",
+    query: String(cfg.query || "").trim(),
+    inAnswers: !!cfg.inAnswers,
+    wrongOnly: !!cfg.wrongOnly,
+    showSolutions: !!cfg.showSolutions,
+    onlyAiModified: !!cfg.onlyAiModified,
+  };
+}
+
+function sameSearchConfig(a, b) {
+  if (!a || !b) return false;
+  return JSON.stringify(a) === JSON.stringify(b);
+}
+
 function computeQuizProgress() {
   const total = state.questionOrder.length;
   const submitted = state.submitted.size;
@@ -116,15 +178,47 @@ function setSidebarVisibility() {
   const configDisplay = $("displayControlsConfig");
   if (configDisplay && state.view === "config") configDisplay.hidden = true;
 
+  const loadDatasetBtn = $("loadDatasetBtn");
+  const datasetSelect = $("datasetSelect");
+  if (loadDatasetBtn && datasetSelect) {
+    const selectedDatasetId = datasetSelect.value;
+    const activeDatasetId = state.activeDataset?.id || null;
+    const hasSelection = !!selectedDatasetId;
+    const isSameAsLoaded = !!activeDatasetId && selectedDatasetId === activeDatasetId;
+    const shouldHighlight = !activeDatasetId || !isSameAsLoaded;
+
+    loadDatasetBtn.disabled = !hasSelection || isSameAsLoaded;
+    loadDatasetBtn.classList.toggle("cta", shouldHighlight && hasSelection);
+    loadDatasetBtn.classList.toggle("subtle", !shouldHighlight || !hasSelection);
+    if (!loadDatasetBtn.classList.contains("primary")) loadDatasetBtn.classList.add("primary");
+  }
+
   // Search view controls
   const startSearchBtn = $("startSearchBtn");
-  if (startSearchBtn) startSearchBtn.textContent = "Suche aktualisieren";
+  if (startSearchBtn) {
+    startSearchBtn.textContent = "Suche aktualisieren";
+    const hasDataset = !!state.activeDataset;
+    const uiConfig = normalizedSearchConfigFromUi();
+    const runningConfig = normalizedSearchConfigFromState();
+    const unchangedActiveSearch = !!runningConfig && sameSearchConfig(uiConfig, runningConfig);
+
+    startSearchBtn.disabled = !hasDataset || unchangedActiveSearch;
+    startSearchBtn.classList.toggle("cta", hasDataset && !unchangedActiveSearch);
+    startSearchBtn.classList.toggle("subtle", !hasDataset || unchangedActiveSearch);
+    if (!startSearchBtn.classList.contains("primary")) startSearchBtn.classList.add("primary");
+  }
 
   // Session buttons
   const endBtn = $("endQuizBtn");
   if (endBtn) {
     endBtn.hidden = !(state.view === "quiz" || state.view === "review");
     endBtn.disabled = (state.view !== "quiz");
+
+    const allAnswered = state.questionOrder.length > 0 && state.submitted.size >= state.questionOrder.length;
+    const inActiveQuiz = state.view === "quiz";
+    endBtn.classList.toggle("cta", inActiveQuiz && allAnswered);
+    endBtn.classList.toggle("subtle", false);
+    endBtn.classList.toggle("primary", inActiveQuiz && !allAnswered);
   }
 
   const ab = $("abortQuizBtn");
@@ -1108,16 +1202,24 @@ export async function renderMain() {
   if (!state.activeDataset) {
     mainInfo.innerHTML = `
       <div class="hero">
-        <div class="hero__title">Willkommen bei DocsDocs für Arme in besser</div>
-        <div class="hero__lead">
-          Wähle links zuerst einen Datensatz aus und lade ihn. Danach kannst du im Abfragemodus gezielt für Klausuren üben (mit Fortschritt, Auswertung und Review) oder im Suchmodus durch alle Fragen browsen. Nutze die Filter für Klausuren, Bilder, Schlagwörter und Themen, um deine Lernsession präzise einzugrenzen.
-        </div>
+        <div class="hero__title">Willkommen bei JocksJocks 2.0</div>
         <div class="hero__stats">
-          <div class="pill">🔎 Suche nach Stichwörtern</div>
-          <div class="pill">🗂️ Filter nach Altklausuren</div>
-          <div class="pill">🏷️ Filter nach Schlagwörtern</div>
-          <div class="pill">🧪 Themen-Filter (in construction)</div>
+          <div class="pill">🗂️ Filter nach Klausuren</div>
+          <div class="pill">🏷️ Filter nach Themen & Unterthemen</div>
+          <div class="pill">🖼️ Filter nach Fragen mit/ohne Bilder</div>
+          <div class="pill">🎯 Zufälliges Subset & Shuffle</div>
+          <div class="pill">📌 Erkennung häufiger Altfragen</div>
         </div>
+        <div class="hero__lead">
+          JocksJocks 2.0 unterstützt dich bei der strukturierten Prüfungsvorbereitung: Du kannst mit wenigen Klicks genau die Fragen auswählen, die für deinen Lernstand relevant sind, und zwischen prüfungsnaher Abfrage und freier Suche wechseln.
+        </div>
+        <ul class="hero__list">
+          <li><strong>Klausur-Training:</strong> trainiere gezielt einzelne Klausuren oder kombiniere mehrere Prüfungen zu einem eigenen Lernset.</li>
+          <li><strong>Themenfokus:</strong> arbeite nur zu ausgewählten Über- und Unterthemen, um Wissenslücken systematisch zu schließen.</li>
+          <li><strong>Prüfungssimulation:</strong> nutze den Prüfungsmodus ohne direkte Ergebnisanzeige und werte deinen Stand anschließend aus.</li>
+          <li><strong>Wiederholungslernen:</strong> konzentriere dich auf falsch beantwortete Fragen und wiederhole kritische Inhalte effizient.</li>
+          <li><strong>Mustererkennung:</strong> erkenne häufig wiederkehrende Altfragen (Cluster) und priorisiere klausurrelevante Schwerpunkte.</li>
+        </ul>
       </div>
     `;
     return;
@@ -1131,14 +1233,25 @@ export async function renderMain() {
     mainInfo.innerHTML = `
       <div class="hero">
         <div class="hero__title">${isSearchTab ? "Suchmodus konfigurieren" : "Abfragemodus konfigurieren"}</div>
+        <div class="hero__stats">
+          <div class="pill">${isSearchTab ? `Ausgewählte Fragen: ${sc}` : `Ausgewählte Fragen: ${qc}`}</div>
+        </div>
         <div class="hero__lead">
           ${isSearchTab
-            ? "Wähle Klausuren und Suchfilter im linken Bereich. Die Anzahl der im Suchmodus sichtbaren Fragen wird hier live aktualisiert."
-            : "Wähle Klausuren und Filter im linken Bereich. Die Anzahl der aktuell ausgewählten Fragen wird hier live aktualisiert."}
+            ? "Im Suchmodus kannst du deinen Datenbestand explorativ durchsuchen. Nutze links Klausur-, Themen-, Bild- und Suchfilter und entscheide, ob Lösungen direkt sichtbar sein sollen. Die Trefferzahl wird hier live aktualisiert."
+            : "Im Abfragemodus stellst du dir eine gezielte Trainingssession zusammen: wähle Klausuren/Themen, beschränke auf Bildfragen oder nur zuletzt falsche Fragen, nutze optional Zufalls-Subset sowie Shuffle und entscheide zwischen Übungs- und Prüfungsmodus."}
         </div>
-        <div class="hero__stats">
-          <div class="pill">${isSearchTab ? `Treffer im Suchmodus: ${sc}` : `Aktuell gewählte Fragen: ${qc}`}</div>
-        </div>
+        ${isSearchTab
+          ? `<ul class="hero__list">
+               <li>Setze einen Suchbegriff, um Frage- und optional Antworttexte zu durchsuchen.</li>
+               <li>Kombiniere Suchbegriff mit Klausur- und Themenfiltern für sehr präzise Treffer.</li>
+               <li>Aktiviere „Nur KI-modifizierte Fragen“, wenn du gezielt AI-überarbeitete Inhalte prüfen möchtest.</li>
+             </ul>`
+          : `<ul class="hero__list">
+               <li><strong>Übungsmodus:</strong> direktes Feedback nach dem Beantworten einzelner Fragen.</li>
+               <li><strong>Prüfungsmodus:</strong> neutrale Darstellung ohne vorzeitige Ergebnisanzeige, Auswertung am Ende.</li>
+               <li>Nach Abschluss kannst du die komplette Session oder nur falsche Antworten erneut trainieren.</li>
+             </ul>`}
       </div>
     `;
     return;
@@ -1449,12 +1562,14 @@ async function renderQuestionList(qs, { allowSubmit, showSolutions }) {
       card.appendChild(oldCorrectInfo);
     }
 
+    let actionsRow = null;
     if (allowSubmit) {
       const actions = document.createElement("div");
       actions.className = "actions";
+      actionsRow = actions;
 
       const submitBtn = document.createElement("button");
-      submitBtn.className = "btn primary";
+      submitBtn.className = "btn";
       submitBtn.textContent = "Antwort abgeben";
       submitBtn.disabled = submitted;
       submitBtn.addEventListener("click", async () => {
@@ -1493,7 +1608,7 @@ async function renderQuestionList(qs, { allowSubmit, showSolutions }) {
     // NotebookLM Explain
     if (!allowSubmit || submitted) {
       const explainWrap = document.createElement("div");
-      explainWrap.className = "notebookActions";
+      explainWrap.className = actionsRow ? "actions notebookActions notebookActions--inline" : "notebookActions";
 
       const explainBtn = document.createElement("button");
       explainBtn.className = "btn";
@@ -1518,7 +1633,8 @@ async function renderQuestionList(qs, { allowSubmit, showSolutions }) {
 
       explainWrap.appendChild(explainBtn);
       explainWrap.appendChild(hint);
-      card.appendChild(explainWrap);
+      if (actionsRow) actionsRow.appendChild(explainWrap);
+      else card.appendChild(explainWrap);
     }
 
     list.appendChild(card);
