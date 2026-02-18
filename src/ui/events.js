@@ -433,6 +433,8 @@ export function wireUiEvents() {
     $("pageNumber2").value = "1";
     $("pageSize2").value = $("pageSize").value;
     await renderAll();
+    window.scrollTo({ top: 0, behavior: "auto" });
+    requestAnimationFrame(() => window.scrollTo({ top: 0, behavior: "auto" }));
   });
 
   $("repeatWrongQuizBtn")?.addEventListener("click", async () => {
@@ -444,6 +446,8 @@ export function wireUiEvents() {
     $("pageNumber2").value = "1";
     $("pageSize2").value = $("pageSize").value;
     await renderAll();
+    window.scrollTo({ top: 0, behavior: "auto" });
+    requestAnimationFrame(() => window.scrollTo({ top: 0, behavior: "auto" }));
   });
 
   
