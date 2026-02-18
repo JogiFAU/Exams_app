@@ -926,6 +926,7 @@ summary { cursor: pointer; color: var(--muted); }
   display: flex;
   flex-wrap: wrap;
   gap: 10px;
+  margin-bottom: 14px;
 }
 .pill{
   padding: 8px 10px;

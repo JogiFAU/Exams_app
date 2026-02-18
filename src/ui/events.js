@@ -211,9 +211,7 @@ async function loadDatasetFromManifest(autoToast = false) {
     state.activeDataset = { ...d };
     const datasetMetaHint = $("datasetMetaHint");
     if (datasetMetaHint) {
-      datasetMetaHint.textContent = d.notebookUrl
-        ? 'NotebookLM-Link hinterlegt. Beim Klick auf "In NotebookLM erklären" wird der Prompt in die Zwischenablage kopiert.'
-        : "Kein NotebookLM-Link hinterlegt (manifest.json: notebookUrl).";
+      datasetMetaHint.textContent = `Aktuell gewähltes Fach: ${d.label || d.id}`;
     }
 
     resetQuizSession();

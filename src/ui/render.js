@@ -1194,24 +1194,25 @@ export async function renderMain() {
   list.innerHTML = "";
 
   if (!state.activeDataset) {
-    const datasetCount = Array.isArray(state.manifest?.datasets) ? state.manifest.datasets.length : 0;
     mainInfo.innerHTML = `
       <div class="hero">
-        <div class="hero__title">Willkommen bei DocsDocs für Arme in besser</div>
+        <div class="hero__title">Willkommen bei JocksJocks 2.0</div>
         <div class="hero__stats">
-          <div class="pill">📚 ${datasetCount} Datensätze im Manifest hinterlegt</div>
-          <div class="pill">🧠 Abfrage + Suchmodus in einer App</div>
-          <div class="pill">📌 Erkennung häufiger Altfragen per Cluster</div>
-          <div class="pill">💾 Lokale Lernstände inkl. Backup/Import</div>
-          <div class="pill">🖼️ Bildfragen via ZIP-Support</div>
+          <div class="pill">🗂️ Filter nach Klausuren</div>
+          <div class="pill">🏷️ Filter nach Themen & Unterthemen</div>
+          <div class="pill">🖼️ Filter nach Fragen mit/ohne Bilder</div>
+          <div class="pill">🎯 Zufälliges Subset & Shuffle</div>
+          <div class="pill">📌 Erkennung häufiger Altfragen</div>
         </div>
         <div class="hero__lead">
-          Diese App läuft vollständig im Browser und ist für effizientes Klausurtraining gedacht. Starte links mit der Datensatz-Auswahl und klicke auf „Datensatz laden“. Danach kannst du zwischen zwei klar getrennten Lernwegen wechseln:
+          JocksJocks 2.0 unterstützt dich bei der strukturierten Prüfungsvorbereitung: Du kannst mit wenigen Klicks genau die Fragen auswählen, die für deinen Lernstand relevant sind, und zwischen prüfungsnaher Abfrage und freier Suche wechseln.
         </div>
         <ul class="hero__list">
-          <li><strong>Abfragemodus:</strong> klassische Übungssession mit Fortschritt, Abgabe pro Frage, Abschlussauswertung und optionalem Wiederholen falscher Fragen.</li>
-          <li><strong>Suchmodus:</strong> gezieltes Durchsuchen der gesamten Fragenbasis mit Filterung nach Klausur, Themen, Bildern und Stichwörtern.</li>
-          <li><strong>Flexibel trainieren:</strong> nutze Zufalls-Subset, Mischoptionen und „nur falsch beantwortete Fragen“, um fokussierte Lernblöcke zu bauen.</li>
+          <li><strong>Klausur-Training:</strong> trainiere gezielt einzelne Klausuren oder kombiniere mehrere Prüfungen zu einem eigenen Lernset.</li>
+          <li><strong>Themenfokus:</strong> arbeite nur zu ausgewählten Über- und Unterthemen, um Wissenslücken systematisch zu schließen.</li>
+          <li><strong>Prüfungssimulation:</strong> nutze den Prüfungsmodus ohne direkte Ergebnisanzeige und werte deinen Stand anschließend aus.</li>
+          <li><strong>Wiederholungslernen:</strong> konzentriere dich auf falsch beantwortete Fragen und wiederhole kritische Inhalte effizient.</li>
+          <li><strong>Mustererkennung:</strong> erkenne häufig wiederkehrende Altfragen (Cluster) und priorisiere klausurrelevante Schwerpunkte.</li>
         </ul>
       </div>
     `;
