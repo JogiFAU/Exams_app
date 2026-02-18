@@ -42,6 +42,7 @@
 
     <!-- CONFIG SIDEBAR -->
     <section id="sidebarConfig">
+      <section class="majorBlock">
       <h2>1) Setup</h2>
 
       <label for="datasetSelect">Datensatz</label>
@@ -50,28 +51,27 @@
         <button class="btn primary" id="loadDatasetBtn">Datensatz laden</button>
       </div>
       <div class="small" id="datasetMetaHint" style="margin-top:8px;"></div>
+      </section>
 
-      <hr class="sep">
-
+      <section class="majorBlock">
       <h2>2) Arbeitsmodus</h2>
       <div class="tabs">
         <button class="tab" id="tabQuiz" type="button">Abfragemodus</button>
         <button class="tab" id="tabSearch" type="button">Fragen durchsuchen</button>
       </div>
-
-      <hr class="sep">
+      </section>
 
       <!-- QUIZ CONFIG -->
-      <section id="configQuiz">
+      <section id="configQuiz" class="majorBlock">
         <h2>3) Abfragemodus konfigurieren</h2>
 
         <details class="filterSection" open>
-          <summary class="filterSection__summary">Klausuren auswählen (Mehrfachauswahl möglich)</summary>
+          <summary class="filterSection__summary">Klausurauswahl</summary>
           <div id="examListQuiz" class="examlist"></div>
         </details>
 
         <details class="filterSection" open>
-          <summary class="filterSection__summary">Themen auswählen (Mehrfachauswahl möglich)</summary>
+          <summary class="filterSection__summary">Themenauswahl</summary>
           <div id="topicListQuiz" class="examlist"></div>
         </details>
 
@@ -107,6 +107,11 @@
 
         <div class="subhead">Abfrageeinstellungen</div>
         <div class="filterbox">
+          <select id="quizMode">
+            <option value="practice">Übungsmodus (Feedback sofort)</option>
+            <option value="exam">Prüfungsmodus (Feedback am Ende)</option>
+          </select>
+
           <label class="checkrow">
             <input id="shuffleQuestions" type="checkbox" />
             <span>Fragenreihenfolge mischen</span>
@@ -116,12 +121,6 @@
             <input id="shuffleAnswers" type="checkbox" />
             <span>Antwortoptionen mischen</span>
           </label>
-
-          <label>Feedback</label>
-          <select id="quizMode">
-            <option value="practice">Übungsmodus (Feedback sofort)</option>
-            <option value="exam">Prüfungsmodus (Feedback am Ende)</option>
-          </select>
 
           <label class="checkrow">
             <input id="showTopicsInBanner" type="checkbox" checked />
@@ -141,16 +140,16 @@
       </section>
 
       <!-- SEARCH CONFIG -->
-      <section id="configSearch" hidden>
+      <section id="configSearch" class="majorBlock" hidden>
         <h2>3) Suchmodus konfigurieren</h2>
 
         <details class="filterSection" open>
-          <summary class="filterSection__summary">Klausuren auswählen (optional)</summary>
+          <summary class="filterSection__summary">Klausurauswahl</summary>
           <div id="examListSearch" class="examlist"></div>
         </details>
 
         <details class="filterSection" open>
-          <summary class="filterSection__summary">Themen auswählen (optional)</summary>
+          <summary class="filterSection__summary">Themenauswahl</summary>
           <div id="topicListSearch" class="examlist"></div>
         </details>
 
