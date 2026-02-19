@@ -2,6 +2,7 @@ import { state, resetQuizSession } from "../state.js";
 import { hash32, mulberry32, shuffle, toast } from "../utils.js";
 import { evaluate } from "./evaluate.js";
 import { saveSession, deleteSession, loadSession } from "../data/storage.js";
+import { getQuizQuestionVariant, applyLocalQuestionOverride } from "./questionVariant.js";
 
 function newSessionId() {
   return `s_${Date.now()}_${Math.random().toString(16).slice(2)}`;
@@ -20,9 +21,15 @@ export function startQuizSession({ subset, config }) {
   state.answerOrder = new Map();
   if (config.shuffleAnswers) {
     for (const q of subset) {
+      const localOverride = state.localQuestionOverrides?.get(q.id);
+      const effectiveQuestion = applyLocalQuestionOverride(q, localOverride);
+      const useOriginalView = state.forceOriginalQuestionView?.has(q.id);
+      const questionVariant = useOriginalView
+        ? { answers: effectiveQuestion.answers || [] }
+        : getQuizQuestionVariant(effectiveQuestion, config);
       const base = hash32((state.currentSessionId || "") + "|" + q.id);
       const rng = mulberry32(base);
-      const order = shuffle([...Array((q.answers || []).length).keys()], rng);
+      const order = shuffle([...Array((questionVariant.answers || []).length).keys()], rng);
       state.answerOrder.set(q.id, order);
     }
   }
@@ -70,8 +77,20 @@ export function submitAnswer(q) {
   const qid = q.id;
   const selected = state.answers.get(qid) || [];
   state.submitted.add(qid);
+  const localOverride = state.localQuestionOverrides?.get(q.id);
+  const effectiveQuestion = applyLocalQuestionOverride(q, localOverride);
+  const useOriginalView = state.forceOriginalQuestionView?.has(q.id);
+  const questionVariant = useOriginalView
+    ? { text: effectiveQuestion.text, answers: effectiveQuestion.answers || [] }
+    : getQuizQuestionVariant(effectiveQuestion, state.quizConfig);
+  const evaluateQuestion = {
+    ...effectiveQuestion,
+    text: questionVariant.text,
+    answers: questionVariant.answers,
+    correctIndices: effectiveQuestion.correctIndices
+  };
   const preferOriginal = (state.quizConfig?.useAiModifiedAnswers === false) && q.aiChangedAnswers;
-  state.results.set(qid, evaluate(q, selected, { preferOriginal }));
+  state.results.set(qid, evaluate(evaluateQuestion, selected, { preferOriginal }));
   persistCurrentQuizSession();
 }
 

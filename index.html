@@ -133,8 +133,8 @@
           </label>
 
           <label class="checkrow">
-            <input id="useAiModifiedAnswers" type="checkbox" checked />
-            <span>KI-Bearbeitung verwenden (bei KI-modifizierten Fragen die KI-Lösung nutzen)</span>
+            <input id="aiModeEnabled" type="checkbox" checked />
+            <span>AI-Modus: rekonstruierte Fragen verwenden 🤖</span>
           </label>
         </div>
         </div>
@@ -243,6 +243,13 @@
             <button class="btn danger" id="clearAllLocalDataBtn" type="button">Alles löschen</button>
           </div>
 
+          <label style="margin-top:12px;">Lokal modifizierte Fragen</label>
+          <select id="localOverridesSelect" size="4"></select>
+          <div class="row2" style="margin-top:10px;">
+            <button class="btn danger" id="deleteLocalOverrideBtn" type="button">Löschen</button>
+            <button class="btn danger" id="clearLocalOverridesBtn" type="button">Alle löschen</button>
+          </div>
+
           <details style="margin-top:10px;">
             <summary>Backup (optional)</summary>
             <div class="row2" style="margin-top:10px;">
@@ -348,6 +355,30 @@
     </div>
     <div id="clusterDialogBody" class="clusterDialogBody"></div>
   </div>
+</dialog>
+
+<dialog id="questionEditorDialog" class="appdialog appdialog--wide">
+  <form method="dialog" class="appdialog__form">
+    <div class="appdialog__head">
+      <div>
+        <h3 id="questionEditorTitle" class="appdialog__title">Frage bearbeiten</h3>
+        <p class="appdialog__message">Lokale Änderungen werden nur in diesem Browser gespeichert.</p>
+      </div>
+      <button id="questionEditorClose" class="appdialog__close" type="submit" value="cancel" aria-label="Fenster schließen">✕</button>
+    </div>
+    <div class="clusterDialogBody">
+      <label>Fragetext</label>
+      <textarea id="editorQuestionText" rows="4"></textarea>
+      <div id="editorAnswersWrap"></div>
+      <div class="row" style="margin-top:10px;">
+        <button class="btn" id="editorAddAnswerBtn" type="button">+ Antwortoption</button>
+      </div>
+    </div>
+    <div class="appdialog__actions">
+      <button class="btn" type="submit" value="cancel">Abbrechen</button>
+      <button class="btn primary" id="editorSaveBtn" type="button">Lokal speichern</button>
+    </div>
+  </form>
 </dialog>
 
 <dialog id="appConfirmDialog" class="appdialog">

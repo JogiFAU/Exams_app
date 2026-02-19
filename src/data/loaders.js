@@ -10,12 +10,24 @@ function toNumberOrNull(value) {
   return Number.isFinite(n) ? n : null;
 }
 
-function normalizeIndices(indices) {
+function normalizeIndices(indices, answerCount = null) {
   if (!Array.isArray(indices)) return [];
-  return indices
+  const normalized = indices
     .map(x => Number(x))
     .filter(Number.isInteger)
     .sort((a, b) => a - b);
+
+  if (!normalized.length) return [];
+
+  const canConvertFromOneBased = Number.isInteger(answerCount) && answerCount > 0
+    && normalized.every((idx) => idx >= 1 && idx <= answerCount)
+    && !normalized.includes(0);
+
+  if (canConvertFromOneBased) {
+    return normalized.map((idx) => idx - 1);
+  }
+
+  return normalized;
 }
 
 function normalizeAiSources(q) {
@@ -93,15 +105,19 @@ function normalizeQuestion(q) {
   const aiReasonDetailed = resolveAiDisplayText(q, "solutionHint");
   const aiTopicReason = resolveAiDisplayText(q, "topicReason");
 
+  const answerCount = Array.isArray(q.answers) ? q.answers.length : 0;
+
   const originalCorrectIndices = normalizeIndices(
     q.originalCorrectIndices ||
-    q.aiAudit?.answerPlausibility?.originalCorrectIndices
+    q.aiAudit?.answerPlausibility?.originalCorrectIndices,
+    answerCount
   );
 
   const finalCorrectIndices = normalizeIndices(
     q.finalCorrectIndices ||
     q.aiAudit?.answerPlausibility?.finalCorrectIndices ||
-    q.correctIndices
+    q.correctIndices,
+    answerCount
   );
 
   const changedInDataset = q.aiAudit?.answerPlausibility?.changedInDataset;
@@ -122,6 +138,29 @@ function normalizeQuestion(q) {
       ? q.aiAudit.maintenance.reasons.map(x => normSpace(String(x || ""))).filter(Boolean)
       : []);
 
+  const explainer = q.aiAudit?.explainer;
+  const aiCorrectnessExplanation = normSpace(explainer?.correctnessExplanation || "") || null;
+  const aiWrongOptionExplanations = Array.isArray(explainer?.wrongOptionExplanations)
+    ? explainer.wrongOptionExplanations
+        .map((entry) => {
+          const whyWrong = normSpace(entry?.whyWrong || "") || null;
+          if (!whyWrong) return null;
+
+          const rawIndex = Number(entry?.answerIndex);
+          if (!Number.isInteger(rawIndex)) return null;
+
+          let normalizedIndex = null;
+          if (rawIndex >= 1 && rawIndex <= answerCount) normalizedIndex = rawIndex - 1;
+          else if (rawIndex >= 0 && rawIndex < answerCount) normalizedIndex = rawIndex;
+
+          if (!Number.isInteger(normalizedIndex)) return null;
+          return { answerIndex: normalizedIndex, whyWrong };
+        })
+        .filter(Boolean)
+    : [];
+
+  const reconstructedQuestion = q.aiAudit?.reconstruction?.reconstructedQuestion;
+
   return {
     id,
     examName: q.examName || null,
@@ -131,10 +170,23 @@ function normalizeQuestion(q) {
     aiMaintenanceReasons,
     aiConfidence,
     aiChangedAnswers,
+    aiCorrectnessExplanation,
+    aiWrongOptionExplanations,
     originalCorrectIndices,
     examYear: (q.examYear != null ? Number(q.examYear) : null),
     text: normSpace(q.questionText || ""),
     explanation: normSpace(q.explanationText || "") || null,
+    reconstructedQuestion: reconstructedQuestion && typeof reconstructedQuestion === "object"
+      ? {
+          questionText: normSpace(reconstructedQuestion.questionText || "") || "",
+          answers: Array.isArray(reconstructedQuestion.answers)
+            ? reconstructedQuestion.answers.map((a) => ({
+                answerIndex: Number(a?.answerIndex),
+                text: normSpace(a?.text || "")
+              }))
+            : []
+        }
+      : null,
     aiReasonDetailed,
     aiTopicReason,
     aiSources: normalizeAiSources(q),
@@ -152,7 +204,7 @@ function normalizeQuestion(q) {
       text: normSpace(a.text || ""),
       isCorrect: !!a.isCorrect
     })),
-    correctIndices: Array.isArray(q.correctIndices) ? q.correctIndices.slice() : [],
+    correctIndices: finalCorrectIndices,
     imageFiles: Array.isArray(q.imageFiles) ? q.imageFiles.slice() : []
   };
 }
@@ -175,9 +227,7 @@ function annotateQuestionClusters(questions) {
     .map(c => c.ids.length)
     .sort((a, b) => b - a);
 
-  const percentileIndex = Math.max(0, Math.floor(clusterSizes.length * 0.2) - 1);
-  const percentileThreshold = clusterSizes[percentileIndex] || 0;
-  const largeClusterThreshold = Math.max(4, percentileThreshold);
+  const largeClusterThreshold = 3;
 
   for (const q of questions) {
     const clusterIdRaw = q.abstractionClusterId;

@@ -7,16 +7,18 @@
         "datasets/informatik//export_AIannotated.json"
       ],
       "zip": "datasets/informatik/images.zip",
-      "notebookUrl": "https://notebooklm.google.com/notebook/38cdb701-fe88-408d-b9ab-a09c1e77e32a"
+      "notebookUrl": "https://notebooklm.google.com/notebook/38cdb701-fe88-408d-b9ab-a09c1e77e32a",
+      "enabled": false
     },
     {
       "id": "MiBi roh",
       "label": "Mibi (Praktikum)",
       "json": [
-        "datasets/mibi_prac/export_AIannotated.json"
+        "datasets/mibi_prac/export AIannotated_final.json"
       ],
       "zip": "datasets/mibi_prac/images.zip",
-      "notebookUrl": "https://notebooklm.google.com/notebook/1bd30570-2033-4a29-a521-20263f16e3f5"
+      "notebookUrl": "https://notebooklm.google.com/notebook/1bd30570-2033-4a29-a521-20263f16e3f5",
+      "enabled": true
     }
   ]
 }
