@@ -1692,7 +1692,7 @@ async function renderQuestionList(qs, { allowSubmit, showSolutions }) {
     const effectiveCorrectIndices = getCorrectIndices(compareQuestion, { preferOriginal });
     const correctSet = new Set(effectiveCorrectIndices);
     const showAiExplanationTooltips = (state.view === "quiz" || state.view === "review") && submitted;
-    const multi = preferOriginal ? effectiveCorrectIndices.length > 1 : isMultiCorrect(q);
+    const multi = effectiveCorrectIndices.length > 1;
     const displayAnswers = Array.isArray(displayedQuestion.answers) ? displayedQuestion.answers : [];
     const displayOrder = state.answerOrder.get(qid) || [...Array(displayAnswers.length).keys()];
 
