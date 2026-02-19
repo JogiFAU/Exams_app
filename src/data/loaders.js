@@ -1,4 +1,4 @@
-import { normSpace } from "../utils.js";
+import { decodeHtmlEntities, normSpace } from "../utils.js";
 import { state } from "../state.js";
 import {
   evaluateAiChangedLabel,
@@ -8,6 +8,10 @@ import {
 function toNumberOrNull(value) {
   const n = Number(value);
   return Number.isFinite(n) ? n : null;
+}
+
+function cleanText(value) {
+  return normSpace(decodeHtmlEntities(value || ""));
 }
 
 function normalizeIndices(indices, answerCount = null) {
@@ -53,9 +57,9 @@ function normalizeAiSources(q) {
 
   const out = [];
   const pushSource = (pdf, page) => {
-    const file = normSpace(String(pdf || ""));
+    const file = cleanText(String(pdf || ""));
     if (!file) return;
-    const pageText = normSpace(String(page ?? ""));
+    const pageText = cleanText(String(page ?? ""));
     out.push(pageText ? `${file} · S. ${pageText}` : file);
   };
 
@@ -64,7 +68,7 @@ function normalizeAiSources(q) {
     for (const entry of src) {
       if (!entry) continue;
       if (typeof entry === "string") {
-        const txt = normSpace(entry);
+        const txt = cleanText(entry);
         if (txt) out.push(txt);
         continue;
       }
@@ -87,7 +91,7 @@ function normalizeAiSources(q) {
   for (const chunks of chunkLists) {
     if (!Array.isArray(chunks)) continue;
     for (const chunkId of chunks) {
-      const txt = normSpace(String(chunkId || ""));
+      const txt = cleanText(String(chunkId || ""));
       if (!txt) continue;
       const m = txt.match(/^(.+?)#p(\d+)(?:c\d+)?$/i);
       if (m) out.push(`${m[1]} · S. ${m[2]}`);
@@ -102,8 +106,10 @@ function normalizeQuestion(q) {
   const id = String(q.id || "").trim();
   if (!id) return null;
 
-  const aiReasonDetailed = resolveAiDisplayText(q, "solutionHint");
-  const aiTopicReason = resolveAiDisplayText(q, "topicReason");
+  const aiReasonDetailedRaw = resolveAiDisplayText(q, "solutionHint");
+  const aiTopicReasonRaw = resolveAiDisplayText(q, "topicReason");
+  const aiReasonDetailed = cleanText(aiReasonDetailedRaw) || null;
+  const aiTopicReason = cleanText(aiTopicReasonRaw) || null;
 
   const answerCount = Array.isArray(q.answers) ? q.answers.length : 0;
 
@@ -136,17 +142,17 @@ function normalizeQuestion(q) {
   const aiChangedAnswers = aiChangedAnswersRaw && Number(aiConfidence) > aiChangedAnswersConfidenceCutoff;
 
   const aiMaintenanceReasons = Array.isArray(q.aiMaintenanceReasons)
-    ? q.aiMaintenanceReasons.map(x => normSpace(String(x || ""))).filter(Boolean)
+    ? q.aiMaintenanceReasons.map(x => cleanText(String(x || ""))).filter(Boolean)
     : (Array.isArray(q.aiAudit?.maintenance?.reasons)
-      ? q.aiAudit.maintenance.reasons.map(x => normSpace(String(x || ""))).filter(Boolean)
+      ? q.aiAudit.maintenance.reasons.map(x => cleanText(String(x || ""))).filter(Boolean)
       : []);
 
   const explainer = q.aiAudit?.explainer;
-  const aiCorrectnessExplanation = normSpace(explainer?.correctnessExplanation || "") || null;
+  const aiCorrectnessExplanation = cleanText(explainer?.correctnessExplanation || "") || null;
   const aiWrongOptionExplanations = Array.isArray(explainer?.wrongOptionExplanations)
     ? explainer.wrongOptionExplanations
         .map((entry) => {
-          const whyWrong = normSpace(entry?.whyWrong || "") || null;
+          const whyWrong = cleanText(entry?.whyWrong || "") || null;
           if (!whyWrong) return null;
 
           const rawIndex = Number(entry?.answerIndex);
@@ -167,8 +173,8 @@ function normalizeQuestion(q) {
   return {
     id,
     examName: q.examName || null,
-    aiSuperTopic: normSpace(q.aiSuperTopic || "") || null,
-    aiSubtopic: normSpace(q.aiSubtopic || "") || null,
+    aiSuperTopic: cleanText(q.aiSuperTopic || "") || null,
+    aiSubtopic: cleanText(q.aiSubtopic || "") || null,
     aiMaintenanceSeverity: toNumberOrNull(q.aiMaintenanceSeverity ?? q.aiAudit?.maintenance?.severity),
     aiMaintenanceReasons,
     aiConfidence,
@@ -177,15 +183,15 @@ function normalizeQuestion(q) {
     aiWrongOptionExplanations,
     originalCorrectIndices,
     examYear: (q.examYear != null ? Number(q.examYear) : null),
-    text: normSpace(q.questionText || ""),
-    explanation: normSpace(q.explanationText || "") || null,
+    text: cleanText(q.questionText || ""),
+    explanation: cleanText(q.explanationText || "") || null,
     reconstructedQuestion: reconstructedQuestion && typeof reconstructedQuestion === "object"
       ? {
-          questionText: normSpace(reconstructedQuestion.questionText || "") || "",
+          questionText: cleanText(reconstructedQuestion.questionText || "") || "",
           answers: Array.isArray(reconstructedQuestion.answers)
             ? reconstructedQuestion.answers.map((a) => ({
                 answerIndex: Number(a?.answerIndex),
-                text: normSpace(a?.text || "")
+                text: cleanText(a?.text || "")
               }))
             : []
         }
@@ -197,14 +203,14 @@ function normalizeQuestion(q) {
       q.abstractionClusterId ??
       q.aiAudit?.clusters?.abstractionClusterId
     ),
-    questionAbstraction: normSpace(
+    questionAbstraction: cleanText(
       q.questionAbstraction ||
       q.aiAudit?.questionAbstraction?.summary ||
       q.aiAudit?.questionAbstraction?.text ||
       ""
     ) || null,
     answers: (q.answers || []).map(a => ({
-      text: normSpace(a.text || ""),
+      text: cleanText(a.text || ""),
       isCorrect: !!a.isCorrect
     })),
     correctIndices: finalCorrectIndices,

@@ -4,6 +4,17 @@ export function normSpace(s) {
   return (s || "").replace(/\s+/g, " ").trim();
 }
 
+let decodeHelperEl = null;
+const HTML_ENTITY_RE = /&(?:#\d+|#x[\da-fA-F]+|[a-zA-Z][\w]+);/;
+
+export function decodeHtmlEntities(s) {
+  const raw = String(s || "");
+  if (!raw || !HTML_ENTITY_RE.test(raw)) return raw;
+  if (!decodeHelperEl) decodeHelperEl = document.createElement("textarea");
+  decodeHelperEl.innerHTML = raw;
+  return decodeHelperEl.value;
+}
+
 export function letter(i) {
   return String.fromCharCode(65 + i);
 }
