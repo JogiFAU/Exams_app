@@ -6,7 +6,7 @@ import { getSelectedDataset } from "../data/manifest.js";
 import { filterByExams, filterByTopics, filterByImageMode, applyRandomAndShuffle, searchQuestions } from "../quiz/filters.js";
 import { startQuizSession, startSearchView, finishQuizSession, abortQuizSession, exitToConfig } from "../quiz/session.js";
 import { renderAll, updateFilterLists } from "./render.js";
-import { listSessions, deleteSession, exportBackupAllDatasets, importBackupAllDatasets, getLatestAnsweredResultsByQuestion, clearAllSessionData } from "../data/storage.js";
+import { listSessions, deleteSession, exportBackupAllDatasets, importBackupAllDatasets, getLatestAnsweredResultsByQuestion, clearAllSessionData, getLocalQuestionOverrides } from "../data/storage.js";
 import { applyTheme } from "../theme.js";
 
 function selectedExamsFromList(containerId) {
@@ -208,6 +208,9 @@ async function loadDatasetFromManifest(autoToast = false) {
     const jsonUrls = Array.isArray(d.json) ? d.json : [d.json];
     await loadJsonUrls(jsonUrls);
     await loadZipUrl(d.zip || null);
+
+    const overridesObj = getLocalQuestionOverrides(d.id);
+    state.localQuestionOverrides = new Map(Object.entries(overridesObj || {}));
 
     state.activeDataset = { ...d };
     const datasetMetaHint = $("datasetMetaHint");

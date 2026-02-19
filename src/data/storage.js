@@ -6,6 +6,10 @@ function key(datasetId) {
   return `${PREFIX}sessions:${datasetId}`;
 }
 
+function overridesKey(datasetId) {
+  return `${PREFIX}overrides:${datasetId}`;
+}
+
 function safeJsonParse(s, fallback) {
   try { return JSON.parse(s); } catch { return fallback; }
 }
@@ -104,4 +108,16 @@ export function clearAllSessionData() {
   }
   for (const k of keys) localStorage.removeItem(k);
   return keys.length;
+}
+
+export function getLocalQuestionOverrides(datasetId) {
+  const raw = safeJsonParse(localStorage.getItem(overridesKey(datasetId)) || "{}", {});
+  return raw && typeof raw === "object" ? raw : {};
+}
+
+export function saveLocalQuestionOverride(datasetId, qid, override) {
+  const all = getLocalQuestionOverrides(datasetId);
+  if (!override) delete all[qid];
+  else all[qid] = override;
+  localStorage.setItem(overridesKey(datasetId), JSON.stringify(all));
 }

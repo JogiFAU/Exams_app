@@ -117,9 +117,25 @@ function topicInfoHtml(q) {
 export function qMetaHtml(q, ordinal, {
   showTopics = true,
   showAiReconstructionBadge = false,
-  showOriginalQuestionAction = false
+  showOriginalQuestionAction = false,
+  showLocalOverrideBadge = false,
+  isShowingOriginalVariant = false
 } = {}) {
-  const img = (q.imageFiles && q.imageFiles.length) ? `<span class="pill">🖼️ ${q.imageFiles.length}</span>` : "";
+  const imageClusterBadge = Number(q.imageClusterSize || 0) > 1
+    ? `
+      <span class="pill clusterBadge" tabindex="0" aria-label="Bildcluster mit ähnlichen Bildfragen">
+        🖼️ ${q.imageClusterSize}
+        <span class="clusterBadge__tip" role="tooltip">
+          <strong>${q.imageClusterSize} Fragen verwenden denselben Bildcluster.</strong>
+          <span class="clusterBadge__cluster">${escHtml(q.imageClusterLabel || "Bildcluster")}</span>
+          <button class="btn primary clusterBadge__action clusterBadge__action--cta" type="button" data-image-cluster-show="${q.id}">Fragen anzeigen</button>
+        </span>
+      </span>
+    `
+    : "";
+  const img = (q.imageFiles && q.imageFiles.length)
+    ? (imageClusterBadge || `<span class="pill">🖼️ ${q.imageFiles.length}</span>`)
+    : "";
   const exam = q.examName ? `<span class="pill">${q.examName}</span>` : "";
   const topic = showTopics ? topicInfoHtml(q) : "";
 
@@ -129,12 +145,25 @@ export function qMetaHtml(q, ordinal, {
 
   const aiReconstructionBadge = showAiReconstructionBadge
     ? `
-      <span class="pill aiModifiedBadge" tabindex="0" aria-label="KI-modifizierte Fragendarstellung">
+      <span class="pill aiModifiedBadge ${isShowingOriginalVariant ? "is-muted" : ""}" tabindex="0" aria-label="KI-modifizierte Fragendarstellung">
         🤖 KI-modifiziert
         <span class="aiModifiedBadge__tip" role="tooltip">
           <strong>KI-modifizierte Fragendarstellung</strong>
           <span>Texte wurden KI-modifiziert, um die Frage prüfungsnaher und inhaltlich stimmiger darzustellen.</span>
-          ${showOriginalQuestionAction ? `<button class="btn aiModifiedBadge__action" type="button" data-show-original-question="${q.id}">Originale Frage anzeigen</button>` : ""}
+          ${showOriginalQuestionAction ? `<button class="btn aiModifiedBadge__action" type="button" data-toggle-original-question="${q.id}">${isShowingOriginalVariant ? "Modifikationen wieder anzeigen" : "Originale Frage anzeigen"}</button>` : ""}
+        </span>
+      </span>
+    `
+    : "";
+
+  const localOverrideBadge = showLocalOverrideBadge
+    ? `
+      <span class="pill aiModifiedBadge ${isShowingOriginalVariant ? "is-muted" : ""}" tabindex="0" aria-label="Lokal modifizierte Fragendarstellung">
+        ✏️ Lokal modifiziert
+        <span class="aiModifiedBadge__tip" role="tooltip">
+          <strong>Lokal modifizierte Fragendarstellung</strong>
+          <span>Diese Frage nutzt lokal gespeicherte Änderungen aus dem Editor-Modus.</span>
+          <button class="btn aiModifiedBadge__action" type="button" data-toggle-original-question="${q.id}">${isShowingOriginalVariant ? "Modifikationen wieder anzeigen" : "Originale Frage anzeigen"}</button>
         </span>
       </span>
     `
@@ -162,6 +191,7 @@ export function qMetaHtml(q, ordinal, {
     ${img}
     ${clusterBadge}
     ${aiReconstructionBadge}
+    ${localOverrideBadge}
     ${aiChangedBadge}
     <span class="qmetaRight">${maintenance}</span>
   `;

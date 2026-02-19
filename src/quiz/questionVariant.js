@@ -61,3 +61,30 @@ export function getQuizQuestionVariant(q, quizConfig) {
     usedAiReconstruction: true
   };
 }
+
+export function applyLocalQuestionOverride(q, localOverride) {
+  if (!localOverride || typeof localOverride !== "object") return q;
+
+  const answers = Array.isArray(localOverride.answers)
+    ? localOverride.answers
+        .map((a) => ({ text: String(a?.text || "").trim(), isCorrect: !!a?.isCorrect }))
+        .filter((a) => a.text)
+    : null;
+
+  const overrideCorrect = Array.isArray(localOverride.correctIndices)
+    ? localOverride.correctIndices.map((x) => Number(x)).filter(Number.isInteger)
+    : null;
+
+  return {
+    ...q,
+    text: String(localOverride.text || q.text || "").trim(),
+    answers: (answers && answers.length) ? answers : q.answers,
+    correctIndices: (overrideCorrect && overrideCorrect.length) ? overrideCorrect : q.correctIndices,
+    hasLocalOverride: true,
+    localOverrideOriginal: {
+      text: q.text,
+      answers: q.answers,
+      correctIndices: q.correctIndices
+    }
+  };
+}

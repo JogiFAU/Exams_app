@@ -40,6 +40,7 @@ export const state = {
   // UI-only
   explainOpen: new Set(), // qids
   forceOriginalQuestionView: new Set(), // qids in quiz/review with AI mode enabled
+  localQuestionOverrides: new Map(), // qid -> { text, answers:[{text,isCorrect}], correctIndices }
 
   reviewAnsweredOnly: false,
 };

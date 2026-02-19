@@ -350,6 +350,27 @@
   </div>
 </dialog>
 
+<dialog id="questionEditorDialog" class="appdialog appdialog--wide">
+  <form method="dialog" class="appdialog__form">
+    <div class="appdialog__head">
+      <div>
+        <h3 id="questionEditorTitle" class="appdialog__title">Frage bearbeiten</h3>
+        <p class="appdialog__message">Lokale Änderungen werden nur in diesem Browser gespeichert.</p>
+      </div>
+      <button id="questionEditorClose" class="appdialog__close" type="submit" value="cancel" aria-label="Fenster schließen">✕</button>
+    </div>
+    <div class="clusterDialogBody">
+      <label>Fragetext</label>
+      <textarea id="editorQuestionText" rows="4"></textarea>
+      <div id="editorAnswersWrap"></div>
+    </div>
+    <div class="appdialog__actions">
+      <button class="btn" type="submit" value="cancel">Abbrechen</button>
+      <button class="btn primary" id="editorSaveBtn" type="button">Lokal speichern</button>
+    </div>
+  </form>
+</dialog>
+
 <dialog id="appConfirmDialog" class="appdialog">
   <form method="dialog" class="appdialog__form">
     <h3 id="appConfirmTitle" class="appdialog__title">Bestätigung</h3>

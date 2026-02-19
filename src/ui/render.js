@@ -5,8 +5,8 @@ import { submitAnswer, unsubmitAnswer } from "../quiz/session.js";
 import { getImageUrl } from "../data/zipImages.js";
 import { qMetaHtml, buildExplainPrompt, formatAiTextForDisplay } from "./components.js";
 import { questionIdIndex } from "../quiz/filters.js";
-import { getLatestAnsweredResultsByQuestion } from "../data/storage.js";
-import { getQuizQuestionVariant } from "../quiz/questionVariant.js";
+import { getLatestAnsweredResultsByQuestion, saveLocalQuestionOverride } from "../data/storage.js";
+import { getQuizQuestionVariant, applyLocalQuestionOverride } from "../quiz/questionVariant.js";
 
 const MAX_RENDER_NO_PAGING = 1000;
 let notebookLmWindow = null;
@@ -114,13 +114,44 @@ function usesOriginalSolutionInQuiz(q) {
 }
 
 function getDisplayedQuestion(q) {
+  const localOverride = state.localQuestionOverrides?.get(q.id);
+  const baseQuestion = applyLocalQuestionOverride(q, localOverride);
+
   if (state.view !== "quiz" && state.view !== "review") {
-    return { text: q.text, answers: q.answers, imageReferenceText: null, usedAiReconstruction: false };
+    return {
+      text: baseQuestion.text,
+      answers: baseQuestion.answers,
+      imageReferenceText: null,
+      usedAiReconstruction: false,
+      hasLocalOverride: !!localOverride
+    };
   }
   if (state.forceOriginalQuestionView?.has(q.id)) {
-    return { text: q.text, answers: q.answers, imageReferenceText: null, usedAiReconstruction: false };
+    return {
+      text: q.text,
+      answers: q.answers,
+      imageReferenceText: null,
+      usedAiReconstruction: false,
+      hasLocalOverride: !!localOverride
+    };
   }
-  return getQuizQuestionVariant(q, state.quizConfig);
+
+  if (localOverride) {
+    return {
+      text: baseQuestion.text,
+      answers: baseQuestion.answers,
+      imageReferenceText: null,
+      usedAiReconstruction: false,
+      hasLocalOverride: true
+    };
+  }
+
+  return { ...getQuizQuestionVariant(q, state.quizConfig), hasLocalOverride: false };
+}
+
+function getQuestionForEvaluation(q) {
+  const localOverride = state.localQuestionOverrides?.get(q.id);
+  return applyLocalQuestionOverride(q, localOverride);
 }
 
 function isAiModeEnabled() {
@@ -1194,6 +1225,105 @@ export function openClusterQuestionsDialog(questionId) {
   dialog.showModal();
 }
 
+export function openImageClusterQuestionsDialog(questionId) {
+  const source = state.questionsAll.find(q => q.id === questionId);
+  if (!source || !Array.isArray(source.imageClusterQuestionIds) || source.imageClusterQuestionIds.length < 2) return;
+
+  const dialog = $("clusterQuestionsDialog");
+  if (!dialog || typeof dialog.showModal !== "function") return;
+
+  const title = $("clusterDialogTitle");
+  const subtitle = $("clusterDialogSubtitle");
+  const body = $("clusterDialogBody");
+  const explainToggle = $("clusterDialogShowExplanations");
+  const solutionsToggle = $("clusterDialogShowSolutions");
+
+  const idx = questionIdIndex(state.questionsAll);
+  const imageClusterQuestions = source.imageClusterQuestionIds.map(id => idx.get(id)).filter(Boolean);
+
+  const renderImageClusterQuestions = () => {
+    if (!body) return;
+    const showExplanations = explainToggle ? explainToggle.checked : true;
+    const showSolutions = solutionsToggle ? solutionsToggle.checked : true;
+    body.innerHTML = imageClusterQuestions
+      .map((q, i) => buildClusterModalQuestionCard(q, i + 1, { showExplanations, showSolutions }))
+      .join("");
+  };
+
+  if (title) title.textContent = "Fragen im Bildcluster";
+  if (subtitle) subtitle.textContent = `${imageClusterQuestions.length} Fragen · ${source.imageClusterLabel || "Bildcluster"}`;
+  if (explainToggle) {
+    explainToggle.checked = true;
+    explainToggle.onchange = () => renderImageClusterQuestions();
+  }
+  if (solutionsToggle) {
+    solutionsToggle.checked = true;
+    solutionsToggle.onchange = () => renderImageClusterQuestions();
+  }
+
+  renderImageClusterQuestions();
+  dialog.showModal();
+}
+
+function openQuestionEditorDialog(question) {
+  const dialog = $("questionEditorDialog");
+  if (!dialog || typeof dialog.showModal !== "function") return;
+
+  const q = getQuestionForEvaluation(question);
+  const title = $("questionEditorTitle");
+  const textEl = $("editorQuestionText");
+  const answersWrap = $("editorAnswersWrap");
+  const saveBtn = $("editorSaveBtn");
+  if (!textEl || !answersWrap || !saveBtn) return;
+
+  if (title) title.textContent = `Frage bearbeiten · ${q.id}`;
+  textEl.value = q.text || "";
+
+  const correctSet = new Set(Array.isArray(q.correctIndices) ? q.correctIndices : []);
+  answersWrap.innerHTML = "";
+  (q.answers || []).forEach((a, idx) => {
+    const row = document.createElement("div");
+    row.className = "editorAnswerRow";
+    row.innerHTML = `
+      <span>${letter(idx)})</span>
+      <input type="text" data-editor-answer-text="${idx}" />
+      <label class="checkrow" style="margin:0;"><input type="checkbox" data-editor-answer-correct="${idx}" ${correctSet.has(idx) ? "checked" : ""} /><span>Richtig</span></label>
+    `;
+    const answerInput = row.querySelector(`[data-editor-answer-text="${idx}"]`);
+    if (answerInput) answerInput.value = a?.text || "";
+    answersWrap.appendChild(row);
+  });
+
+  saveBtn.onclick = async () => {
+    const answerTexts = Array.from(answersWrap.querySelectorAll("[data-editor-answer-text]"));
+    const correctBoxes = Array.from(answersWrap.querySelectorAll("[data-editor-answer-correct]"));
+    const answers = answerTexts.map((el, idx) => ({
+      text: String(el.value || "").trim(),
+      isCorrect: !!correctBoxes[idx]?.checked
+    }));
+    const correctIndices = answers
+      .map((a, idx) => (a.isCorrect ? idx : -1))
+      .filter((idx) => idx >= 0);
+
+    const override = {
+      text: String(textEl.value || "").trim(),
+      answers,
+      correctIndices
+    };
+
+    const datasetId = state.activeDataset?.id;
+    if (!datasetId) return;
+    saveLocalQuestionOverride(datasetId, q.id, override);
+    state.localQuestionOverrides.set(q.id, override);
+    state.forceOriginalQuestionView.delete(q.id);
+    dialog.close();
+    await renderAll();
+    toast("Lokale Änderung gespeichert.");
+  };
+
+  dialog.showModal();
+}
+
 async function jumpToQuestion(qid) {
   const idx = state.questionOrder.indexOf(qid);
   if (idx < 0) return;
@@ -1412,7 +1542,9 @@ async function renderQuestionList(qs, { allowSubmit, showSolutions }) {
     meta.innerHTML = qMetaHtml(q, offset + idx + 1, {
       showTopics: showTopicsInBanner,
       showAiReconstructionBadge: displayedQuestion.usedAiReconstruction,
-      showOriginalQuestionAction: displayedQuestion.usedAiReconstruction
+      showOriginalQuestionAction: (displayedQuestion.usedAiReconstruction || displayedQuestion.hasLocalOverride),
+      showLocalOverrideBadge: displayedQuestion.hasLocalOverride,
+      isShowingOriginalVariant: state.forceOriginalQuestionView?.has(q.id)
     });
 
     const text = document.createElement("div");
@@ -1439,13 +1571,23 @@ async function renderQuestionList(qs, { allowSubmit, showSolutions }) {
       });
     }
 
-    const showOriginalQuestionBtn = meta.querySelector("[data-show-original-question]");
-    if (showOriginalQuestionBtn) {
-      showOriginalQuestionBtn.addEventListener("click", async (ev) => {
+    const toggleOriginalQuestionBtn = meta.querySelector("[data-toggle-original-question]");
+    if (toggleOriginalQuestionBtn) {
+      toggleOriginalQuestionBtn.addEventListener("click", async (ev) => {
         ev.preventDefault();
         ev.stopPropagation();
-        state.forceOriginalQuestionView.add(q.id);
+        if (state.forceOriginalQuestionView.has(q.id)) state.forceOriginalQuestionView.delete(q.id);
+        else state.forceOriginalQuestionView.add(q.id);
         await renderAll();
+      });
+    }
+
+    const showImageClusterBtn = meta.querySelector("[data-image-cluster-show]");
+    if (showImageClusterBtn) {
+      showImageClusterBtn.addEventListener("click", (ev) => {
+        ev.preventDefault();
+        ev.stopPropagation();
+        openImageClusterQuestionsDialog(q.id);
       });
     }
 
@@ -1641,7 +1783,7 @@ async function renderQuestionList(qs, { allowSubmit, showSolutions }) {
           return state.questionOrder[idx + 1];
         })();
 
-        submitAnswer(q);
+        submitAnswer(getQuestionForEvaluation(q));
         const shouldAutoAdvance = (
           state.view === "quiz" &&
           getQuizMode() === "practice" &&
@@ -1664,7 +1806,33 @@ async function renderQuestionList(qs, { allowSubmit, showSolutions }) {
 
       actions.appendChild(submitBtn);
       actions.appendChild(editBtn);
+
+      const editorBtn = document.createElement("button");
+      editorBtn.className = "btn";
+      editorBtn.textContent = "✏️";
+      editorBtn.title = "Frage lokal bearbeiten";
+      editorBtn.disabled = !submitted;
+      editorBtn.addEventListener("click", () => {
+        openQuestionEditorDialog(q);
+      });
+
+      actions.appendChild(editorBtn);
       card.appendChild(actions);
+    }
+
+    if (!allowSubmit && submitted) {
+      const actions = document.createElement("div");
+      actions.className = "actions";
+      const editorBtn = document.createElement("button");
+      editorBtn.className = "btn";
+      editorBtn.textContent = "✏️";
+      editorBtn.title = "Frage lokal bearbeiten";
+      editorBtn.addEventListener("click", () => {
+        openQuestionEditorDialog(q);
+      });
+      actions.appendChild(editorBtn);
+      card.appendChild(actions);
+      actionsRow = actions;
     }
 
     // NotebookLM Explain

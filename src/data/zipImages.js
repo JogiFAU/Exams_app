@@ -14,6 +14,26 @@ function assignQuestionImagesFromZip() {
     const existing = Array.isArray(q.imageFiles) ? q.imageFiles.slice() : [];
     q.imageFiles = Array.from(new Set([...existing, ...matchedBases]));
   }
+
+  const imageToQuestionIds = new Map();
+  for (const q of state.questionsAll) {
+    for (const fileBase of (q.imageFiles || [])) {
+      if (!imageToQuestionIds.has(fileBase)) imageToQuestionIds.set(fileBase, new Set());
+      imageToQuestionIds.get(fileBase).add(q.id);
+    }
+  }
+
+  for (const q of state.questionsAll) {
+    const relatedIds = new Set();
+    for (const fileBase of (q.imageFiles || [])) {
+      const users = imageToQuestionIds.get(fileBase);
+      if (!users) continue;
+      for (const qid of users) relatedIds.add(qid);
+    }
+    q.imageClusterQuestionIds = Array.from(relatedIds);
+    q.imageClusterSize = q.imageClusterQuestionIds.length;
+    q.imageClusterLabel = q.imageClusterSize > 1 ? "Bildcluster" : null;
+  }
 }
 
 export function clearZipObjectUrls() {

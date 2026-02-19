@@ -1267,8 +1267,8 @@ summary { cursor: pointer; color: var(--muted); }
 .aiModifiedBadge {
   position: relative;
   cursor: help;
-  border-color: var(--interactive-border-hover);
 }
+.aiModifiedBadge.is-muted { opacity: .55; }
 
 .aiModifiedBadge__tip {
   position: absolute;
@@ -1331,6 +1331,19 @@ summary { cursor: pointer; color: var(--muted); }
 }
 .clusterModal__card {
   margin-bottom: 10px;
+}
+
+#editorAnswersWrap {
+  display: grid;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.editorAnswerRow {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 8px;
+  align-items: center;
 }
 
 
