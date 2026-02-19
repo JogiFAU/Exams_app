@@ -1844,6 +1844,7 @@ async function renderQuestionList(qs, { allowSubmit, showSolutions }) {
     }
 
     let actionsRow = null;
+    let editorActionBtn = null;
     if (allowSubmit) {
       const actions = document.createElement("div");
       actions.className = "actions";
@@ -1881,18 +1882,18 @@ async function renderQuestionList(qs, { allowSubmit, showSolutions }) {
         await renderAll();
       });
 
-      const editorBtn = document.createElement("button");
-      editorBtn.className = "btn editorInlineBtn";
-      editorBtn.textContent = "✏️";
-      editorBtn.title = "Frage lokal bearbeiten";
-      editorBtn.disabled = !submitted;
-      editorBtn.addEventListener("click", () => {
+      editorActionBtn = document.createElement("button");
+      editorActionBtn.className = "btn editorInlineBtn";
+      editorActionBtn.textContent = "✏️";
+      editorActionBtn.title = "Frage lokal bearbeiten";
+      editorActionBtn.disabled = !submitted;
+      editorActionBtn.addEventListener("click", () => {
         openQuestionEditorDialog(q);
       });
 
       actions.appendChild(submitBtn);
       actions.appendChild(editBtn);
-      actions.appendChild(editorBtn);
+      actions.appendChild(editorActionBtn);
 
       card.appendChild(actions);
     }
@@ -1901,14 +1902,14 @@ async function renderQuestionList(qs, { allowSubmit, showSolutions }) {
       if (!allowSubmit) {
         const actions = document.createElement("div");
         actions.className = "actions";
-        const editorBtn = document.createElement("button");
-        editorBtn.className = "btn editorInlineBtn";
-        editorBtn.textContent = "✏️";
-        editorBtn.title = "Frage lokal bearbeiten";
-        editorBtn.addEventListener("click", () => {
+        editorActionBtn = document.createElement("button");
+        editorActionBtn.className = "btn editorInlineBtn";
+        editorActionBtn.textContent = "✏️";
+        editorActionBtn.title = "Frage lokal bearbeiten";
+        editorActionBtn.addEventListener("click", () => {
           openQuestionEditorDialog(q);
         });
-        actions.appendChild(editorBtn);
+        actions.appendChild(editorActionBtn);
         card.appendChild(actions);
         actionsRow = actions;
       }
@@ -1942,7 +1943,13 @@ async function renderQuestionList(qs, { allowSubmit, showSolutions }) {
 
       explainWrap.appendChild(explainBtn);
       explainWrap.appendChild(hint);
-      if (actionsRow) actionsRow.appendChild(explainWrap);
+      if (actionsRow) {
+        if (editorActionBtn && editorActionBtn.parentElement === actionsRow) {
+          actionsRow.insertBefore(explainWrap, editorActionBtn);
+        } else {
+          actionsRow.appendChild(explainWrap);
+        }
+      }
       else card.appendChild(explainWrap);
     }
 
