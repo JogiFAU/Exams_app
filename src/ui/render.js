@@ -121,6 +121,7 @@ function getDisplayedQuestion(q) {
     return {
       text: baseQuestion.text,
       answers: baseQuestion.answers,
+      imageFiles: baseQuestion.imageFiles,
       imageReferenceText: null,
       usedAiReconstruction: false,
       hasLocalOverride: !!localOverride
@@ -130,6 +131,7 @@ function getDisplayedQuestion(q) {
     return {
       text: q.text,
       answers: q.answers,
+      imageFiles: q.imageFiles,
       imageReferenceText: null,
       usedAiReconstruction: false,
       hasLocalOverride: !!localOverride
@@ -140,13 +142,14 @@ function getDisplayedQuestion(q) {
     return {
       text: baseQuestion.text,
       answers: baseQuestion.answers,
+      imageFiles: baseQuestion.imageFiles,
       imageReferenceText: null,
       usedAiReconstruction: false,
       hasLocalOverride: true
     };
   }
 
-  return { ...getQuizQuestionVariant(q, state.quizConfig), hasLocalOverride: false };
+  return { ...getQuizQuestionVariant(q, state.quizConfig), imageFiles: q.imageFiles, hasLocalOverride: false };
 }
 
 function getQuestionForEvaluation(q) {
@@ -187,6 +190,33 @@ function aiExplanationTooltipForOption(q, answerIndex, correctSet) {
     : [];
   const wrong = wrongExplanations.find((entry) => entry.answerIndex === answerIndex);
   return wrong?.whyWrong || null;
+}
+
+
+function isInlineImageRef(ref) {
+  return String(ref || "").startsWith("data:image/");
+}
+
+async function resolveImageRefUrl(fileRef) {
+  const ref = String(fileRef || "").trim();
+  if (!ref) return null;
+  if (isInlineImageRef(ref)) return ref;
+  return getImageUrl(ref);
+}
+
+async function renderImageGalleryInto(container, imageFiles = []) {
+  if (!container) return;
+  container.innerHTML = "";
+  const files = Array.isArray(imageFiles) ? imageFiles : [];
+  for (const fileRef of files) {
+    const url = await resolveImageRefUrl(fileRef);
+    if (!url) continue;
+    const img = document.createElement("img");
+    img.src = url;
+    img.loading = "lazy";
+    img.alt = "Fragenbild";
+    container.appendChild(img);
+  }
 }
 
 export function renderHeaderProgress() {
@@ -1197,6 +1227,7 @@ function buildClusterModalQuestionCard(q, ordinal, { showExplanations = true, sh
       </div>
       <div class="qtext">${escapeHtml(q.text || "")}</div>
       <div class="opts">${answers}</div>
+      <div class="clusterCardImages" data-cluster-card-images="${escapeHtml(q.id)}"></div>
       ${explanationHtml}
     </div>
   `;
@@ -1219,13 +1250,19 @@ export function openClusterQuestionsDialog(questionId) {
   const idx = questionIdIndex(state.questionsAll);
   const clusterQuestions = relatedIds.map(id => idx.get(id)).filter(Boolean);
 
-  const renderClusterModalQuestions = () => {
+  const renderClusterModalQuestions = async () => {
     if (!body) return;
     const showExplanations = explainToggle ? explainToggle.checked : true;
     const showSolutions = solutionsToggle ? solutionsToggle.checked : true;
     body.innerHTML = clusterQuestions
       .map((q, i) => buildClusterModalQuestionCard(q, i + 1, { showExplanations, showSolutions }))
       .join("");
+    const cards = Array.from(body.querySelectorAll("[data-cluster-card-images]"));
+    for (const card of cards) {
+      const qid = card.getAttribute("data-cluster-card-images");
+      const question = clusterQuestions.find((entry) => entry.id === qid);
+      await renderImageGalleryInto(card, question?.imageFiles || []);
+    }
   };
 
   if (title) title.textContent = "Verwandte häufige Altfragen";
@@ -1259,13 +1296,19 @@ export function openImageClusterQuestionsDialog(questionId) {
   const idx = questionIdIndex(state.questionsAll);
   const imageClusterQuestions = source.imageClusterQuestionIds.map(id => idx.get(id)).filter(Boolean);
 
-  const renderImageClusterQuestions = () => {
+  const renderImageClusterQuestions = async () => {
     if (!body) return;
     const showExplanations = explainToggle ? explainToggle.checked : true;
     const showSolutions = solutionsToggle ? solutionsToggle.checked : true;
     body.innerHTML = imageClusterQuestions
       .map((q, i) => buildClusterModalQuestionCard(q, i + 1, { showExplanations, showSolutions }))
       .join("");
+    const cards = Array.from(body.querySelectorAll("[data-cluster-card-images]"));
+    for (const card of cards) {
+      const qid = card.getAttribute("data-cluster-card-images");
+      const question = imageClusterQuestions.find((entry) => entry.id === qid);
+      await renderImageGalleryInto(card, question?.imageFiles || []);
+    }
   };
 
   if (title) title.textContent = "Fragen im Bildcluster";
@@ -1297,6 +1340,7 @@ function openQuestionEditorDialog(question, { displayedQuestion = null, compareQ
     ...question,
     text: displayed.text,
     answers: displayed.answers,
+    imageFiles: Array.isArray(displayed.imageFiles) ? displayed.imageFiles : (Array.isArray(question.imageFiles) ? question.imageFiles : []),
     correctIndices
   };
   const title = $("questionEditorTitle");
@@ -1304,10 +1348,25 @@ function openQuestionEditorDialog(question, { displayedQuestion = null, compareQ
   const answersWrap = $("editorAnswersWrap");
   const saveBtn = $("editorSaveBtn");
   const addAnswerBtn = $("editorAddAnswerBtn");
-  if (!textEl || !answersWrap || !saveBtn || !addAnswerBtn) return;
+  const imagePreview = $("editorImagePreview");
+  const datasetImageBtn = $("editorDatasetImageBtn");
+  const uploadInput = $("editorUploadInput");
+  const deleteImageBtn = $("editorDeleteImageBtn");
+  const datasetImagePickerDialog = $("datasetImagePickerDialog");
+  const datasetImagePickerBody = $("datasetImagePickerBody");
+  if (!textEl || !answersWrap || !saveBtn || !addAnswerBtn || !imagePreview || !datasetImageBtn || !uploadInput || !deleteImageBtn) return;
 
   if (title) title.textContent = `Frage bearbeiten · ${q.id}`;
   textEl.value = q.text || "";
+
+  let imageFilesState = Array.isArray(q.imageFiles) ? q.imageFiles.slice() : [];
+
+  const renderEditorImages = async () => {
+    await renderImageGalleryInto(imagePreview, imageFilesState);
+    if (!imageFilesState.length) {
+      imagePreview.innerHTML = '<span class="small">Kein Bild zugeordnet.</span>';
+    }
+  };
 
   const answerState = (q.answers || []).map((a, idx) => ({
     text: a?.text || "",
@@ -1352,10 +1411,59 @@ function openQuestionEditorDialog(question, { displayedQuestion = null, compareQ
   };
 
   renderEditorAnswers();
+  renderEditorImages();
 
   addAnswerBtn.onclick = () => {
     answerState.push({ text: "", isCorrect: false });
     renderEditorAnswers();
+  };
+
+  deleteImageBtn.onclick = () => {
+    imageFilesState = [];
+    renderEditorImages();
+  };
+
+  uploadInput.value = "";
+  uploadInput.onchange = () => {
+    const file = uploadInput.files && uploadInput.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      const dataUrl = String(reader.result || "");
+      if (!dataUrl.startsWith("data:image/")) return;
+      imageFilesState = [dataUrl];
+      renderEditorImages();
+    };
+    reader.readAsDataURL(file);
+  };
+
+  datasetImageBtn.onclick = async () => {
+    if (!datasetImagePickerDialog || typeof datasetImagePickerDialog.showModal !== "function" || !datasetImagePickerBody) return;
+    const refs = Array.from(state.zipIndex?.keys?.() || []);
+    if (!refs.length) {
+      toast("Keine Datensatz-Bilder verfügbar.");
+      return;
+    }
+    const cards = await Promise.all(refs.map(async (ref) => {
+      const url = await resolveImageRefUrl(ref);
+      return `
+        <div class="datasetImagePickerItem">
+          ${url ? `<img src="${url}" alt="Datensatzbild" loading="lazy" />` : ""}
+          <div class="small">${escapeHtml(ref)}</div>
+          <button class="btn primary" type="button" data-select-dataset-image="${escapeHtml(ref)}">Auswählen</button>
+        </div>
+      `;
+    }));
+    datasetImagePickerBody.innerHTML = `<div class="datasetImagePickerGrid">${cards.join("")}</div>`;
+    datasetImagePickerBody.querySelectorAll("[data-select-dataset-image]").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const ref = btn.getAttribute("data-select-dataset-image");
+        imageFilesState = ref ? [ref] : [];
+        renderEditorImages();
+        datasetImagePickerDialog.close();
+      });
+    });
+    datasetImagePickerDialog.showModal();
   };
 
   saveBtn.onclick = async () => {
@@ -1370,7 +1478,8 @@ function openQuestionEditorDialog(question, { displayedQuestion = null, compareQ
     const override = {
       text: String(textEl.value || "").trim(),
       answers,
-      correctIndices
+      correctIndices,
+      imageFiles: imageFilesState.slice()
     };
 
     const datasetId = state.activeDataset?.id;
@@ -1387,6 +1496,7 @@ function openQuestionEditorDialog(question, { displayedQuestion = null, compareQ
 
   dialog.showModal();
 }
+
 
 async function jumpToQuestion(qid) {
   const idx = state.questionOrder.indexOf(qid);
@@ -1430,7 +1540,8 @@ export async function renderMain() {
           <div class="pill">🏷️ Filter nach Themen & Unterthemen</div>
           <div class="pill">🖼️ Filter nach Fragen mit/ohne Bilder</div>
           <div class="pill">🎯 Zufälliges Subset & Shuffle</div>
-          <div class="pill">📌 Erkennung häufiger Altfragen</div>
+          <div class="pill">⭐ Erkennung häufiger Altfragen</div>
+          <div class="pill">🤖 KI Modifizerte Fragen optional (Vorsicht!)</div>
         </div>
         <div class="hero__lead">
           JocksJocks 2.0 unterstützt dich bei der strukturierten Prüfungsvorbereitung: Du kannst mit wenigen Klicks genau die Fragen auswählen, die für deinen Lernstand relevant sind, und zwischen prüfungsnaher Abfrage und freier Suche wechseln.
@@ -1440,7 +1551,7 @@ export async function renderMain() {
           <li><strong>Themenfokus:</strong> arbeite nur zu ausgewählten Über- und Unterthemen, um Wissenslücken systematisch zu schließen.</li>
           <li><strong>Prüfungssimulation:</strong> nutze den Prüfungsmodus ohne direkte Ergebnisanzeige und werte deinen Stand anschließend aus.</li>
           <li><strong>Wiederholungslernen:</strong> konzentriere dich auf falsch beantwortete Fragen und wiederhole kritische Inhalte effizient.</li>
-          <li><strong>Mustererkennung:</strong> erkenne häufig wiederkehrende Altfragen (Cluster) und priorisiere häufige Schwerpunkte.</li>
+          <li><strong>Mustererkennung:</strong> erkenne häufig wiederkehrende Altfragen-Cluster und priorisiere häufige Schwerpunkte.</li>
         </ul>
       </div>
     `;
@@ -1661,25 +1772,18 @@ async function renderQuestionList(qs, { allowSubmit, showSolutions }) {
     }
 
     // Images
-    if (q.imageFiles && q.imageFiles.length) {
-      if (!state.zip) {
+    const imageRefs = Array.isArray(displayedQuestion.imageFiles) ? displayedQuestion.imageFiles : (Array.isArray(q.imageFiles) ? q.imageFiles : []);
+    if (imageRefs.length) {
+      const imgRow = document.createElement("div");
+      imgRow.className = "imgrow";
+      await renderImageGalleryInto(imgRow, imageRefs);
+      if (imgRow.children.length) {
+        card.appendChild(imgRow);
+      } else {
         const note = document.createElement("div");
         note.className = "small";
-        note.textContent = "Bilder vorhanden – ZIP nicht geladen (oder JSZip nicht verfügbar).";
+        note.textContent = "Bilder vorhanden – Quelle konnte nicht geladen werden.";
         card.appendChild(note);
-      } else {
-        const imgRow = document.createElement("div");
-        imgRow.className = "imgrow";
-        for (const fb of q.imageFiles) {
-          const url = await getImageUrl(fb);
-          if (!url) continue;
-          const img = document.createElement("img");
-          img.loading = "lazy";
-          img.src = url;
-          img.alt = fb;
-          imgRow.appendChild(img);
-        }
-        if (imgRow.children.length) card.appendChild(imgRow);
       }
     }
 

@@ -121,7 +121,7 @@ function normalizeQuestion(q) {
   );
 
   const changedInDataset = q.aiAudit?.answerPlausibility?.changedInDataset;
-  const aiChangedAnswers = evaluateAiChangedLabel({
+  const aiChangedAnswersRaw = evaluateAiChangedLabel({
     changedInDataset,
     originalCorrectIndices,
     finalCorrectIndices
@@ -131,6 +131,9 @@ function normalizeQuestion(q) {
     q.aiAudit?.answerPlausibility?.verification?.confidence ??
     q.aiAudit?.answerPlausibility?.passA?.confidence
   );
+
+  const aiChangedAnswersConfidenceCutoff = 1;
+  const aiChangedAnswers = aiChangedAnswersRaw && Number(aiConfidence) > aiChangedAnswersConfidenceCutoff;
 
   const aiMaintenanceReasons = Array.isArray(q.aiMaintenanceReasons)
     ? q.aiMaintenanceReasons.map(x => normSpace(String(x || ""))).filter(Boolean)

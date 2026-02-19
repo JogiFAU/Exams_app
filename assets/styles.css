@@ -1306,7 +1306,7 @@ summary { cursor: pointer; color: var(--muted); }
   position: relative;
   cursor: help;
 }
-.aiModifiedBadge.is-muted { opacity: .55; }
+.aiModifiedBadge.is-muted { opacity: 1; color: var(--muted); border-color: var(--interactive-border); }
 
 .aiModifiedBadge__tip {
   position: absolute;
@@ -1452,4 +1452,44 @@ summary { cursor: pointer; color: var(--muted); }
 }
 .clusterDialog__toggles .clusterDialog__toggle {
   margin-top: 0;
+}
+
+.editorImagePreview {
+  margin-top: 10px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.editorImagePreview img,
+.clusterCardImages img {
+  max-width: min(260px, 100%);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  display: block;
+}
+.datasetImagePickerGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 10px;
+}
+.datasetImagePickerItem {
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 8px;
+  display: grid;
+  gap: 8px;
+  background: var(--surface);
+}
+.datasetImagePickerItem img {
+  width: 100%;
+  max-height: 140px;
+  object-fit: contain;
+  border-radius: 8px;
+  background: var(--surface-header);
+}
+.clusterCardImages {
+  margin-top: 10px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
 }

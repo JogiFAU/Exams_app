@@ -150,7 +150,7 @@ export function qMetaHtml(q, ordinal, {
         <span class="aiModifiedBadge__tip" role="tooltip">
           <strong>KI-modifizierte Fragendarstellung</strong>
           <span>Texte wurden KI-modifiziert, um die Frage prüfungsnaher und inhaltlich stimmiger darzustellen.</span>
-          ${showOriginalQuestionAction ? `<button class="btn aiModifiedBadge__action" type="button" data-toggle-original-question="${q.id}">${isShowingOriginalVariant ? "Modifikationen wieder anzeigen" : "Originale Frage anzeigen"}</button>` : ""}
+          ${showOriginalQuestionAction ? `<button class="btn primary clusterBadge__action clusterBadge__action--cta aiModifiedBadge__action" type="button" data-toggle-original-question="${q.id}">${isShowingOriginalVariant ? "Modifikationen wieder anzeigen" : "Originale Frage anzeigen"}</button>` : ""}
         </span>
       </span>
     `
@@ -163,7 +163,7 @@ export function qMetaHtml(q, ordinal, {
         <span class="aiModifiedBadge__tip" role="tooltip">
           <strong>Lokal modifizierte Fragendarstellung</strong>
           <span>Diese Frage nutzt lokal gespeicherte Änderungen aus dem Editor-Modus.</span>
-          <button class="btn aiModifiedBadge__action" type="button" data-toggle-original-question="${q.id}">${isShowingOriginalVariant ? "Modifikationen wieder anzeigen" : "Originale Frage anzeigen"}</button>
+          <button class="btn primary clusterBadge__action clusterBadge__action--cta aiModifiedBadge__action" type="button" data-toggle-original-question="${q.id}">${isShowingOriginalVariant ? "Modifikationen wieder anzeigen" : "Originale Frage anzeigen"}</button>
         </span>
       </span>
     `
@@ -188,8 +188,8 @@ export function qMetaHtml(q, ordinal, {
     <span class="pill">#${ordinal}</span>
     ${exam}
     ${topic}
-    ${img}
     ${clusterBadge}
+    ${img}
     ${aiReconstructionBadge}
     ${localOverrideBadge}
     ${aiChangedBadge}
