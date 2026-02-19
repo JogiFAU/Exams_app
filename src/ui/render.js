@@ -1540,7 +1540,8 @@ export async function renderMain() {
           <div class="pill">🏷️ Filter nach Themen & Unterthemen</div>
           <div class="pill">🖼️ Filter nach Fragen mit/ohne Bilder</div>
           <div class="pill">🎯 Zufälliges Subset & Shuffle</div>
-          <div class="pill">📌 Erkennung häufiger Altfragen</div>
+          <div class="pill">⭐ Erkennung häufiger Altfragen</div>
+          <div class="pill">🤖 KI Modifizerte Fragen optional (Vorsicht!)</div>
         </div>
         <div class="hero__lead">
           JocksJocks 2.0 unterstützt dich bei der strukturierten Prüfungsvorbereitung: Du kannst mit wenigen Klicks genau die Fragen auswählen, die für deinen Lernstand relevant sind, und zwischen prüfungsnaher Abfrage und freier Suche wechseln.
@@ -1550,7 +1551,7 @@ export async function renderMain() {
           <li><strong>Themenfokus:</strong> arbeite nur zu ausgewählten Über- und Unterthemen, um Wissenslücken systematisch zu schließen.</li>
           <li><strong>Prüfungssimulation:</strong> nutze den Prüfungsmodus ohne direkte Ergebnisanzeige und werte deinen Stand anschließend aus.</li>
           <li><strong>Wiederholungslernen:</strong> konzentriere dich auf falsch beantwortete Fragen und wiederhole kritische Inhalte effizient.</li>
-          <li><strong>Mustererkennung:</strong> erkenne häufig wiederkehrende Altfragen (Cluster) und priorisiere häufige Schwerpunkte.</li>
+          <li><strong>Mustererkennung:</strong> erkenne häufig wiederkehrende Altfragen-Cluster und priorisiere häufige Schwerpunkte.</li>
         </ul>
       </div>
     `;
