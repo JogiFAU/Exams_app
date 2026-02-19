@@ -1658,7 +1658,7 @@ async function renderQuestionList(qs, { allowSubmit, showSolutions }) {
     const compareQuestion = state.forceOriginalQuestionView?.has(q.id) ? q : evaluationQuestion;
     const effectiveCorrectIndices = getCorrectIndices(compareQuestion, { preferOriginal });
     const correctSet = new Set(effectiveCorrectIndices);
-    const showAiExplanationTooltips = (state.view === "quiz" || state.view === "review") && submitted && !isAiModeEnabled();
+    const showAiExplanationTooltips = (state.view === "quiz" || state.view === "review") && submitted;
     const multi = preferOriginal ? effectiveCorrectIndices.length > 1 : isMultiCorrect(q);
     const displayAnswers = Array.isArray(displayedQuestion.answers) ? displayedQuestion.answers : [];
     const displayOrder = state.answerOrder.get(qid) || [...Array(displayAnswers.length).keys()];
@@ -1710,8 +1710,26 @@ async function renderQuestionList(qs, { allowSubmit, showSolutions }) {
       if (showAiExplanationTooltips) {
         const tooltipText = aiExplanationTooltipForOption(q, origIdx, correctSet);
         if (tooltipText) {
-          wrap.title = `KI-Erklärung:\n${formatAiTextForDisplay(tooltipText)}`;
-          wrap.setAttribute("aria-label", `KI-Erklärung: ${formatAiTextForDisplay(tooltipText)}`);
+          const tip = document.createElement("span");
+          tip.className = "optExplainTooltip";
+          tip.setAttribute("role", "tooltip");
+
+          const title = document.createElement("strong");
+          title.textContent = "KI-Erklärung";
+          tip.appendChild(title);
+
+          if (displayedQuestion.usedAiReconstruction || displayedQuestion.hasLocalOverride) {
+            const note = document.createElement("span");
+            note.className = "optExplainTooltip__note";
+            note.textContent = "Bezieht sich auf Original-Antwortoption!";
+            tip.appendChild(note);
+          }
+
+          const body = document.createElement("span");
+          body.textContent = formatAiTextForDisplay(tooltipText);
+          tip.appendChild(body);
+
+          wrap.appendChild(tip);
         }
       }
 
