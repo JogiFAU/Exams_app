@@ -394,7 +394,7 @@ function highlightText(el, text, query) {
 }
 
 
-const QUESTION_SIGNAL_RE = /\b(nicht|kein(?:e|er|en|em)?|am meisten|am wenigsten)\b/gi;
+const QUESTION_SIGNAL_RE = /\b(falschaussage(?:n)?|falsch(?:e|er|en|em)?|nicht|kein(?:e|er|en|em)?|am meisten|am wenigsten)\b/gi;
 
 function escapeRegExp(input) {
   return String(input || "").replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
