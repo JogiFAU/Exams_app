@@ -1283,11 +1283,22 @@ export function openImageClusterQuestionsDialog(questionId) {
   dialog.showModal();
 }
 
-function openQuestionEditorDialog(question) {
+function openQuestionEditorDialog(question, { displayedQuestion = null, compareQuestion = null } = {}) {
   const dialog = $("questionEditorDialog");
   if (!dialog || typeof dialog.showModal !== "function") return;
 
-  const q = getQuestionForEvaluation(question);
+  const displayed = displayedQuestion || getDisplayedQuestion(question);
+  const compare = compareQuestion || getQuestionForEvaluation(question);
+  const answerCount = Array.isArray(displayed.answers) ? displayed.answers.length : 0;
+  const correctIndices = (Array.isArray(compare.correctIndices) ? compare.correctIndices : [])
+    .filter((idx) => Number.isInteger(idx) && idx >= 0 && idx < answerCount);
+
+  const q = {
+    ...question,
+    text: displayed.text,
+    answers: displayed.answers,
+    correctIndices
+  };
   const title = $("questionEditorTitle");
   const textEl = $("editorQuestionText");
   const answersWrap = $("editorAnswersWrap");
@@ -1888,7 +1899,7 @@ async function renderQuestionList(qs, { allowSubmit, showSolutions }) {
       editorActionBtn.title = "Frage lokal bearbeiten";
       editorActionBtn.disabled = !submitted;
       editorActionBtn.addEventListener("click", () => {
-        openQuestionEditorDialog(q);
+        openQuestionEditorDialog(q, { displayedQuestion, compareQuestion });
       });
 
       actions.appendChild(submitBtn);
@@ -1907,7 +1918,7 @@ async function renderQuestionList(qs, { allowSubmit, showSolutions }) {
         editorActionBtn.textContent = "✏️";
         editorActionBtn.title = "Frage lokal bearbeiten";
         editorActionBtn.addEventListener("click", () => {
-          openQuestionEditorDialog(q);
+          openQuestionEditorDialog(q, { displayedQuestion, compareQuestion });
         });
         actions.appendChild(editorActionBtn);
         card.appendChild(actions);
