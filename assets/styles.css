@@ -379,7 +379,6 @@ hr.sep { border:0; border-top:1px solid var(--border); margin:14px 0; }
   padding: 14px;
   margin-bottom: 12px;
   position: relative;
-  padding-bottom: 56px;
 }
 .qcard.ok { border-color: var(--theme-progress-correct-2); background: var(--okbg); }
 .qcard.bad { border-color: var(--theme-progress-wrong-2); background: var(--badbg); }
@@ -677,6 +676,8 @@ hr.sep { border:0; border-top:1px solid var(--border); margin:14px 0; }
 }
 
 .actions { display: flex; gap: 10px; margin-top: 10px; flex-wrap: wrap; }
+
+.editorInlineBtn { margin-left: auto; }
 
 .notebookActions {
   margin-top: 14px;

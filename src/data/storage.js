@@ -127,3 +127,7 @@ export function deleteLocalQuestionOverride(datasetId, qid) {
   delete all[qid];
   localStorage.setItem(overridesKey(datasetId), JSON.stringify(all));
 }
+
+export function clearLocalQuestionOverrides(datasetId) {
+  localStorage.setItem(overridesKey(datasetId), JSON.stringify({}));
+}

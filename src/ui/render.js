@@ -154,6 +154,24 @@ function getQuestionForEvaluation(q) {
   return applyLocalQuestionOverride(q, localOverride);
 }
 
+function normalizeAnswerStateForVariant(q) {
+  const qid = q.id;
+  const displayed = getDisplayedQuestion(q);
+  const answerCount = Array.isArray(displayed.answers) ? displayed.answers.length : 0;
+  const selected = (state.answers.get(qid) || []).filter((idx) => idx >= 0 && idx < answerCount);
+
+  const preferOriginal = usesOriginalSolutionInQuiz(q);
+  const compareQuestion = state.forceOriginalQuestionView.has(q.id) ? q : getQuestionForEvaluation(q);
+  const effectiveCorrectIndices = getCorrectIndices(compareQuestion, { preferOriginal });
+  const isMulti = effectiveCorrectIndices.length > 1;
+  const normalizedSelection = isMulti ? selected : selected.slice(0, 1);
+
+  state.answers.set(qid, normalizedSelection);
+  if (state.submitted.has(qid)) {
+    state.results.set(qid, evaluate(compareQuestion, normalizedSelection, { preferOriginal }));
+  }
+}
+
 function isAiModeEnabled() {
   const cfg = state.quizConfig || {};
   return (cfg.aiModeEnabled ?? cfg.useAiModifiedAnswers) !== false;
@@ -1349,6 +1367,7 @@ function openQuestionEditorDialog(question) {
     saveLocalQuestionOverride(datasetId, q.id, override);
     state.localQuestionOverrides.set(q.id, override);
     state.forceOriginalQuestionView.delete(q.id);
+    normalizeAnswerStateForVariant(q);
     window.dispatchEvent(new CustomEvent("localOverridesChanged"));
     dialog.close();
     await renderAll();
@@ -1615,21 +1634,7 @@ async function renderQuestionList(qs, { allowSubmit, showSolutions }) {
         if (state.forceOriginalQuestionView.has(q.id)) state.forceOriginalQuestionView.delete(q.id);
         else state.forceOriginalQuestionView.add(q.id);
 
-        const nextDisplayed = getDisplayedQuestion(q);
-        const answerCount = Array.isArray(nextDisplayed.answers) ? nextDisplayed.answers.length : 0;
-        const selected = (state.answers.get(q.id) || []).filter((idx) => idx >= 0 && idx < answerCount);
-
-        const preferOriginal = usesOriginalSolutionInQuiz(q);
-        const compareQuestion = state.forceOriginalQuestionView.has(q.id) ? q : getQuestionForEvaluation(q);
-        const effectiveCorrectIndices = getCorrectIndices(compareQuestion, { preferOriginal });
-        const isMulti = effectiveCorrectIndices.length > 1;
-        const normalizedSelection = isMulti ? selected : selected.slice(0, 1);
-
-        state.answers.set(q.id, normalizedSelection);
-
-        if (state.submitted.has(q.id)) {
-          state.results.set(q.id, evaluate(compareQuestion, normalizedSelection, { preferOriginal }));
-        }
+        normalizeAnswerStateForVariant(q);
 
         await renderAll();
       }));
@@ -1877,7 +1882,7 @@ async function renderQuestionList(qs, { allowSubmit, showSolutions }) {
       });
 
       const editorBtn = document.createElement("button");
-      editorBtn.className = "btn";
+      editorBtn.className = "btn editorInlineBtn";
       editorBtn.textContent = "✏️";
       editorBtn.title = "Frage lokal bearbeiten";
       editorBtn.disabled = !submitted;
@@ -1897,7 +1902,7 @@ async function renderQuestionList(qs, { allowSubmit, showSolutions }) {
         const actions = document.createElement("div");
         actions.className = "actions";
         const editorBtn = document.createElement("button");
-        editorBtn.className = "btn";
+        editorBtn.className = "btn editorInlineBtn";
         editorBtn.textContent = "✏️";
         editorBtn.title = "Frage lokal bearbeiten";
         editorBtn.addEventListener("click", () => {

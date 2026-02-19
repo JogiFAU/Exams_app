@@ -6,7 +6,7 @@ import { getSelectedDataset } from "../data/manifest.js";
 import { filterByExams, filterByTopics, filterByImageMode, applyRandomAndShuffle, searchQuestions } from "../quiz/filters.js";
 import { startQuizSession, startSearchView, finishQuizSession, abortQuizSession, exitToConfig } from "../quiz/session.js";
 import { renderAll, updateFilterLists } from "./render.js";
-import { listSessions, deleteSession, exportBackupAllDatasets, importBackupAllDatasets, getLatestAnsweredResultsByQuestion, clearAllSessionData, getLocalQuestionOverrides, deleteLocalQuestionOverride } from "../data/storage.js";
+import { listSessions, deleteSession, exportBackupAllDatasets, importBackupAllDatasets, getLatestAnsweredResultsByQuestion, clearAllSessionData, getLocalQuestionOverrides, deleteLocalQuestionOverride, clearLocalQuestionOverrides } from "../data/storage.js";
 import { applyTheme } from "../theme.js";
 
 function selectedExamsFromList(containerId) {
@@ -558,6 +558,16 @@ export function wireUiEvents() {
     deleteLocalQuestionOverride(datasetId, qid);
     state.localQuestionOverrides.delete(qid);
     state.forceOriginalQuestionView.delete(qid);
+    refreshLocalOverridesUi();
+    await renderAll();
+  });
+
+  $("clearLocalOverridesBtn")?.addEventListener("click", async () => {
+    const datasetId = state.activeDataset?.id;
+    if (!datasetId) return;
+    clearLocalQuestionOverrides(datasetId);
+    state.localQuestionOverrides = new Map();
+    state.forceOriginalQuestionView = new Set();
     refreshLocalOverridesUi();
     await renderAll();
   });
