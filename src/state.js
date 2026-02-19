@@ -36,6 +36,7 @@ export const state = {
   answers: new Map(), // qid -> number[]
   submitted: new Set(), // qids
   results: new Map(), // qid -> boolean
+  excludedAnswers: new Map(), // qid -> number[] (temporarily excluded answer indices in active quiz)
 
   // UI-only
   explainOpen: new Set(), // qids
@@ -49,6 +50,7 @@ export function resetAnswers() {
   state.answers = new Map();
   state.submitted = new Set();
   state.results = new Map();
+  state.excludedAnswers = new Map();
   state.explainOpen = new Set();
   state.forceOriginalQuestionView = new Set();
   state.reviewAnsweredOnly = false;
