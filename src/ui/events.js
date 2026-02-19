@@ -6,7 +6,7 @@ import { getSelectedDataset } from "../data/manifest.js";
 import { filterByExams, filterByTopics, filterByImageMode, applyRandomAndShuffle, searchQuestions } from "../quiz/filters.js";
 import { startQuizSession, startSearchView, finishQuizSession, abortQuizSession, exitToConfig } from "../quiz/session.js";
 import { renderAll, updateFilterLists } from "./render.js";
-import { listSessions, deleteSession, exportBackupAllDatasets, importBackupAllDatasets, getLatestAnsweredResultsByQuestion, clearAllSessionData, getLocalQuestionOverrides } from "../data/storage.js";
+import { listSessions, deleteSession, exportBackupAllDatasets, importBackupAllDatasets, getLatestAnsweredResultsByQuestion, clearAllSessionData, getLocalQuestionOverrides, deleteLocalQuestionOverride } from "../data/storage.js";
 import { applyTheme } from "../theme.js";
 
 function selectedExamsFromList(containerId) {
@@ -198,6 +198,29 @@ function refreshSavedSessionsUi() {
   }
 }
 
+function refreshLocalOverridesUi() {
+  const datasetId = state.activeDataset?.id;
+  const sel = $("localOverridesSelect");
+  if (!sel) return;
+  sel.innerHTML = "";
+  if (!datasetId) return;
+
+  const overrides = state.localQuestionOverrides || new Map();
+  const questionIndex = new Map(state.questionsAll.map((q, idx) => [q.id, { q, idx }]));
+
+  for (const [qid, override] of overrides.entries()) {
+    const info = questionIndex.get(qid);
+    if (!info) continue;
+    const opt = document.createElement("option");
+    opt.value = qid;
+    const exam = info.q.examName || "Unbekannte Klausur";
+    const no = info.idx + 1;
+    const txt = String(override?.text || info.q.text || "").slice(0, 70);
+    opt.textContent = `${exam} - #${no} - ${txt}`;
+    sel.appendChild(opt);
+  }
+}
+
 async function loadDatasetFromManifest(autoToast = false) {
   const d = getSelectedDataset();
   if (!d) {
@@ -231,6 +254,7 @@ async function loadDatasetFromManifest(autoToast = false) {
     $("pageSize2").value = $("pageSize").value;
 
     refreshSavedSessionsUi();
+    refreshLocalOverridesUi();
     updatePreviewTexts();
 
     await renderAll();
@@ -335,6 +359,10 @@ export function wireUiEvents() {
     await loadDatasetFromManifest(true);
   });
 
+  window.addEventListener("localOverridesChanged", () => {
+    refreshLocalOverridesUi();
+  });
+
   $("datasetSelect")?.addEventListener("change", async () => {
     if (state.view === "quiz" || state.view === "review") return;
     await renderAll();
@@ -349,6 +377,7 @@ export function wireUiEvents() {
       state.configTab = "search";
       updateFilterLists();
       refreshSavedSessionsUi();
+      refreshLocalOverridesUi();
       await renderAll();
     }
   });
@@ -404,6 +433,7 @@ export function wireUiEvents() {
     finishQuizSession();
     initNavObserver();
     refreshSavedSessionsUi();
+    refreshLocalOverridesUi();
     await renderAll();
     window.scrollTo({ top: 0, behavior: "auto" });
     requestAnimationFrame(() => window.scrollTo({ top: 0, behavior: "auto" }));
@@ -518,6 +548,18 @@ export function wireUiEvents() {
     updateFilterLists();
     updatePreviewTexts();
     toast("Session gelöscht.");
+  });
+
+  $("deleteLocalOverrideBtn")?.addEventListener("click", async () => {
+    const datasetId = state.activeDataset?.id;
+    if (!datasetId) return;
+    const qid = $("localOverridesSelect")?.value;
+    if (!qid) return;
+    deleteLocalQuestionOverride(datasetId, qid);
+    state.localQuestionOverrides.delete(qid);
+    state.forceOriginalQuestionView.delete(qid);
+    refreshLocalOverridesUi();
+    await renderAll();
   });
 
 

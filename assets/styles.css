@@ -378,14 +378,16 @@ hr.sep { border:0; border-top:1px solid var(--border); margin:14px 0; }
   background: var(--surface-card);
   padding: 14px;
   margin-bottom: 12px;
+  position: relative;
+  padding-bottom: 56px;
 }
 .qcard.ok { border-color: var(--theme-progress-correct-2); background: var(--okbg); }
 .qcard.bad { border-color: var(--theme-progress-wrong-2); background: var(--badbg); }
 .qcard.neu { border-color: rgba(96,125,139,.7); background: var(--neubg); }
 
 
-.qmeta { font-size: 12px; color: var(--muted); display: flex; flex-wrap: wrap; gap: 10px; }
-.qmetaRight { margin-left: auto; display: inline-flex; gap: 8px; align-items: center; }
+.qmeta { font-size: 12px; color: var(--muted); display: flex; flex-wrap: wrap; gap: 10px; padding-right: 56px; }
+.qmetaRight { position: absolute; top: 8px; right: 10px; display: inline-flex; gap: 8px; align-items: center; }
 .qmetaTraffic {
   display: inline-flex;
   align-items: center;
@@ -640,6 +642,15 @@ hr.sep { border:0; border-top:1px solid var(--border); margin:14px 0; }
 .opt .t { font-size: 14px; line-height: 1.35; color: var(--question-option-text); }
 
 .actions { display: flex; gap: 10px; margin-top: 10px; flex-wrap: wrap; }
+
+.editorFabBtn {
+  position: absolute;
+  right: 12px;
+  bottom: 12px;
+  min-width: 36px;
+  min-height: 36px;
+  padding: 0 10px;
+}
 
 .notebookActions {
   margin-top: 14px;

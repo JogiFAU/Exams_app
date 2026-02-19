@@ -1316,6 +1316,7 @@ function openQuestionEditorDialog(question) {
     saveLocalQuestionOverride(datasetId, q.id, override);
     state.localQuestionOverrides.set(q.id, override);
     state.forceOriginalQuestionView.delete(q.id);
+    window.dispatchEvent(new CustomEvent("localOverridesChanged"));
     dialog.close();
     await renderAll();
     toast("Lokale Änderung gespeichert.");
@@ -1535,13 +1536,15 @@ async function renderQuestionList(qs, { allowSubmit, showSolutions }) {
     }
 
     const displayedQuestion = getDisplayedQuestion(q);
+    const evaluationQuestion = getQuestionForEvaluation(q);
+    const aiVariantAvailable = getQuizQuestionVariant(evaluationQuestion, state.quizConfig).usedAiReconstruction;
 
     const meta = document.createElement("div");
     meta.className = "qmeta";
     const showTopicsInBanner = state.view === "search" ? true : (state.quizConfig?.showTopicsInBanner !== false);
     meta.innerHTML = qMetaHtml(q, offset + idx + 1, {
       showTopics: showTopicsInBanner,
-      showAiReconstructionBadge: displayedQuestion.usedAiReconstruction,
+      showAiReconstructionBadge: aiVariantAvailable,
       showOriginalQuestionAction: (displayedQuestion.usedAiReconstruction || displayedQuestion.hasLocalOverride),
       showLocalOverrideBadge: displayedQuestion.hasLocalOverride,
       isShowingOriginalVariant: state.forceOriginalQuestionView?.has(q.id)
@@ -1619,7 +1622,8 @@ async function renderQuestionList(qs, { allowSubmit, showSolutions }) {
 
     const selectedOriginal = state.answers.get(qid) || [];
     const preferOriginal = usesOriginalSolutionInQuiz(q);
-    const effectiveCorrectIndices = getCorrectIndices(q, { preferOriginal });
+    const compareQuestion = state.forceOriginalQuestionView?.has(q.id) ? q : evaluationQuestion;
+    const effectiveCorrectIndices = getCorrectIndices(compareQuestion, { preferOriginal });
     const correctSet = new Set(effectiveCorrectIndices);
     const showAiExplanationTooltips = (state.view === "quiz" || state.view === "review") && submitted && !isAiModeEnabled();
     const multi = preferOriginal ? effectiveCorrectIndices.length > 1 : isMultiCorrect(q);
@@ -1807,32 +1811,18 @@ async function renderQuestionList(qs, { allowSubmit, showSolutions }) {
       actions.appendChild(submitBtn);
       actions.appendChild(editBtn);
 
-      const editorBtn = document.createElement("button");
-      editorBtn.className = "btn";
-      editorBtn.textContent = "✏️";
-      editorBtn.title = "Frage lokal bearbeiten";
-      editorBtn.disabled = !submitted;
-      editorBtn.addEventListener("click", () => {
-        openQuestionEditorDialog(q);
-      });
-
-      actions.appendChild(editorBtn);
       card.appendChild(actions);
     }
 
-    if (!allowSubmit && submitted) {
-      const actions = document.createElement("div");
-      actions.className = "actions";
+    if (submitted) {
       const editorBtn = document.createElement("button");
-      editorBtn.className = "btn";
+      editorBtn.className = "btn editorFabBtn";
       editorBtn.textContent = "✏️";
       editorBtn.title = "Frage lokal bearbeiten";
       editorBtn.addEventListener("click", () => {
         openQuestionEditorDialog(q);
       });
-      actions.appendChild(editorBtn);
-      card.appendChild(actions);
-      actionsRow = actions;
+      card.appendChild(editorBtn);
     }
 
     // NotebookLM Explain
