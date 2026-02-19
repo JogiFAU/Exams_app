@@ -14,6 +14,8 @@ export function pickFirstNonEmptyString(source, paths = []) {
 
 export const AI_DISPLAY_RULES = {
   solutionHintPaths: [
+    "aiAudit.explainer.summary",
+    "explainer.summary",
     "AnswerReasonDetailed",
     "answerReasonDetailed",
     "aiAnswerReasonDetailed",

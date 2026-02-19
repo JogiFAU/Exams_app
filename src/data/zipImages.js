@@ -1,5 +1,41 @@
 import { state } from "../state.js";
 
+function assignQuestionImagesFromZip() {
+  if (!Array.isArray(state.questionsAll) || !state.questionsAll.length) return;
+
+  const imageBases = Array.from(state.zipIndex.keys());
+  for (const q of state.questionsAll) {
+    const qid = String(q?.id || "").trim();
+    if (!qid) continue;
+
+    const matchedBases = imageBases.filter((base) => base.includes(qid)).sort();
+    if (!matchedBases.length) continue;
+
+    const existing = Array.isArray(q.imageFiles) ? q.imageFiles.slice() : [];
+    q.imageFiles = Array.from(new Set([...existing, ...matchedBases]));
+  }
+
+  const imageToQuestionIds = new Map();
+  for (const q of state.questionsAll) {
+    for (const fileBase of (q.imageFiles || [])) {
+      if (!imageToQuestionIds.has(fileBase)) imageToQuestionIds.set(fileBase, new Set());
+      imageToQuestionIds.get(fileBase).add(q.id);
+    }
+  }
+
+  for (const q of state.questionsAll) {
+    const relatedIds = new Set();
+    for (const fileBase of (q.imageFiles || [])) {
+      const users = imageToQuestionIds.get(fileBase);
+      if (!users) continue;
+      for (const qid of users) relatedIds.add(qid);
+    }
+    q.imageClusterQuestionIds = Array.from(relatedIds);
+    q.imageClusterSize = q.imageClusterQuestionIds.length;
+    q.imageClusterLabel = q.imageClusterSize > 1 ? "Bildcluster" : null;
+  }
+}
+
 export function clearZipObjectUrls() {
   for (const url of state.zipObjectUrls.values()) {
     try { URL.revokeObjectURL(url); } catch {}
@@ -32,6 +68,8 @@ export async function loadZipUrl(url) {
     const m = base.match(/^(.+)\.(png|jpg|jpeg|webp|gif)$/i);
     if (m) state.zipIndex.set(m[1], path);
   });
+
+  assignQuestionImagesFromZip();
 }
 
 export async function getImageUrl(fileBase) {

@@ -1,11 +1,12 @@
 import { state } from "../state.js";
 import { $, letter, toast } from "../utils.js";
-import { isMultiCorrect, getCorrectIndices } from "../quiz/evaluate.js";
+import { isMultiCorrect, getCorrectIndices, evaluate } from "../quiz/evaluate.js";
 import { submitAnswer, unsubmitAnswer } from "../quiz/session.js";
 import { getImageUrl } from "../data/zipImages.js";
 import { qMetaHtml, buildExplainPrompt, formatAiTextForDisplay } from "./components.js";
 import { questionIdIndex } from "../quiz/filters.js";
-import { getLatestAnsweredResultsByQuestion } from "../data/storage.js";
+import { getLatestAnsweredResultsByQuestion, saveLocalQuestionOverride } from "../data/storage.js";
+import { getQuizQuestionVariant, applyLocalQuestionOverride } from "../quiz/questionVariant.js";
 
 const MAX_RENDER_NO_PAGING = 1000;
 let notebookLmWindow = null;
@@ -110,6 +111,82 @@ function usesOriginalSolutionInQuiz(q) {
   return (state.view === "quiz" || state.view === "review") &&
     state.quizConfig?.useAiModifiedAnswers === false &&
     q.aiChangedAnswers;
+}
+
+function getDisplayedQuestion(q) {
+  const localOverride = state.localQuestionOverrides?.get(q.id);
+  const baseQuestion = applyLocalQuestionOverride(q, localOverride);
+
+  if (state.view !== "quiz" && state.view !== "review") {
+    return {
+      text: baseQuestion.text,
+      answers: baseQuestion.answers,
+      imageReferenceText: null,
+      usedAiReconstruction: false,
+      hasLocalOverride: !!localOverride
+    };
+  }
+  if (state.forceOriginalQuestionView?.has(q.id)) {
+    return {
+      text: q.text,
+      answers: q.answers,
+      imageReferenceText: null,
+      usedAiReconstruction: false,
+      hasLocalOverride: !!localOverride
+    };
+  }
+
+  if (localOverride) {
+    return {
+      text: baseQuestion.text,
+      answers: baseQuestion.answers,
+      imageReferenceText: null,
+      usedAiReconstruction: false,
+      hasLocalOverride: true
+    };
+  }
+
+  return { ...getQuizQuestionVariant(q, state.quizConfig), hasLocalOverride: false };
+}
+
+function getQuestionForEvaluation(q) {
+  const localOverride = state.localQuestionOverrides?.get(q.id);
+  return applyLocalQuestionOverride(q, localOverride);
+}
+
+function normalizeAnswerStateForVariant(q) {
+  const qid = q.id;
+  const displayed = getDisplayedQuestion(q);
+  const answerCount = Array.isArray(displayed.answers) ? displayed.answers.length : 0;
+  const selected = (state.answers.get(qid) || []).filter((idx) => idx >= 0 && idx < answerCount);
+
+  const preferOriginal = usesOriginalSolutionInQuiz(q);
+  const compareQuestion = state.forceOriginalQuestionView.has(q.id) ? q : getQuestionForEvaluation(q);
+  const effectiveCorrectIndices = getCorrectIndices(compareQuestion, { preferOriginal });
+  const isMulti = effectiveCorrectIndices.length > 1;
+  const normalizedSelection = isMulti ? selected : selected.slice(0, 1);
+
+  state.answers.set(qid, normalizedSelection);
+  if (state.submitted.has(qid)) {
+    state.results.set(qid, evaluate(compareQuestion, normalizedSelection, { preferOriginal }));
+  }
+}
+
+function isAiModeEnabled() {
+  const cfg = state.quizConfig || {};
+  return (cfg.aiModeEnabled ?? cfg.useAiModifiedAnswers) !== false;
+}
+
+function aiExplanationTooltipForOption(q, answerIndex, correctSet) {
+  if (correctSet.has(answerIndex)) {
+    return q.aiCorrectnessExplanation || null;
+  }
+
+  const wrongExplanations = Array.isArray(q.aiWrongOptionExplanations)
+    ? q.aiWrongOptionExplanations
+    : [];
+  const wrong = wrongExplanations.find((entry) => entry.answerIndex === answerIndex);
+  return wrong?.whyWrong || null;
 }
 
 export function renderHeaderProgress() {
@@ -1151,7 +1228,7 @@ export function openClusterQuestionsDialog(questionId) {
       .join("");
   };
 
-  if (title) title.textContent = "Verwandte klausurrelevante Fragen";
+  if (title) title.textContent = "Verwandte häufige Altfragen";
   if (subtitle) subtitle.textContent = `${clusterQuestions.length} Fragen · ${source.clusterLabel || "Fragencluster"}`;
   if (explainToggle) {
     explainToggle.checked = true;
@@ -1163,6 +1240,151 @@ export function openClusterQuestionsDialog(questionId) {
   }
 
   renderClusterModalQuestions();
+  dialog.showModal();
+}
+
+export function openImageClusterQuestionsDialog(questionId) {
+  const source = state.questionsAll.find(q => q.id === questionId);
+  if (!source || !Array.isArray(source.imageClusterQuestionIds) || source.imageClusterQuestionIds.length < 2) return;
+
+  const dialog = $("clusterQuestionsDialog");
+  if (!dialog || typeof dialog.showModal !== "function") return;
+
+  const title = $("clusterDialogTitle");
+  const subtitle = $("clusterDialogSubtitle");
+  const body = $("clusterDialogBody");
+  const explainToggle = $("clusterDialogShowExplanations");
+  const solutionsToggle = $("clusterDialogShowSolutions");
+
+  const idx = questionIdIndex(state.questionsAll);
+  const imageClusterQuestions = source.imageClusterQuestionIds.map(id => idx.get(id)).filter(Boolean);
+
+  const renderImageClusterQuestions = () => {
+    if (!body) return;
+    const showExplanations = explainToggle ? explainToggle.checked : true;
+    const showSolutions = solutionsToggle ? solutionsToggle.checked : true;
+    body.innerHTML = imageClusterQuestions
+      .map((q, i) => buildClusterModalQuestionCard(q, i + 1, { showExplanations, showSolutions }))
+      .join("");
+  };
+
+  if (title) title.textContent = "Fragen im Bildcluster";
+  if (subtitle) subtitle.textContent = `${imageClusterQuestions.length} Fragen · ${source.imageClusterLabel || "Bildcluster"}`;
+  if (explainToggle) {
+    explainToggle.checked = true;
+    explainToggle.onchange = () => renderImageClusterQuestions();
+  }
+  if (solutionsToggle) {
+    solutionsToggle.checked = true;
+    solutionsToggle.onchange = () => renderImageClusterQuestions();
+  }
+
+  renderImageClusterQuestions();
+  dialog.showModal();
+}
+
+function openQuestionEditorDialog(question, { displayedQuestion = null, compareQuestion = null } = {}) {
+  const dialog = $("questionEditorDialog");
+  if (!dialog || typeof dialog.showModal !== "function") return;
+
+  const displayed = displayedQuestion || getDisplayedQuestion(question);
+  const compare = compareQuestion || getQuestionForEvaluation(question);
+  const answerCount = Array.isArray(displayed.answers) ? displayed.answers.length : 0;
+  const correctIndices = (Array.isArray(compare.correctIndices) ? compare.correctIndices : [])
+    .filter((idx) => Number.isInteger(idx) && idx >= 0 && idx < answerCount);
+
+  const q = {
+    ...question,
+    text: displayed.text,
+    answers: displayed.answers,
+    correctIndices
+  };
+  const title = $("questionEditorTitle");
+  const textEl = $("editorQuestionText");
+  const answersWrap = $("editorAnswersWrap");
+  const saveBtn = $("editorSaveBtn");
+  const addAnswerBtn = $("editorAddAnswerBtn");
+  if (!textEl || !answersWrap || !saveBtn || !addAnswerBtn) return;
+
+  if (title) title.textContent = `Frage bearbeiten · ${q.id}`;
+  textEl.value = q.text || "";
+
+  const answerState = (q.answers || []).map((a, idx) => ({
+    text: a?.text || "",
+    isCorrect: new Set(Array.isArray(q.correctIndices) ? q.correctIndices : []).has(idx)
+  }));
+
+  const renderEditorAnswers = () => {
+    answersWrap.innerHTML = "";
+    answerState.forEach((a, idx) => {
+      const row = document.createElement("div");
+      row.className = "editorAnswerRow";
+      row.innerHTML = `
+        <span>${letter(idx)})</span>
+        <input type="text" data-editor-answer-text="${idx}" />
+        <label class="checkrow" style="margin:0;"><input type="checkbox" data-editor-answer-correct="${idx}" ${a.isCorrect ? "checked" : ""} /><span>Richtig</span></label>
+        <button class="btn" type="button" data-editor-answer-delete="${idx}" aria-label="Antwortoption löschen">🗑️</button>
+      `;
+      const answerInput = row.querySelector(`[data-editor-answer-text="${idx}"]`);
+      if (answerInput) {
+        answerInput.value = a.text;
+        answerInput.addEventListener("input", () => {
+          answerState[idx].text = answerInput.value;
+        });
+      }
+      const correctInput = row.querySelector(`[data-editor-answer-correct="${idx}"]`);
+      if (correctInput) {
+        correctInput.addEventListener("change", () => {
+          answerState[idx].isCorrect = !!correctInput.checked;
+        });
+      }
+      const deleteBtn = row.querySelector(`[data-editor-answer-delete="${idx}"]`);
+      if (deleteBtn) {
+        deleteBtn.disabled = answerState.length <= 2;
+        deleteBtn.addEventListener("click", () => {
+          if (answerState.length <= 2) return;
+          answerState.splice(idx, 1);
+          renderEditorAnswers();
+        });
+      }
+      answersWrap.appendChild(row);
+    });
+  };
+
+  renderEditorAnswers();
+
+  addAnswerBtn.onclick = () => {
+    answerState.push({ text: "", isCorrect: false });
+    renderEditorAnswers();
+  };
+
+  saveBtn.onclick = async () => {
+    const answers = answerState.map((a) => ({
+      text: String(a.text || "").trim(),
+      isCorrect: !!a.isCorrect
+    }));
+    const correctIndices = answers
+      .map((a, idx) => (a.isCorrect ? idx : -1))
+      .filter((idx) => idx >= 0);
+
+    const override = {
+      text: String(textEl.value || "").trim(),
+      answers,
+      correctIndices
+    };
+
+    const datasetId = state.activeDataset?.id;
+    if (!datasetId) return;
+    saveLocalQuestionOverride(datasetId, q.id, override);
+    state.localQuestionOverrides.set(q.id, override);
+    state.forceOriginalQuestionView.delete(q.id);
+    normalizeAnswerStateForVariant(q);
+    window.dispatchEvent(new CustomEvent("localOverridesChanged"));
+    dialog.close();
+    await renderAll();
+    toast("Lokale Änderung gespeichert.");
+  };
+
   dialog.showModal();
 }
 
@@ -1218,7 +1440,7 @@ export async function renderMain() {
           <li><strong>Themenfokus:</strong> arbeite nur zu ausgewählten Über- und Unterthemen, um Wissenslücken systematisch zu schließen.</li>
           <li><strong>Prüfungssimulation:</strong> nutze den Prüfungsmodus ohne direkte Ergebnisanzeige und werte deinen Stand anschließend aus.</li>
           <li><strong>Wiederholungslernen:</strong> konzentriere dich auf falsch beantwortete Fragen und wiederhole kritische Inhalte effizient.</li>
-          <li><strong>Mustererkennung:</strong> erkenne häufig wiederkehrende Altfragen (Cluster) und priorisiere klausurrelevante Schwerpunkte.</li>
+          <li><strong>Mustererkennung:</strong> erkenne häufig wiederkehrende Altfragen (Cluster) und priorisiere häufige Schwerpunkte.</li>
         </ul>
       </div>
     `;
@@ -1376,14 +1598,32 @@ async function renderQuestionList(qs, { allowSubmit, showSolutions }) {
       else card.classList.add("neu");
     }
 
+    const displayedQuestion = getDisplayedQuestion(q);
+    const evaluationQuestion = getQuestionForEvaluation(q);
+    const aiVariantAvailable = getQuizQuestionVariant(evaluationQuestion, state.quizConfig).usedAiReconstruction;
+
     const meta = document.createElement("div");
     meta.className = "qmeta";
     const showTopicsInBanner = state.view === "search" ? true : (state.quizConfig?.showTopicsInBanner !== false);
-    meta.innerHTML = qMetaHtml(q, offset + idx + 1, { showTopics: showTopicsInBanner });
+    meta.innerHTML = qMetaHtml(q, offset + idx + 1, {
+      showTopics: showTopicsInBanner,
+      showAiReconstructionBadge: aiVariantAvailable,
+      showOriginalQuestionAction: (aiVariantAvailable || displayedQuestion.hasLocalOverride),
+      showLocalOverrideBadge: displayedQuestion.hasLocalOverride,
+      isShowingOriginalVariant: state.forceOriginalQuestionView?.has(q.id)
+    });
 
     const text = document.createElement("div");
     text.className = "qtext";
-    renderQuestionText(text, q.text, state.view === "search" ? (state.searchConfig?.query || "") : "");
+    renderQuestionText(text, displayedQuestion.text, state.view === "search" ? (state.searchConfig?.query || "") : "");
+
+    if (displayedQuestion.usedAiReconstruction && displayedQuestion.imageReferenceText && Array.isArray(q.imageFiles) && q.imageFiles.length) {
+      const imageRef = document.createElement("div");
+      imageRef.className = "small";
+      imageRef.style.marginTop = "8px";
+      imageRef.textContent = `Bildreferenz (Originalfrage): ${displayedQuestion.imageReferenceText}`;
+      text.appendChild(imageRef);
+    }
 
     card.appendChild(meta);
     card.appendChild(text);
@@ -1394,6 +1634,29 @@ async function renderQuestionList(qs, { allowSubmit, showSolutions }) {
         ev.preventDefault();
         ev.stopPropagation();
         openClusterQuestionsDialog(q.id);
+      });
+    }
+
+    const toggleOriginalQuestionBtns = meta.querySelectorAll("[data-toggle-original-question]");
+    if (toggleOriginalQuestionBtns.length) {
+      toggleOriginalQuestionBtns.forEach((toggleBtn) => toggleBtn.addEventListener("click", async (ev) => {
+        ev.preventDefault();
+        ev.stopPropagation();
+        if (state.forceOriginalQuestionView.has(q.id)) state.forceOriginalQuestionView.delete(q.id);
+        else state.forceOriginalQuestionView.add(q.id);
+
+        normalizeAnswerStateForVariant(q);
+
+        await renderAll();
+      }));
+    }
+
+    const showImageClusterBtn = meta.querySelector("[data-image-cluster-show]");
+    if (showImageClusterBtn) {
+      showImageClusterBtn.addEventListener("click", (ev) => {
+        ev.preventDefault();
+        ev.stopPropagation();
+        openImageClusterQuestionsDialog(q.id);
       });
     }
 
@@ -1425,13 +1688,16 @@ async function renderQuestionList(qs, { allowSubmit, showSolutions }) {
 
     const selectedOriginal = state.answers.get(qid) || [];
     const preferOriginal = usesOriginalSolutionInQuiz(q);
-    const effectiveCorrectIndices = getCorrectIndices(q, { preferOriginal });
+    const compareQuestion = state.forceOriginalQuestionView?.has(q.id) ? q : evaluationQuestion;
+    const effectiveCorrectIndices = getCorrectIndices(compareQuestion, { preferOriginal });
     const correctSet = new Set(effectiveCorrectIndices);
-    const multi = preferOriginal ? effectiveCorrectIndices.length > 1 : isMultiCorrect(q);
-    const displayOrder = state.answerOrder.get(qid) || [...Array((q.answers || []).length).keys()];
+    const showAiExplanationTooltips = (state.view === "quiz" || state.view === "review") && submitted;
+    const multi = effectiveCorrectIndices.length > 1;
+    const displayAnswers = Array.isArray(displayedQuestion.answers) ? displayedQuestion.answers : [];
+    const displayOrder = state.answerOrder.get(qid) || [...Array(displayAnswers.length).keys()];
 
     displayOrder.forEach((origIdx, displayIdx) => {
-      const a = (q.answers || [])[origIdx];
+      const a = displayAnswers[origIdx];
       const wrap = document.createElement("label");
       wrap.className = "opt";
 
@@ -1471,6 +1737,32 @@ async function renderQuestionList(qs, { allowSubmit, showSolutions }) {
         } else if (submitted) {
           if (isCorr) wrap.classList.add("ok");
           else if (isSel && !isCorr) wrap.classList.add("bad");
+        }
+      }
+
+      if (showAiExplanationTooltips) {
+        const tooltipText = aiExplanationTooltipForOption(q, origIdx, correctSet);
+        if (tooltipText) {
+          const tip = document.createElement("span");
+          tip.className = "optExplainTooltip";
+          tip.setAttribute("role", "tooltip");
+
+          const title = document.createElement("strong");
+          title.textContent = "KI-Erklärung";
+          tip.appendChild(title);
+
+          if (displayedQuestion.usedAiReconstruction || displayedQuestion.hasLocalOverride) {
+            const note = document.createElement("span");
+            note.className = "optExplainTooltip__note";
+            note.textContent = "Bezieht sich auf Original-Antwortoption!";
+            tip.appendChild(note);
+          }
+
+          const body = document.createElement("span");
+          body.textContent = formatAiTextForDisplay(tooltipText);
+          tip.appendChild(body);
+
+          wrap.appendChild(tip);
         }
       }
 
@@ -1563,6 +1855,7 @@ async function renderQuestionList(qs, { allowSubmit, showSolutions }) {
     }
 
     let actionsRow = null;
+    let editorActionBtn = null;
     if (allowSubmit) {
       const actions = document.createElement("div");
       actions.className = "actions";
@@ -1579,7 +1872,7 @@ async function renderQuestionList(qs, { allowSubmit, showSolutions }) {
           return state.questionOrder[idx + 1];
         })();
 
-        submitAnswer(q);
+        submitAnswer(getQuestionForEvaluation(q));
         const shouldAutoAdvance = (
           state.view === "quiz" &&
           getQuizMode() === "practice" &&
@@ -1600,9 +1893,37 @@ async function renderQuestionList(qs, { allowSubmit, showSolutions }) {
         await renderAll();
       });
 
+      editorActionBtn = document.createElement("button");
+      editorActionBtn.className = "btn editorInlineBtn";
+      editorActionBtn.textContent = "✏️";
+      editorActionBtn.title = "Frage lokal bearbeiten";
+      editorActionBtn.disabled = !submitted;
+      editorActionBtn.addEventListener("click", () => {
+        openQuestionEditorDialog(q, { displayedQuestion, compareQuestion });
+      });
+
       actions.appendChild(submitBtn);
       actions.appendChild(editBtn);
+      actions.appendChild(editorActionBtn);
+
       card.appendChild(actions);
+    }
+
+    if (submitted) {
+      if (!allowSubmit) {
+        const actions = document.createElement("div");
+        actions.className = "actions";
+        editorActionBtn = document.createElement("button");
+        editorActionBtn.className = "btn editorInlineBtn";
+        editorActionBtn.textContent = "✏️";
+        editorActionBtn.title = "Frage lokal bearbeiten";
+        editorActionBtn.addEventListener("click", () => {
+          openQuestionEditorDialog(q, { displayedQuestion, compareQuestion });
+        });
+        actions.appendChild(editorActionBtn);
+        card.appendChild(actions);
+        actionsRow = actions;
+      }
     }
 
     // NotebookLM Explain
@@ -1633,7 +1954,13 @@ async function renderQuestionList(qs, { allowSubmit, showSolutions }) {
 
       explainWrap.appendChild(explainBtn);
       explainWrap.appendChild(hint);
-      if (actionsRow) actionsRow.appendChild(explainWrap);
+      if (actionsRow) {
+        if (editorActionBtn && editorActionBtn.parentElement === actionsRow) {
+          actionsRow.insertBefore(explainWrap, editorActionBtn);
+        } else {
+          actionsRow.appendChild(explainWrap);
+        }
+      }
       else card.appendChild(explainWrap);
     }
 

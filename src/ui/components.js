@@ -4,9 +4,6 @@ import {
   MAINTENANCE_TRAFFIC_RULES
 } from "../rules/questionPresentationRules.js";
 
-const INDEX_CONTEXT_RE = /\b(Antwort(?:option)?|Option|Index(?:es)?|Indices?)\s*([:#(\[]\s*)?(\d+)\b/gi;
-
-
 function escHtml(text) {
   return String(text || "")
     .replaceAll("&", "&amp;")
@@ -17,12 +14,7 @@ function escHtml(text) {
 }
 
 export function formatAiTextForDisplay(text) {
-  const raw = String(text || "");
-  return raw.replace(INDEX_CONTEXT_RE, (_, prefix, sep = " ", n) => {
-    const idx = Number(n);
-    if (!Number.isInteger(idx)) return _;
-    return `${prefix}${sep}${idx + 1}`;
-  });
+  return String(text || "");
 }
 
 function questionMentionsImageWithoutAttachment(q) {
@@ -122,8 +114,28 @@ function topicInfoHtml(q) {
   `;
 }
 
-export function qMetaHtml(q, ordinal, { showTopics = true } = {}) {
-  const img = (q.imageFiles && q.imageFiles.length) ? `<span class="pill">🖼️ ${q.imageFiles.length}</span>` : "";
+export function qMetaHtml(q, ordinal, {
+  showTopics = true,
+  showAiReconstructionBadge = false,
+  showOriginalQuestionAction = false,
+  showLocalOverrideBadge = false,
+  isShowingOriginalVariant = false
+} = {}) {
+  const imageClusterBadge = Number(q.imageClusterSize || 0) > 1
+    ? `
+      <span class="pill clusterBadge" tabindex="0" aria-label="Bildcluster mit ähnlichen Bildfragen">
+        🖼️ ${q.imageClusterSize}
+        <span class="clusterBadge__tip" role="tooltip">
+          <strong>${q.imageClusterSize} Fragen verwenden denselben Bildcluster.</strong>
+          <span class="clusterBadge__cluster">${escHtml(q.imageClusterLabel || "Bildcluster")}</span>
+          <button class="btn primary clusterBadge__action clusterBadge__action--cta" type="button" data-image-cluster-show="${q.id}">Fragen anzeigen</button>
+        </span>
+      </span>
+    `
+    : "";
+  const img = (q.imageFiles && q.imageFiles.length)
+    ? (imageClusterBadge || `<span class="pill">🖼️ ${q.imageFiles.length}</span>`)
+    : "";
   const exam = q.examName ? `<span class="pill">${q.examName}</span>` : "";
   const topic = showTopics ? topicInfoHtml(q) : "";
 
@@ -131,11 +143,37 @@ export function qMetaHtml(q, ordinal, { showTopics = true } = {}) {
     ? `<span class="pill" title="KI-Hinweis: Die Antwortoption(en) wurden gegenüber der ursprünglichen Markierung verändert." aria-label="Antwortoptionen wurden durch KI verändert">🤖 Antwort geändert</span>`
     : "";
 
+  const aiReconstructionBadge = showAiReconstructionBadge
+    ? `
+      <span class="pill aiModifiedBadge ${isShowingOriginalVariant ? "is-muted" : ""}" tabindex="0" aria-label="KI-modifizierte Fragendarstellung">
+        🤖 KI-modifiziert
+        <span class="aiModifiedBadge__tip" role="tooltip">
+          <strong>KI-modifizierte Fragendarstellung</strong>
+          <span>Texte wurden KI-modifiziert, um die Frage prüfungsnaher und inhaltlich stimmiger darzustellen.</span>
+          ${showOriginalQuestionAction ? `<button class="btn primary clusterBadge__action clusterBadge__action--cta aiModifiedBadge__action" type="button" data-toggle-original-question="${q.id}">${isShowingOriginalVariant ? "Modifikationen wieder anzeigen" : "Originale Frage anzeigen"}</button>` : ""}
+        </span>
+      </span>
+    `
+    : "";
+
+  const localOverrideBadge = showLocalOverrideBadge
+    ? `
+      <span class="pill aiModifiedBadge ${isShowingOriginalVariant ? "is-muted" : ""}" tabindex="0" aria-label="Lokal modifizierte Fragendarstellung">
+        ✏️ Lokal modifiziert
+        <span class="aiModifiedBadge__tip" role="tooltip">
+          <strong>Lokal modifizierte Fragendarstellung</strong>
+          <span>Diese Frage nutzt lokal gespeicherte Änderungen aus dem Editor-Modus.</span>
+          <button class="btn primary clusterBadge__action clusterBadge__action--cta aiModifiedBadge__action" type="button" data-toggle-original-question="${q.id}">${isShowingOriginalVariant ? "Modifikationen wieder anzeigen" : "Originale Frage anzeigen"}</button>
+        </span>
+      </span>
+    `
+    : "";
+
   const maintenance = maintenanceTrafficLightHtml(q);
   const clusterBadge = q.isHighRelevanceCluster
     ? `
-      <span class="pill clusterBadge" tabindex="0" aria-label="Klausurrelevanter Cluster mit ähnlichen Fragen">
-        ⭐ Klausurrelevant
+      <span class="pill clusterBadge" tabindex="0" aria-label="Häufige Altfrage mit ähnlichen Fragen">
+        ⭐ Häufige Altfrage
         <span class="clusterBadge__tip" role="tooltip">
           <strong>${Math.max(0, Number(q.clusterSize || 0) - 1)} ähnliche Fragen im Cluster erkannt.</strong>
           <span class="clusterBadge__cluster">${escHtml(q.clusterLabel || "Fragencluster")}</span>
@@ -150,8 +188,10 @@ export function qMetaHtml(q, ordinal, { showTopics = true } = {}) {
     <span class="pill">#${ordinal}</span>
     ${exam}
     ${topic}
-    ${img}
     ${clusterBadge}
+    ${img}
+    ${aiReconstructionBadge}
+    ${localOverrideBadge}
     ${aiChangedBadge}
     <span class="qmetaRight">${maintenance}</span>
   `;

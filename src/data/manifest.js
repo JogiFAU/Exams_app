@@ -15,7 +15,9 @@ export async function loadManifest() {
 export function populateDatasetSelect() {
   const sel = $("datasetSelect");
   sel.innerHTML = "";
-  const datasets = (state.manifest && state.manifest.datasets) ? state.manifest.datasets : [];
+  const datasets = (state.manifest && state.manifest.datasets)
+    ? state.manifest.datasets.filter(d => d.enabled !== false)
+    : [];
   for (const d of datasets) {
     const opt = document.createElement("option");
     opt.value = d.id;
@@ -25,7 +27,9 @@ export function populateDatasetSelect() {
 }
 
 export function getSelectedDataset() {
-  const datasets = (state.manifest && state.manifest.datasets) ? state.manifest.datasets : [];
+  const datasets = (state.manifest && state.manifest.datasets)
+    ? state.manifest.datasets.filter(d => d.enabled !== false)
+    : [];
   const id = $("datasetSelect").value;
   return datasets.find(d => d.id === id) || null;
 }
