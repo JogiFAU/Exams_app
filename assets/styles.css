@@ -643,15 +643,6 @@ hr.sep { border:0; border-top:1px solid var(--border); margin:14px 0; }
 
 .actions { display: flex; gap: 10px; margin-top: 10px; flex-wrap: wrap; }
 
-.editorFabBtn {
-  position: absolute;
-  right: 12px;
-  bottom: 12px;
-  min-width: 36px;
-  min-height: 36px;
-  padding: 0 10px;
-}
-
 .notebookActions {
   margin-top: 14px;
   display: flex;
@@ -1350,11 +1341,21 @@ summary { cursor: pointer; color: var(--muted); }
   margin-top: 10px;
 }
 
+#editorQuestionText {
+  width: 100%;
+  box-sizing: border-box;
+}
+
 .editorAnswerRow {
   display: grid;
   grid-template-columns: auto 1fr auto;
   gap: 8px;
   align-items: center;
+}
+
+.editorAnswerRow input[type="text"] {
+  width: 100%;
+  box-sizing: border-box;
 }
 
 

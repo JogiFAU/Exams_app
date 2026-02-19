@@ -1274,32 +1274,65 @@ function openQuestionEditorDialog(question) {
   const textEl = $("editorQuestionText");
   const answersWrap = $("editorAnswersWrap");
   const saveBtn = $("editorSaveBtn");
-  if (!textEl || !answersWrap || !saveBtn) return;
+  const addAnswerBtn = $("editorAddAnswerBtn");
+  if (!textEl || !answersWrap || !saveBtn || !addAnswerBtn) return;
 
   if (title) title.textContent = `Frage bearbeiten · ${q.id}`;
   textEl.value = q.text || "";
 
-  const correctSet = new Set(Array.isArray(q.correctIndices) ? q.correctIndices : []);
-  answersWrap.innerHTML = "";
-  (q.answers || []).forEach((a, idx) => {
-    const row = document.createElement("div");
-    row.className = "editorAnswerRow";
-    row.innerHTML = `
-      <span>${letter(idx)})</span>
-      <input type="text" data-editor-answer-text="${idx}" />
-      <label class="checkrow" style="margin:0;"><input type="checkbox" data-editor-answer-correct="${idx}" ${correctSet.has(idx) ? "checked" : ""} /><span>Richtig</span></label>
-    `;
-    const answerInput = row.querySelector(`[data-editor-answer-text="${idx}"]`);
-    if (answerInput) answerInput.value = a?.text || "";
-    answersWrap.appendChild(row);
-  });
+  const answerState = (q.answers || []).map((a, idx) => ({
+    text: a?.text || "",
+    isCorrect: new Set(Array.isArray(q.correctIndices) ? q.correctIndices : []).has(idx)
+  }));
+
+  const renderEditorAnswers = () => {
+    answersWrap.innerHTML = "";
+    answerState.forEach((a, idx) => {
+      const row = document.createElement("div");
+      row.className = "editorAnswerRow";
+      row.innerHTML = `
+        <span>${letter(idx)})</span>
+        <input type="text" data-editor-answer-text="${idx}" />
+        <label class="checkrow" style="margin:0;"><input type="checkbox" data-editor-answer-correct="${idx}" ${a.isCorrect ? "checked" : ""} /><span>Richtig</span></label>
+        <button class="btn" type="button" data-editor-answer-delete="${idx}" aria-label="Antwortoption löschen">🗑️</button>
+      `;
+      const answerInput = row.querySelector(`[data-editor-answer-text="${idx}"]`);
+      if (answerInput) {
+        answerInput.value = a.text;
+        answerInput.addEventListener("input", () => {
+          answerState[idx].text = answerInput.value;
+        });
+      }
+      const correctInput = row.querySelector(`[data-editor-answer-correct="${idx}"]`);
+      if (correctInput) {
+        correctInput.addEventListener("change", () => {
+          answerState[idx].isCorrect = !!correctInput.checked;
+        });
+      }
+      const deleteBtn = row.querySelector(`[data-editor-answer-delete="${idx}"]`);
+      if (deleteBtn) {
+        deleteBtn.disabled = answerState.length <= 2;
+        deleteBtn.addEventListener("click", () => {
+          if (answerState.length <= 2) return;
+          answerState.splice(idx, 1);
+          renderEditorAnswers();
+        });
+      }
+      answersWrap.appendChild(row);
+    });
+  };
+
+  renderEditorAnswers();
+
+  addAnswerBtn.onclick = () => {
+    answerState.push({ text: "", isCorrect: false });
+    renderEditorAnswers();
+  };
 
   saveBtn.onclick = async () => {
-    const answerTexts = Array.from(answersWrap.querySelectorAll("[data-editor-answer-text]"));
-    const correctBoxes = Array.from(answersWrap.querySelectorAll("[data-editor-answer-correct]"));
-    const answers = answerTexts.map((el, idx) => ({
-      text: String(el.value || "").trim(),
-      isCorrect: !!correctBoxes[idx]?.checked
+    const answers = answerState.map((a) => ({
+      text: String(a.text || "").trim(),
+      isCorrect: !!a.isCorrect
     }));
     const correctIndices = answers
       .map((a, idx) => (a.isCorrect ? idx : -1))
@@ -1545,7 +1578,7 @@ async function renderQuestionList(qs, { allowSubmit, showSolutions }) {
     meta.innerHTML = qMetaHtml(q, offset + idx + 1, {
       showTopics: showTopicsInBanner,
       showAiReconstructionBadge: aiVariantAvailable,
-      showOriginalQuestionAction: (displayedQuestion.usedAiReconstruction || displayedQuestion.hasLocalOverride),
+      showOriginalQuestionAction: (aiVariantAvailable || displayedQuestion.hasLocalOverride),
       showLocalOverrideBadge: displayedQuestion.hasLocalOverride,
       isShowingOriginalVariant: state.forceOriginalQuestionView?.has(q.id)
     });
@@ -1808,21 +1841,37 @@ async function renderQuestionList(qs, { allowSubmit, showSolutions }) {
         await renderAll();
       });
 
+      const editorBtn = document.createElement("button");
+      editorBtn.className = "btn";
+      editorBtn.textContent = "✏️";
+      editorBtn.title = "Frage lokal bearbeiten";
+      editorBtn.disabled = !submitted;
+      editorBtn.addEventListener("click", () => {
+        openQuestionEditorDialog(q);
+      });
+
       actions.appendChild(submitBtn);
       actions.appendChild(editBtn);
+      actions.appendChild(editorBtn);
 
       card.appendChild(actions);
     }
 
     if (submitted) {
-      const editorBtn = document.createElement("button");
-      editorBtn.className = "btn editorFabBtn";
-      editorBtn.textContent = "✏️";
-      editorBtn.title = "Frage lokal bearbeiten";
-      editorBtn.addEventListener("click", () => {
-        openQuestionEditorDialog(q);
-      });
-      card.appendChild(editorBtn);
+      if (!allowSubmit) {
+        const actions = document.createElement("div");
+        actions.className = "actions";
+        const editorBtn = document.createElement("button");
+        editorBtn.className = "btn";
+        editorBtn.textContent = "✏️";
+        editorBtn.title = "Frage lokal bearbeiten";
+        editorBtn.addEventListener("click", () => {
+          openQuestionEditorDialog(q);
+        });
+        actions.appendChild(editorBtn);
+        card.appendChild(actions);
+        actionsRow = actions;
+      }
     }
 
     // NotebookLM Explain
