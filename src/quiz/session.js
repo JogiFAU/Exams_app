@@ -76,6 +76,7 @@ export function startSearchView({ subset, config }) {
 export function submitAnswer(q) {
   const qid = q.id;
   const selected = state.answers.get(qid) || [];
+  state.excludedAnswers?.delete(qid);
   state.submitted.add(qid);
   const localOverride = state.localQuestionOverrides?.get(q.id);
   const effectiveQuestion = applyLocalQuestionOverride(q, localOverride);

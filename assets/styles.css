@@ -575,6 +575,14 @@ hr.sep { border:0; border-top:1px solid var(--border); margin:14px 0; }
 .opt.bad { border-color: var(--theme-progress-wrong-2); background: var(--badbg); }
 .opt.orig { border-color: var(--focus); background: var(--selected-bg); }
 .opt.orig .t { color: var(--text-on-selected); }
+.opt.excluded {
+  background: var(--surface-soft);
+  border-color: var(--border-soft);
+  opacity: .58;
+  cursor: not-allowed;
+}
+.opt.excluded .t { color: var(--muted); }
+.opt.excluded:hover { border-color: var(--border-soft); background: var(--surface-soft); }
 .origMarker { color: var(--focus); font-weight: 700; }
 
 .opt input {

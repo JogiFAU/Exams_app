@@ -1799,6 +1799,7 @@ async function renderQuestionList(qs, { allowSubmit, showSolutions }) {
     const multi = effectiveCorrectIndices.length > 1;
     const displayAnswers = Array.isArray(displayedQuestion.answers) ? displayedQuestion.answers : [];
     const displayOrder = state.answerOrder.get(qid) || [...Array(displayAnswers.length).keys()];
+    const excludedSet = new Set(state.excludedAnswers?.get(qid) || []);
 
     displayOrder.forEach((origIdx, displayIdx) => {
       const a = displayAnswers[origIdx];
@@ -1809,8 +1810,9 @@ async function renderQuestionList(qs, { allowSubmit, showSolutions }) {
       inp.type = multi ? "checkbox" : "radio";
       inp.name = `q_${qid}`;
       inp.value = String(origIdx);
+      const isExcluded = excludedSet.has(origIdx);
       inp.checked = selectedOriginal.includes(origIdx);
-      inp.disabled = allowSubmit ? submitted : true;
+      inp.disabled = allowSubmit ? (submitted || isExcluded) : true;
 
       inp.addEventListener("change", () => {
         const cur = new Set(state.answers.get(qid) || []);
@@ -1825,6 +1827,8 @@ async function renderQuestionList(qs, { allowSubmit, showSolutions }) {
 
       const t = document.createElement("div");
       t.className = "t";
+
+      if (isExcluded) wrap.classList.add("excluded");
       const answerText = `${letter(displayIdx)}) ${a?.text || ""}`;
       if (state.view === "search" && state.searchConfig?.inAnswers) {
         highlightText(t, answerText, state.searchConfig?.query || "");
@@ -1883,6 +1887,28 @@ async function renderQuestionList(qs, { allowSubmit, showSolutions }) {
         marker.className = "origMarker";
         marker.textContent = " · ursprünglich korrekt";
         t.appendChild(marker);
+      }
+
+      if (allowSubmit && !submitted) {
+        wrap.title = isExcluded
+          ? "Antwort ist ausgeschlossen (Rechtsklick zum Reaktivieren)."
+          : "Rechtsklick: Antwort temporär ausschließen.";
+        wrap.addEventListener("contextmenu", (ev) => {
+          ev.preventDefault();
+          const latestExcluded = new Set(state.excludedAnswers?.get(qid) || []);
+          if (latestExcluded.has(origIdx)) latestExcluded.delete(origIdx);
+          else latestExcluded.add(origIdx);
+
+          if (latestExcluded.size) state.excludedAnswers.set(qid, Array.from(latestExcluded).sort((x, y) => x - y));
+          else state.excludedAnswers.delete(qid);
+
+          if (latestExcluded.has(origIdx)) {
+            const cur = new Set(state.answers.get(qid) || []);
+            if (cur.delete(origIdx)) state.answers.set(qid, Array.from(cur).sort((x, y) => x - y));
+          }
+
+          renderAll();
+        });
       }
 
       wrap.appendChild(inp);
