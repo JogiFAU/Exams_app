@@ -1,6 +1,6 @@
 import { state } from "../state.js";
 import { $, letter, toast } from "../utils.js";
-import { isMultiCorrect, getCorrectIndices } from "../quiz/evaluate.js";
+import { isMultiCorrect, getCorrectIndices, evaluate } from "../quiz/evaluate.js";
 import { submitAnswer, unsubmitAnswer } from "../quiz/session.js";
 import { getImageUrl } from "../data/zipImages.js";
 import { qMetaHtml, buildExplainPrompt, formatAiTextForDisplay } from "./components.js";
@@ -1607,15 +1607,32 @@ async function renderQuestionList(qs, { allowSubmit, showSolutions }) {
       });
     }
 
-    const toggleOriginalQuestionBtn = meta.querySelector("[data-toggle-original-question]");
-    if (toggleOriginalQuestionBtn) {
-      toggleOriginalQuestionBtn.addEventListener("click", async (ev) => {
+    const toggleOriginalQuestionBtns = meta.querySelectorAll("[data-toggle-original-question]");
+    if (toggleOriginalQuestionBtns.length) {
+      toggleOriginalQuestionBtns.forEach((toggleBtn) => toggleBtn.addEventListener("click", async (ev) => {
         ev.preventDefault();
         ev.stopPropagation();
         if (state.forceOriginalQuestionView.has(q.id)) state.forceOriginalQuestionView.delete(q.id);
         else state.forceOriginalQuestionView.add(q.id);
+
+        const nextDisplayed = getDisplayedQuestion(q);
+        const answerCount = Array.isArray(nextDisplayed.answers) ? nextDisplayed.answers.length : 0;
+        const selected = (state.answers.get(q.id) || []).filter((idx) => idx >= 0 && idx < answerCount);
+
+        const preferOriginal = usesOriginalSolutionInQuiz(q);
+        const compareQuestion = state.forceOriginalQuestionView.has(q.id) ? q : getQuestionForEvaluation(q);
+        const effectiveCorrectIndices = getCorrectIndices(compareQuestion, { preferOriginal });
+        const isMulti = effectiveCorrectIndices.length > 1;
+        const normalizedSelection = isMulti ? selected : selected.slice(0, 1);
+
+        state.answers.set(q.id, normalizedSelection);
+
+        if (state.submitted.has(q.id)) {
+          state.results.set(q.id, evaluate(compareQuestion, normalizedSelection, { preferOriginal }));
+        }
+
         await renderAll();
-      });
+      }));
     }
 
     const showImageClusterBtn = meta.querySelector("[data-image-cluster-show]");
