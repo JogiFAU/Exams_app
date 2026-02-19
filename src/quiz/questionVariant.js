@@ -75,16 +75,22 @@ export function applyLocalQuestionOverride(q, localOverride) {
     ? localOverride.correctIndices.map((x) => Number(x)).filter(Number.isInteger)
     : null;
 
+  const overrideImageFiles = Array.isArray(localOverride.imageFiles)
+    ? localOverride.imageFiles.map((x) => String(x || "").trim()).filter(Boolean)
+    : null;
+
   return {
     ...q,
     text: String(localOverride.text || q.text || "").trim(),
     answers: (answers && answers.length) ? answers : q.answers,
     correctIndices: (overrideCorrect && overrideCorrect.length) ? overrideCorrect : q.correctIndices,
+    imageFiles: overrideImageFiles || q.imageFiles,
     hasLocalOverride: true,
     localOverrideOriginal: {
       text: q.text,
       answers: q.answers,
-      correctIndices: q.correctIndices
+      correctIndices: q.correctIndices,
+      imageFiles: q.imageFiles
     }
   };
 }

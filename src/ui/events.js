@@ -308,7 +308,7 @@ function resetQuizConfig() {
   const showTopics = $("showTopicsInBanner");
   if (showTopics) showTopics.checked = true;
   const aiModeEnabled = $("aiModeEnabled");
-  if (aiModeEnabled) aiModeEnabled.checked = true;
+  if (aiModeEnabled) aiModeEnabled.checked = false;
   updatePreviewTexts();
 }
 

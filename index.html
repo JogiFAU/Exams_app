@@ -373,10 +373,34 @@
       <div class="row" style="margin-top:10px;">
         <button class="btn" id="editorAddAnswerBtn" type="button">+ Antwortoption</button>
       </div>
+      <div id="editorImagePreview" class="editorImagePreview"></div>
+      <div class="row" style="margin-top:10px;">
+        <button class="btn" id="editorDatasetImageBtn" type="button">Bild auswählen (aus Datensatz)</button>
+        <label class="btn" for="editorUploadInput">Bild hochladen</label>
+        <input id="editorUploadInput" type="file" accept="image/*" hidden />
+        <button class="btn" id="editorDeleteImageBtn" type="button">Bild löschen</button>
+      </div>
     </div>
     <div class="appdialog__actions">
       <button class="btn" type="submit" value="cancel">Abbrechen</button>
       <button class="btn primary" id="editorSaveBtn" type="button">Lokal speichern</button>
+    </div>
+  </form>
+</dialog>
+
+
+<dialog id="datasetImagePickerDialog" class="appdialog appdialog--wide">
+  <form method="dialog" class="appdialog__form">
+    <div class="appdialog__head">
+      <div>
+        <h3 class="appdialog__title">Bild aus Datensatz auswählen</h3>
+        <p class="appdialog__message">Wähle ein Bild, das als lokale Bildreferenz für diese Frage gespeichert werden soll.</p>
+      </div>
+      <button class="appdialog__close" type="submit" value="cancel" aria-label="Fenster schließen">✕</button>
+    </div>
+    <div id="datasetImagePickerBody" class="clusterDialogBody"></div>
+    <div class="appdialog__actions">
+      <button class="btn" type="submit" value="cancel">Schließen</button>
     </div>
   </form>
 </dialog>
