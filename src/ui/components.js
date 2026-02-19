@@ -114,7 +114,11 @@ function topicInfoHtml(q) {
   `;
 }
 
-export function qMetaHtml(q, ordinal, { showTopics = true, showAiReconstructionBadge = false } = {}) {
+export function qMetaHtml(q, ordinal, {
+  showTopics = true,
+  showAiReconstructionBadge = false,
+  showOriginalQuestionAction = false
+} = {}) {
   const img = (q.imageFiles && q.imageFiles.length) ? `<span class="pill">🖼️ ${q.imageFiles.length}</span>` : "";
   const exam = q.examName ? `<span class="pill">${q.examName}</span>` : "";
   const topic = showTopics ? topicInfoHtml(q) : "";
@@ -124,7 +128,16 @@ export function qMetaHtml(q, ordinal, { showTopics = true, showAiReconstructionB
     : "";
 
   const aiReconstructionBadge = showAiReconstructionBadge
-    ? `<span class="pill" title="Texte wurden KI-modifiziert, um die Frage prüfungsnaher und inhaltlich stimmiger darzustellen." aria-label="KI-modifizierte Fragendarstellung">🤖 KI-modifiziert</span>`
+    ? `
+      <span class="pill aiModifiedBadge" tabindex="0" aria-label="KI-modifizierte Fragendarstellung">
+        🤖 KI-modifiziert
+        <span class="aiModifiedBadge__tip" role="tooltip">
+          <strong>KI-modifizierte Fragendarstellung</strong>
+          <span>Texte wurden KI-modifiziert, um die Frage prüfungsnaher und inhaltlich stimmiger darzustellen.</span>
+          ${showOriginalQuestionAction ? `<button class="btn aiModifiedBadge__action" type="button" data-show-original-question="${q.id}">Originale Frage anzeigen</button>` : ""}
+        </span>
+      </span>
+    `
     : "";
 
   const maintenance = maintenanceTrafficLightHtml(q);

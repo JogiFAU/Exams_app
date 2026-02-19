@@ -117,6 +117,9 @@ function getDisplayedQuestion(q) {
   if (state.view !== "quiz" && state.view !== "review") {
     return { text: q.text, answers: q.answers, imageReferenceText: null, usedAiReconstruction: false };
   }
+  if (state.forceOriginalQuestionView?.has(q.id)) {
+    return { text: q.text, answers: q.answers, imageReferenceText: null, usedAiReconstruction: false };
+  }
   return getQuizQuestionVariant(q, state.quizConfig);
 }
 
@@ -1408,7 +1411,8 @@ async function renderQuestionList(qs, { allowSubmit, showSolutions }) {
     const showTopicsInBanner = state.view === "search" ? true : (state.quizConfig?.showTopicsInBanner !== false);
     meta.innerHTML = qMetaHtml(q, offset + idx + 1, {
       showTopics: showTopicsInBanner,
-      showAiReconstructionBadge: displayedQuestion.usedAiReconstruction
+      showAiReconstructionBadge: displayedQuestion.usedAiReconstruction,
+      showOriginalQuestionAction: displayedQuestion.usedAiReconstruction
     });
 
     const text = document.createElement("div");
@@ -1432,6 +1436,16 @@ async function renderQuestionList(qs, { allowSubmit, showSolutions }) {
         ev.preventDefault();
         ev.stopPropagation();
         openClusterQuestionsDialog(q.id);
+      });
+    }
+
+    const showOriginalQuestionBtn = meta.querySelector("[data-show-original-question]");
+    if (showOriginalQuestionBtn) {
+      showOriginalQuestionBtn.addEventListener("click", async (ev) => {
+        ev.preventDefault();
+        ev.stopPropagation();
+        state.forceOriginalQuestionView.add(q.id);
+        await renderAll();
       });
     }
 
