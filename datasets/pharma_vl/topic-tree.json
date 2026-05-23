@@ -1,0 +1,70 @@
+{
+  "subject": "Pharmakologie",
+  "superTopics": [
+    {
+      "name": "Allgemeine Pharmakologie",
+      "subtopics": [
+        "Pharmakodynamik",
+        "Pharmakokinetik",
+        "Biotransformation und Pharmakogenetik"
+      ]
+    },
+    {
+      "name": "Vegetatives Nervensystem",
+      "subtopics": [
+        "Sympathikus / Adrenerges System",
+        "Parasympathikus / Cholinerges System"
+      ]
+    },
+    {
+      "name": "Herz-Kreislauf und Niere",
+      "subtopics": [
+        "RAAS-Beeinflussung und Hypertonie",
+        "Diuretika und Elektrolyte",
+        "Herzinsuffizienz und KHK",
+        "Calciumkanalblocker"
+      ]
+    },
+    {
+      "name": "Zentralnervensystem",
+      "subtopics": [
+        "Antipsychotika / Neuroleptika",
+        "Antidepressiva und Lithium",
+        "Sedativa und Hypnotika",
+        "Morbus Parkinson und Epilepsie"
+      ]
+    },
+    {
+      "name": "Schmerz, Entzündung und Skelett",
+      "subtopics": [
+        "Analgetika, Opioide und Nicht-Opioide",
+        "Glucocorticoide",
+        "Osteoporose- und Gichttherapie"
+      ]
+    },
+    {
+      "name": "Stoffwechsel und Endokrinologie",
+      "subtopics": [
+        "Antidiabetika",
+        "Lipidsenker",
+        "Sexualhormone und Kontrazeption"
+      ]
+    },
+    {
+      "name": "Antiinfektiva und Immunologie",
+      "subtopics": [
+        "Antibiotika",
+        "Antimykotika",
+        "Virostatika",
+        "Immunsuppressiva und Biologicals"
+      ]
+    },
+    {
+      "name": "Onkologie und Atemwege",
+      "subtopics": [
+        "Zytostatika und Targeted Therapy",
+        "Asthma bronchiale und COPD"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,12 @@
+{
+  "trigger_answer_conf": 0.75,
+  "trigger_topic_conf": 0.8,
+  "apply_change_min_conf_b": 0.85,
+  "low_conf_maintenance_threshold": 0.7,
+  "knowledge_top_k": 5,
+  "knowledge_max_chars": 3000,
+  "knowledge_min_score": 0.1,
+  "enable_review_pass": true,
+  "enable_reconstruction_pass": true,
+  "enable_repeat_reconstruction": false
+}
