@@ -26,7 +26,7 @@
       "json": [
         "datasets/pharma_vl/export AIannotated.json"
       ],
-      "zip": "datasets/pharma_vl/images.zip",
+      "zip": "",
       "notebookUrl": "https://notebooklm.google.com/notebook/df0d8697-5709-448a-a614-e1a764d2b5a7",
       "enabled": true
     }
