@@ -1541,9 +1541,10 @@ export async function renderMain() {
           <div class="pill">🖼️ Filter nach Fragen mit/ohne Bilder</div>
           <div class="pill">🎯 Zufälliges Subset & Shuffle</div>
           <div class="pill">⭐ Erkennung häufiger Altfragen</div>
+          <div class="pill">🤖 KI-generierte Inhaltliche Einordnung</div>
         </div>
         <div class="hero__lead">
-          JocksJocks 2.0 unterstützt dich bei der strukturierten Prüfungsvorbereitung: Du kannst mit wenigen Klicks genau die Fragen auswählen, die für deinen Lernstand relevant sind, und zwischen prüfungsnaher Abfrage und freier Suche wechseln.
+          Du kannst mit wenigen Klicks genau die Fragen auswählen, die für deinen Lernstand relevant sind, und zwischen prüfungsnaher Abfrage und freier Suche wechseln. Die Klausur- und Themenmenüs können zur übersicht eingeklappt werden.
         </div>
         <ul class="hero__list">
           <li><strong>Klausur-Training:</strong> trainiere gezielt einzelne Klausuren oder kombiniere mehrere Prüfungen zu einem eigenen Lernset.</li>
