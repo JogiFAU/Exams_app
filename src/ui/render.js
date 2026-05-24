@@ -1572,7 +1572,7 @@ export async function renderMain() {
         <div class="hero__lead">
           ${isSearchTab
             ? "Im Suchmodus kannst du deinen Datenbestand explorativ durchsuchen. Nutze links Klausur-, Themen-, Bild- und Suchfilter und entscheide, ob Lösungen direkt sichtbar sein sollen. Die Trefferzahl wird hier live aktualisiert."
-            : "Im Abfragemodus stellst du dir eine gezielte Trainingssession zusammen: wähle Klausuren/Themen, beschränke auf Bildfragen oder nur zuletzt falsche Fragen, nutze optional Zufalls-Subset sowie Shuffle und entscheide zwischen Übungs- und Prüfungsmodus."}
+            : "Im Abfragemodus stellst du dir eine gezielte Trainingssession zusammen: wähle Klausuren/Themen, beschränke auf Bildfragen oder nur zuletzt falsche Fragen, nutze optional Zufalls-Subset sowie Shuffle und entscheide zwischen Übungs- und Prüfungsmodus. Ebenso kann nach einem Schlagwort in den Fragen und optional auch Antwortoptionen gefiltert werden (z.B. alle Fragen zu Diazepam). Alle Filter können kombiniert werden."}
         </div>
         ${isSearchTab
           ? `<ul class="hero__list">
