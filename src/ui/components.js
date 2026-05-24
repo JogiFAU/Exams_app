@@ -87,7 +87,7 @@ function maintenanceTrafficLightHtml(q) {
     : "<li>Keine Auffälligkeiten erkannt.</li>";
 
   return `
-    <span class="pill qmetaTraffic" aria-label="Qualitätsampel: ${quality.label}" tabindex="0">
+    <span class="pill qmetaTraffic" data-tip-toggle aria-label="Qualitätsampel: ${quality.label}" tabindex="0">
       <span class="qmetaTraffic__dot qmetaTraffic__dot--${quality.level}" aria-hidden="true"></span>
       <span class="qmetaTraffic__tip" role="tooltip">
         <strong>Qualitätseinstufung: ${quality.label}</strong>
@@ -104,7 +104,7 @@ function topicInfoHtml(q) {
   const reasonRaw = q.aiTopicReason || "Keine KI-Begründung zur Themenzuordnung vorhanden.";
   const reason = formatAiTextForDisplay(reasonRaw);
   return `
-    <span class="pill qmetaTopic" tabindex="0" aria-label="Themenzuordnung mit KI-Begründung">
+    <span class="pill qmetaTopic" data-tip-toggle tabindex="0" aria-label="Themenzuordnung mit KI-Begründung">
       ${topicPath}
       <span class="qmetaTopic__tip" role="tooltip">
         <strong>KI-Themenzuordnung</strong>
@@ -123,7 +123,7 @@ export function qMetaHtml(q, ordinal, {
 } = {}) {
   const imageClusterBadge = Number(q.imageClusterSize || 0) > 1
     ? `
-      <span class="pill clusterBadge" tabindex="0" aria-label="Bildcluster mit ähnlichen Bildfragen">
+      <span class="pill clusterBadge" data-tip-toggle tabindex="0" aria-label="Bildcluster mit ähnlichen Bildfragen">
         🖼️ ${q.imageClusterSize}
         <span class="clusterBadge__tip" role="tooltip">
           <strong>${q.imageClusterSize} Fragen verwenden denselben Bildcluster.</strong>
@@ -145,7 +145,7 @@ export function qMetaHtml(q, ordinal, {
 
   const aiReconstructionBadge = showAiReconstructionBadge
     ? `
-      <span class="pill aiModifiedBadge ${isShowingOriginalVariant ? "is-muted" : ""}" tabindex="0" aria-label="KI-modifizierte Fragendarstellung">
+      <span class="pill aiModifiedBadge ${isShowingOriginalVariant ? "is-muted" : ""}" data-tip-toggle tabindex="0" aria-label="KI-modifizierte Fragendarstellung">
         🤖 KI-modifiziert
         <span class="aiModifiedBadge__tip" role="tooltip">
           <strong>KI-modifizierte Fragendarstellung</strong>
@@ -158,7 +158,7 @@ export function qMetaHtml(q, ordinal, {
 
   const localOverrideBadge = showLocalOverrideBadge
     ? `
-      <span class="pill aiModifiedBadge ${isShowingOriginalVariant ? "is-muted" : ""}" tabindex="0" aria-label="Lokal modifizierte Fragendarstellung">
+      <span class="pill aiModifiedBadge ${isShowingOriginalVariant ? "is-muted" : ""}" data-tip-toggle tabindex="0" aria-label="Lokal modifizierte Fragendarstellung">
         ✏️ Lokal modifiziert
         <span class="aiModifiedBadge__tip" role="tooltip">
           <strong>Lokal modifizierte Fragendarstellung</strong>
@@ -172,7 +172,7 @@ export function qMetaHtml(q, ordinal, {
   const maintenance = maintenanceTrafficLightHtml(q);
   const clusterBadge = q.isHighRelevanceCluster
     ? `
-      <span class="pill clusterBadge" tabindex="0" aria-label="Häufige Altfrage mit ähnlichen Fragen">
+      <span class="pill clusterBadge" data-tip-toggle tabindex="0" aria-label="Häufige Altfrage mit ähnlichen Fragen">
         ⭐ Häufige Altfrage
         <span class="clusterBadge__tip" role="tooltip">
           <strong>${Math.max(0, Number(q.clusterSize || 0) - 1)} ähnliche Fragen im Cluster erkannt.</strong>

@@ -330,8 +330,54 @@ function resetAllConfigs() {
   resetSearchConfig();
 }
 
+function scrollToFirstRenderedQuestion() {
+  const list = $("questionList");
+  if (!list) return;
+
+  const scrollOnce = () => {
+    const firstQuestion = list.querySelector(".qcard");
+    if (!firstQuestion) return false;
+
+    const header = document.querySelector("header.top");
+    const headerH = header ? header.getBoundingClientRect().height : 0;
+    const rect = firstQuestion.getBoundingClientRect();
+    const y = window.scrollY + rect.top - headerH - 10;
+    window.scrollTo({ top: Math.max(0, y), behavior: "auto" });
+    return true;
+  };
+
+  if (scrollOnce()) return;
+  requestAnimationFrame(() => {
+    if (scrollOnce()) return;
+    setTimeout(scrollOnce, 80);
+  });
+}
+
 
 export function wireUiEvents() {
+  document.addEventListener("click", (ev) => {
+    const toggleRoot = ev.target.closest("[data-tip-toggle]");
+    if (toggleRoot) {
+      const isOpen = toggleRoot.classList.contains("is-open");
+      document.querySelectorAll("[data-tip-toggle].is-open").forEach((el) => {
+        if (el !== toggleRoot) el.classList.remove("is-open");
+      });
+      toggleRoot.classList.toggle("is-open", !isOpen);
+      return;
+    }
+
+    document.querySelectorAll("[data-tip-toggle].is-open").forEach((el) => {
+      el.classList.remove("is-open");
+    });
+  });
+
+  document.addEventListener("keydown", (ev) => {
+    if (ev.key !== "Escape") return;
+    document.querySelectorAll("[data-tip-toggle].is-open").forEach((el) => {
+      el.classList.remove("is-open");
+    });
+  });
+
   $("themeSelect")?.addEventListener("change", async (ev) => {
     const nextTheme = ev.target?.value;
     await applyTheme(nextTheme);
@@ -414,6 +460,7 @@ export function wireUiEvents() {
     $("pageNumber2").value = "1";
     $("pageSize2").value = $("pageSize").value;
     await renderAll();
+    scrollToFirstRenderedQuestion();
   });
 
   $("endQuizBtn").addEventListener("click", async () => {
@@ -497,6 +544,7 @@ export function wireUiEvents() {
     initNavObserver();
     $("pageNumber").value = "1";
     await renderAll();
+    scrollToFirstRenderedQuestion();
   });
 
   // Paging main
