@@ -1795,7 +1795,11 @@ async function renderQuestionList(qs, { allowSubmit, showSolutions }) {
     const compareQuestion = state.forceOriginalQuestionView?.has(q.id) ? q : evaluationQuestion;
     const effectiveCorrectIndices = getCorrectIndices(compareQuestion, { preferOriginal });
     const correctSet = new Set(effectiveCorrectIndices);
-    const showAiExplanationTooltips = (state.view === "quiz" || state.view === "review") && submitted;
+    const showAiExplanationTooltips = (
+      (state.view === "quiz" && submitted) ||
+      state.view === "review" ||
+      (state.view === "search" && showSolutions)
+    );
     const multi = effectiveCorrectIndices.length > 1;
     const displayAnswers = Array.isArray(displayedQuestion.answers) ? displayedQuestion.answers : [];
     const displayOrder = state.answerOrder.get(qid) || [...Array(displayAnswers.length).keys()];
