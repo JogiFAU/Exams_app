@@ -332,6 +332,29 @@ function resetAllConfigs() {
 
 
 export function wireUiEvents() {
+  document.addEventListener("click", (ev) => {
+    const toggleRoot = ev.target.closest("[data-tip-toggle]");
+    if (toggleRoot) {
+      const isOpen = toggleRoot.classList.contains("is-open");
+      document.querySelectorAll("[data-tip-toggle].is-open").forEach((el) => {
+        if (el !== toggleRoot) el.classList.remove("is-open");
+      });
+      toggleRoot.classList.toggle("is-open", !isOpen);
+      return;
+    }
+
+    document.querySelectorAll("[data-tip-toggle].is-open").forEach((el) => {
+      el.classList.remove("is-open");
+    });
+  });
+
+  document.addEventListener("keydown", (ev) => {
+    if (ev.key !== "Escape") return;
+    document.querySelectorAll("[data-tip-toggle].is-open").forEach((el) => {
+      el.classList.remove("is-open");
+    });
+  });
+
   $("themeSelect")?.addEventListener("change", async (ev) => {
     const nextTheme = ev.target?.value;
     await applyTheme(nextTheme);

@@ -7,11 +7,12 @@ function normalizeReconstructedAnswers(answers) {
       const normalizedIndex = Number.isInteger(answerIndex) ? answerIndex - 1 : idx;
       return {
         sortIndex: normalizedIndex,
+        sourceIndex: normalizedIndex,
         text: String(entry?.text || "").trim()
       };
     })
     .sort((a, b) => a.sortIndex - b.sortIndex)
-    .map((entry) => ({ text: entry.text }));
+    .map((entry) => ({ text: entry.text, sourceIndex: entry.sourceIndex }));
 }
 
 function extractImageReferenceText(questionText) {

@@ -441,7 +441,7 @@ function aiSourcesTooltipHtml(q) {
     : "<li>Keine Quellenangaben verfügbar.</li>";
 
   return `
-    <span class="aiHintSource" tabindex="0" aria-label="Quellen zum KI-Hinweis anzeigen">
+    <span class="aiHintSource" data-tip-toggle tabindex="0" aria-label="Quellen zum KI-Hinweis anzeigen">
       <span class="aiHintSource__icon" aria-hidden="true">📚</span>
       <span class="aiHintSource__tip" role="tooltip">
         <strong>Quellen</strong>
@@ -1802,8 +1802,11 @@ async function renderQuestionList(qs, { allowSubmit, showSolutions }) {
 
     displayOrder.forEach((origIdx, displayIdx) => {
       const a = displayAnswers[origIdx];
+      const sourceIdxRaw = a?.sourceIndex;
+      const sourceIdx = Number.isInteger(sourceIdxRaw) ? sourceIdxRaw : origIdx;
       const wrap = document.createElement("label");
       wrap.className = "opt";
+      wrap.dataset.tipToggle = "";
 
       const inp = document.createElement("input");
       inp.type = multi ? "checkbox" : "radio";
@@ -1848,7 +1851,7 @@ async function renderQuestionList(qs, { allowSubmit, showSolutions }) {
       }
 
       if (showAiExplanationTooltips) {
-        const tooltipText = aiExplanationTooltipForOption(q, origIdx, correctSet);
+        const tooltipText = aiExplanationTooltipForOption(q, sourceIdx, correctSet);
         if (tooltipText) {
           const tip = document.createElement("span");
           tip.className = "optExplainTooltip";
