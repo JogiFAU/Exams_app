@@ -441,7 +441,7 @@ function aiSourcesTooltipHtml(q) {
     : "<li>Keine Quellenangaben verfügbar.</li>";
 
   return `
-    <span class="aiHintSource" tabindex="0" aria-label="Quellen zum KI-Hinweis anzeigen">
+    <span class="aiHintSource" data-tip-toggle tabindex="0" aria-label="Quellen zum KI-Hinweis anzeigen">
       <span class="aiHintSource__icon" aria-hidden="true">📚</span>
       <span class="aiHintSource__tip" role="tooltip">
         <strong>Quellen</strong>
@@ -1534,17 +1534,17 @@ export async function renderMain() {
   if (!state.activeDataset) {
     mainInfo.innerHTML = `
       <div class="hero">
-        <div class="hero__title">Willkommen bei JocksJocks 2.0</div>
+        <div class="hero__title">Willkommen bei JocsJocs 2.0</div>
         <div class="hero__stats">
           <div class="pill">🗂️ Filter nach Klausuren</div>
           <div class="pill">🏷️ Filter nach Themen & Unterthemen</div>
           <div class="pill">🖼️ Filter nach Fragen mit/ohne Bilder</div>
           <div class="pill">🎯 Zufälliges Subset & Shuffle</div>
           <div class="pill">⭐ Erkennung häufiger Altfragen</div>
-          <div class="pill">🤖 KI Modifizerte Fragen optional (Vorsicht!)</div>
+          <div class="pill">🤖 KI-generierte Inhaltliche Einordnung</div>
         </div>
         <div class="hero__lead">
-          JocksJocks 2.0 unterstützt dich bei der strukturierten Prüfungsvorbereitung: Du kannst mit wenigen Klicks genau die Fragen auswählen, die für deinen Lernstand relevant sind, und zwischen prüfungsnaher Abfrage und freier Suche wechseln.
+          Du kannst mit wenigen Klicks genau die Fragen auswählen, die für deinen Lernstand relevant sind, und zwischen prüfungsnaher Abfrage und freier Suche wechseln. Die Klausur- und Themenmenüs können zur übersicht eingeklappt werden.
         </div>
         <ul class="hero__list">
           <li><strong>Klausur-Training:</strong> trainiere gezielt einzelne Klausuren oder kombiniere mehrere Prüfungen zu einem eigenen Lernset.</li>
@@ -1572,7 +1572,7 @@ export async function renderMain() {
         <div class="hero__lead">
           ${isSearchTab
             ? "Im Suchmodus kannst du deinen Datenbestand explorativ durchsuchen. Nutze links Klausur-, Themen-, Bild- und Suchfilter und entscheide, ob Lösungen direkt sichtbar sein sollen. Die Trefferzahl wird hier live aktualisiert."
-            : "Im Abfragemodus stellst du dir eine gezielte Trainingssession zusammen: wähle Klausuren/Themen, beschränke auf Bildfragen oder nur zuletzt falsche Fragen, nutze optional Zufalls-Subset sowie Shuffle und entscheide zwischen Übungs- und Prüfungsmodus."}
+            : "Im Abfragemodus stellst du dir eine gezielte Trainingssession zusammen: wähle Klausuren/Themen, beschränke auf Bildfragen oder nur zuletzt falsche Fragen, nutze optional Zufalls-Subset sowie Shuffle und entscheide zwischen Übungs- und Prüfungsmodus. Ebenso kann nach einem Schlagwort in den Fragen und optional auch Antwortoptionen gefiltert werden (z.B. alle Fragen zu Diazepam). Alle Filter können kombiniert werden."}
         </div>
         ${isSearchTab
           ? `<ul class="hero__list">
@@ -1803,8 +1803,11 @@ async function renderQuestionList(qs, { allowSubmit, showSolutions }) {
 
     displayOrder.forEach((origIdx, displayIdx) => {
       const a = displayAnswers[origIdx];
+      const sourceIdxRaw = a?.sourceIndex;
+      const sourceIdx = Number.isInteger(sourceIdxRaw) ? sourceIdxRaw : origIdx;
       const wrap = document.createElement("label");
       wrap.className = "opt";
+      wrap.dataset.tipToggle = "";
 
       const inp = document.createElement("input");
       inp.type = multi ? "checkbox" : "radio";
@@ -1849,7 +1852,7 @@ async function renderQuestionList(qs, { allowSubmit, showSolutions }) {
       }
 
       if (showAiExplanationTooltips) {
-        const tooltipText = aiExplanationTooltipForOption(q, origIdx, correctSet);
+        const tooltipText = aiExplanationTooltipForOption(q, sourceIdx, correctSet);
         if (tooltipText) {
           const tip = document.createElement("span");
           tip.className = "optExplainTooltip";
