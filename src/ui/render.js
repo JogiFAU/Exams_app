@@ -1534,14 +1534,13 @@ export async function renderMain() {
   if (!state.activeDataset) {
     mainInfo.innerHTML = `
       <div class="hero">
-        <div class="hero__title">Willkommen bei JocksJocks 2.0</div>
+        <div class="hero__title">Willkommen bei JocsJocs 2.0</div>
         <div class="hero__stats">
           <div class="pill">🗂️ Filter nach Klausuren</div>
           <div class="pill">🏷️ Filter nach Themen & Unterthemen</div>
           <div class="pill">🖼️ Filter nach Fragen mit/ohne Bilder</div>
           <div class="pill">🎯 Zufälliges Subset & Shuffle</div>
           <div class="pill">⭐ Erkennung häufiger Altfragen</div>
-          <div class="pill">🤖 KI Modifizerte Fragen optional (Vorsicht!)</div>
         </div>
         <div class="hero__lead">
           JocksJocks 2.0 unterstützt dich bei der strukturierten Prüfungsvorbereitung: Du kannst mit wenigen Klicks genau die Fragen auswählen, die für deinen Lernstand relevant sind, und zwischen prüfungsnaher Abfrage und freier Suche wechseln.
