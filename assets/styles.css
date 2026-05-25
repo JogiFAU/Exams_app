@@ -669,6 +669,33 @@ hr.sep { border:0; border-top:1px solid var(--border); margin:14px 0; }
 .opt .t { font-size: 14px; line-height: 1.35; color: var(--question-option-text); }
 
 .opt { position: relative; }
+.opt.hasExplain { padding-right: 36px; }
+
+.optExplainToggle {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 22px;
+  height: 22px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: var(--surface-soft);
+  color: var(--text);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  line-height: 1;
+  cursor: pointer;
+  z-index: 9;
+}
+
+.optExplainToggle:hover,
+.optExplainToggle:focus-visible {
+  border-color: var(--interactive-border-hover);
+  background: var(--surface-hover);
+  outline: none;
+}
 
 .optExplainTooltip {
   position: absolute;

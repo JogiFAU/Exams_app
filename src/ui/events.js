@@ -356,6 +356,20 @@ function scrollToFirstRenderedQuestion() {
 
 export function wireUiEvents() {
   document.addEventListener("click", (ev) => {
+    const tipToggleBtn = ev.target.closest("[data-tip-toggle-btn]");
+    if (tipToggleBtn) {
+      ev.preventDefault();
+      ev.stopPropagation();
+      const toggleRoot = tipToggleBtn.closest("[data-tip-toggle]");
+      if (!toggleRoot) return;
+      const isOpen = toggleRoot.classList.contains("is-open");
+      document.querySelectorAll("[data-tip-toggle].is-open").forEach((el) => {
+        if (el !== toggleRoot) el.classList.remove("is-open");
+      });
+      toggleRoot.classList.toggle("is-open", !isOpen);
+      return;
+    }
+
     const toggleRoot = ev.target.closest("[data-tip-toggle]");
     if (toggleRoot) {
       const isOpen = toggleRoot.classList.contains("is-open");

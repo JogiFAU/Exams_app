@@ -1858,6 +1858,16 @@ async function renderQuestionList(qs, { allowSubmit, showSolutions }) {
       if (showAiExplanationTooltips) {
         const tooltipText = aiExplanationTooltipForOption(q, sourceIdx, correctSet);
         if (tooltipText) {
+          wrap.classList.add("hasExplain");
+
+          const tipBtn = document.createElement("button");
+          tipBtn.type = "button";
+          tipBtn.className = "optExplainToggle";
+          tipBtn.dataset.tipToggleBtn = "1";
+          tipBtn.setAttribute("aria-label", "KI-Erklärung anzeigen");
+          tipBtn.textContent = "💡";
+          wrap.appendChild(tipBtn);
+
           const tip = document.createElement("span");
           tip.className = "optExplainTooltip";
           tip.setAttribute("role", "tooltip");
