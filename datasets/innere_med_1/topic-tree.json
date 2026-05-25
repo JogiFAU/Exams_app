@@ -1,0 +1,36 @@
+{
+  "subject": "Innere Medizin",
+  "superTopics": [
+    {
+      "name": "Kardiologie",
+      "subtopics": [
+        "Grundlagen und Diagnostik",
+        "Koronare Herzerkrankung und Akutes Koronarsyndrom",
+        "Herzinsuffizienz",
+        "Herzklappenvitien",
+        "Kardiomyopathien und entzündliche Herzerkrankungen",
+        "Rhythmologie und Sportkardiologie"
+      ]
+    },
+    {
+      "name": "Nephrologie",
+      "subtopics": [
+        "Physiologie und nephrologische Diagnostik",
+        "Glomerulopathien",
+        "Interstitielle und systemische Erkrankungen",
+        "Arterielle Hypertonie",
+        "Akutes Nierenversagen und chronische Nierenerkrankung",
+        "Zystische Nierenerkrankungen"
+      ]
+    },
+    {
+      "name": "Hämatologie und Internistische Onkologie",
+      "subtopics": [
+        "Diagnostik und Blutbildveränderungen",
+        "Akute Leukämien",
+        "Maligne Lymphome und Multiples Myelom",
+        "Allgemeine Onkologie und Tumortherapie"
+      ]
+    }
+  ]
+}
