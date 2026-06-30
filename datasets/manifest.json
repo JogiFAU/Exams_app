@@ -39,6 +39,16 @@
       "zip": "datasets/innere_med_1/images.zip",
       "notebookUrl": "https://notebooklm.google.com/notebook/0bf87d8b-3fb0-43d2-8d45-10853732165a",
       "enabled": true
+    },
+    {
+      "id": "Allgemeine",
+      "label": "Allgemeinmedizin",
+      "json": [
+        "datasets/allgemeinmedizin/export.json"
+      ],
+      "zip": "datasets/allgemeinmedizin/images.zip",
+      "notebookUrl": "https://notebooklm.google.com/notebook/b1963f0e-69f7-4fb8-87d1-302fade6c555",
+      "enabled": true
     }
   ]
 }

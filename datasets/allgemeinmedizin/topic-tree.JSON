@@ -1,0 +1,84 @@
+{
+  "subject": "Allgemeinmedizin",
+  "superTopics": [
+    {
+      "name": "Schwindel",
+      "subtopics": [
+        "Häufigkeitsverteilung und Epidemiologie",
+        "Differentialdiagnostik und Pathophysiologie",
+        "Red Flags"
+      ]
+    },
+    {
+      "name": "Gelenkschmerz und Gicht",
+      "subtopics": [
+        "Kristallopathien",
+        "Entzündliche Gelenkerkrankungen"
+      ]
+    },
+    {
+      "name": "Adipositas",
+      "subtopics": [
+        "Therapiestrategien"
+      ]
+    },
+    {
+      "name": "Rücken- und Nackenschmerz",
+      "subtopics": [
+        "Radikuläre Syndrome",
+        "Differentialdiagnostik"
+      ]
+    },
+    {
+      "name": "Brustschmerz",
+      "subtopics": [
+        "Epidemiologie",
+        "Risikostratifizierung",
+        "Red Flags"
+      ]
+    },
+    {
+      "name": "Kopfschmerz",
+      "subtopics": [
+        "Red Flags"
+      ]
+    },
+    {
+      "name": "Müdigkeit und Prävention",
+      "subtopics": [
+        "Basisdiagnostik",
+        "Psychosoziale Aspekte",
+        "Red Flags",
+        "Präventions-Tools"
+      ]
+    },
+    {
+      "name": "Akute Infekte der Atemwege",
+      "subtopics": [
+        "Pneumonie",
+        "Hals- und Ohrenschmerzen"
+      ]
+    },
+    {
+      "name": "Chronischer Husten, Asthma und COPD",
+      "subtopics": [
+        "Differentialdiagnostik",
+        "Therapiemanagement"
+      ]
+    },
+    {
+      "name": "Bauchschmerz und Urogenitaltrakt",
+      "subtopics": [
+        "Red Flags",
+        "Funktionelle Störungen",
+        "Harnwegsinfekte"
+      ]
+    },
+    {
+      "name": "Evidenzbasierte Medizin und Handlungskonzepte",
+      "subtopics": [
+        "Testgütekriterien"
+      ]
+    }
+  ]
+}

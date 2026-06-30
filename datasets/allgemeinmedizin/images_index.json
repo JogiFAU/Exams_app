@@ -1,0 +1,22 @@
+{
+  "meta": {
+    "uuid": "01f1-5620-be2ea720-b400-05cb4c353426",
+    "batchNr": 0,
+    "batchSuffix": "single",
+    "exportedAt": "2026-05-22T20:57:18.710Z",
+    "totalQuestionsRaw": 206,
+    "totalQuestionsExported": 206,
+    "totalImages": 1,
+    "pageSize": 50,
+    "exportHtmlFields": true,
+    "dedupeAnswers": true,
+    "scriptVersion": "batch-dedupe-multicorrect-imageszip-1.0.0"
+  },
+  "images": [
+    {
+      "questionId": "01f0-6176-29e65012-ae00-b2c18539e84b",
+      "url": "https://www.docsdocs.net/resuser/img/question/1/14/140d807d28ae7072ed0b1df62cc62ad1.png",
+      "fileBase": "img_01f0-6176-29e65012-ae00-b2c18539e84b_01"
+    }
+  ]
+}
