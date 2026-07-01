@@ -44,7 +44,7 @@
       "id": "Allgemeine",
       "label": "Allgemeinmedizin",
       "json": [
-        "datasets/allgemeinmedizin/export.json"
+        "datasets/allgemeinmedizin/export AIannotated.json"
       ],
       "zip": "datasets/allgemeinmedizin/images.zip",
       "notebookUrl": "https://notebooklm.google.com/notebook/b1963f0e-69f7-4fb8-87d1-302fade6c555",
