@@ -1,0 +1,51 @@
+{
+  "subject": "Allgemein- und Unfallchirurgie",
+  "superTopics": [
+    {
+      "name": "Unfallchirurgische Grundlagen und Polytrauma",
+      "subtopics": [
+        "Patientenassessment und Erstversorgung",
+        "Das schwere Trauma (Polytrauma)",
+        "Weichteilschäden und Komplikationen"
+      ]
+    },
+    {
+      "name": "Allgemein- und Viszeralchirurgie",
+      "subtopics": [
+        "Das Akute Abdomen",
+        "Chirurgische Tumortherapie",
+        "Abdominelles Trauma"
+      ]
+    },
+    {
+      "name": "Obere Extremität und Handchirurgie",
+      "subtopics": [
+        "Schulter und Klavikula",
+        "Handchirurgie – Traumatologie",
+        "Handchirurgie – Infektionen"
+      ]
+    },
+    {
+      "name": "Untere Extremität",
+      "subtopics": [
+        "Kniegelenk",
+        "Sprunggelenk und Fuß"
+      ]
+    },
+    {
+      "name": "Plastische, Rekonstruktive und Ästhetische Chirurgie",
+      "subtopics": [
+        "Grundlagen der Weichteildeckung",
+        "Lappenchirurgie",
+        "Replantation und Mikrochirurgie"
+      ]
+    },
+    {
+      "name": "Viszerale Kinderchirurgie",
+      "subtopics": [
+        "Spezielle Krankheitsbilder",
+        "Kindliche Traumatologie"
+      ]
+    }
+  ]
+}

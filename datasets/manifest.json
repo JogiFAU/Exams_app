@@ -49,6 +49,16 @@
       "zip": "datasets/allgemeinmedizin/images.zip",
       "notebookUrl": "https://notebooklm.google.com/notebook/b1963f0e-69f7-4fb8-87d1-302fade6c555",
       "enabled": true
+    },
+    {
+      "id": "Chirurgie",
+      "label": "Allgemein-/Unfallchirurgie",
+      "json": [
+        "datasets/chirurgie/export AIannotated.json"
+      ],
+      "zip": "datasets/chirurgie/images.zip",
+      "notebookUrl": "https://notebooklm.google.com/notebook/bdb01c75-cb0b-467f-b6a3-7bc81f263e4d",
+      "enabled": true
     }
   ]
 }

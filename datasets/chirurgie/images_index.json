@@ -1,0 +1,103 @@
+{
+  "meta": {
+    "uuid": "01f1-79da-4f09e7aa-8800-a836cedb6b18",
+    "batchNr": 0,
+    "batchSuffix": "single",
+    "exportedAt": "2026-07-07T08:24:02.215Z",
+    "totalQuestionsRaw": 162,
+    "totalQuestionsExported": 162,
+    "totalImages": 17,
+    "pageSize": 50,
+    "exportHtmlFields": true,
+    "dedupeAnswers": true,
+    "endpoint": "https://www.docsdocs.net/api/trainer/hydrate",
+    "scriptVersion": "batch-dedupe-multicorrect-imageszip-richtextfix-5.0.0"
+  },
+  "images": [
+    {
+      "questionId": "01ed-08d1-a8c68678-9300-6a6da8292135",
+      "url": "https://www.docsdocs.net/resuser/img/question/f/ff/ff929df12efd137da1ca5ad2edc627b8.jpg",
+      "fileBase": "img_01ed-08d1-a8c68678-9300-6a6da8292135_01"
+    },
+    {
+      "questionId": "01ee-553b-4c9f5e08-8000-6d9bab2832b0",
+      "url": "https://www.docsdocs.net/resuser/img/question/b/bc/bc1795391e047fb55156ced86f98c0de.jpg",
+      "fileBase": "img_01ee-553b-4c9f5e08-8000-6d9bab2832b0_01"
+    },
+    {
+      "questionId": "01ee-553c-5b06a522-9b00-60b4589b96ee",
+      "url": "https://www.docsdocs.net/resuser/img/question/d/dd/dd8d53f6083285e60db4432c69b117b9.jpg",
+      "fileBase": "img_01ee-553c-5b06a522-9b00-60b4589b96ee_01"
+    },
+    {
+      "questionId": "01ee-c1d6-39baf966-9700-dccf0f64caaf",
+      "url": "https://www.docsdocs.net/resuser/img/question/e/eb/eb224dcf9402001504f6e82d5358551d.png",
+      "fileBase": "img_01ee-c1d6-39baf966-9700-dccf0f64caaf_01"
+    },
+    {
+      "questionId": "01ee-c1d7-dad10646-8200-fa43df83db57",
+      "url": "https://www.docsdocs.net/resuser/img/question/5/58/58483fcc9b7f5cbbe7531c4bac5023d1.png",
+      "fileBase": "img_01ee-c1d7-dad10646-8200-fa43df83db57_01"
+    },
+    {
+      "questionId": "01ee-c1d9-10b3c900-bd00-b5ba6c5b1e97",
+      "url": "https://www.docsdocs.net/resuser/img/question/e/e3/e3cfd1dd2d7a1193b306259dad55638c.png",
+      "fileBase": "img_01ee-c1d9-10b3c900-bd00-b5ba6c5b1e97_01"
+    },
+    {
+      "questionId": "01ee-c1da-cbb43482-a900-8ebeddff5489",
+      "url": "https://www.docsdocs.net/resuser/img/question/c/c7/c7c2d2998450b5a74513911c049d1097.png",
+      "fileBase": "img_01ee-c1da-cbb43482-a900-8ebeddff5489_01"
+    },
+    {
+      "questionId": "01ee-c1db-24565458-9600-08448aba9c7e",
+      "url": "https://www.docsdocs.net/resuser/img/question/c/c7/c7c2d2998450b5a74513911c049d1097.png",
+      "fileBase": "img_01ee-c1db-24565458-9600-08448aba9c7e_01"
+    },
+    {
+      "questionId": "01ee-c1db-693e1ea2-b600-16a1fc304562",
+      "url": "https://www.docsdocs.net/resuser/img/question/5/53/53f112b4b058b03d640bbd6f2ae57d70.png",
+      "fileBase": "img_01ee-c1db-693e1ea2-b600-16a1fc304562_01"
+    },
+    {
+      "questionId": "01ef-d9ae-2ace5790-8b00-9c4161a56d48",
+      "url": "https://www.docsdocs.net/resuser/img/question/a/a4/a4c6e69777f61337024a0aef1a66e278.jpg",
+      "fileBase": "img_01ef-d9ae-2ace5790-8b00-9c4161a56d48_01"
+    },
+    {
+      "questionId": "01ef-e181-a413b1c4-b800-110a054bcdd9",
+      "url": "https://www.docsdocs.net/resuser/img/question/6/6d/6dd269898acccd9f451fb5f950579d8a.png",
+      "fileBase": "img_01ef-e181-a413b1c4-b800-110a054bcdd9_01"
+    },
+    {
+      "questionId": "01ef-e182-2de4da0e-8100-5dc8009f807b",
+      "url": "https://www.docsdocs.net/resuser/img/question/4/48/48e39d43abb6ad68b9d8a35ba6b3a6fa.png",
+      "fileBase": "img_01ef-e182-2de4da0e-8100-5dc8009f807b_01"
+    },
+    {
+      "questionId": "01ef-e182-4b108ce0-b200-02df4ab84f97",
+      "url": "https://www.docsdocs.net/resuser/img/question/9/9d/9dbbc067bcf8bb679390e8a7f42c3a14.png",
+      "fileBase": "img_01ef-e182-4b108ce0-b200-02df4ab84f97_01"
+    },
+    {
+      "questionId": "01ef-e1a3-aceaad1c-8b00-fe4f07651c63",
+      "url": "https://www.docsdocs.net/resuser/img/question/b/b5/b50189f2e0646757fb1ecc45fd13f7cd.png",
+      "fileBase": "img_01ef-e1a3-aceaad1c-8b00-fe4f07651c63_01"
+    },
+    {
+      "questionId": "01f0-63c7-6ebca670-b700-73f77116a6c2",
+      "url": "https://www.docsdocs.net/resuser/img/question/1/1d/1d328f7cc24d1f179ab917be66bfecf7.png",
+      "fileBase": "img_01f0-63c7-6ebca670-b700-73f77116a6c2_01"
+    },
+    {
+      "questionId": "01f0-63c8-46bd2edc-9c00-7c4423324f55",
+      "url": "https://www.docsdocs.net/resuser/img/question/1/15/156a4fc2cd9d080cc3d837ac2cd26f7e.png",
+      "fileBase": "img_01f0-63c8-46bd2edc-9c00-7c4423324f55_01"
+    },
+    {
+      "questionId": "01f0-63d5-96a826b0-8600-9640411e3cbe",
+      "url": "https://www.docsdocs.net/resuser/img/question/4/42/4270fcb97fb8d3f5ab4b0d1be0408185.png",
+      "fileBase": "img_01f0-63d5-96a826b0-8600-9640411e3cbe_01"
+    }
+  ]
+}
