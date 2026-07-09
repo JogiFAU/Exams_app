@@ -59,6 +59,16 @@
       "zip": "datasets/chirurgie/images.zip",
       "notebookUrl": "https://notebooklm.google.com/notebook/bdb01c75-cb0b-467f-b6a3-7bc81f263e4d",
       "enabled": true
+    }, 
+    {
+      "id": "Prävention",
+      "label": "Prävention",
+      "json": [
+        "datasets/praevention/export AIannotated.json"
+      ],
+      "zip": "",
+      "notebookUrl": "https://notebooklm.google.com/notebook/0d58e756-587f-45ad-97ef-3bf62ae40bfa",
+      "enabled": true
     }
   ]
 }

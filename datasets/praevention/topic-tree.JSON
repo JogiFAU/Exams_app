@@ -1,0 +1,69 @@
+{
+  "subject": "Präventivmedizin",
+  "superTopics": [
+    {
+      "name": "Theoretische Grundlagen und Konzepte",
+      "subtopics": [
+        "Definitionen und Gesundheitsmodelle",
+        "Präventionsstufen",
+        "Präventionsstrategien"
+      ]
+    },
+    {
+      "name": "Gesundheitskompetenz und Kommunikation",
+      "subtopics": [
+        "Dimensionen der Informationsverarbeitung",
+        "Formen der Gesundheitskompetenz",
+        "Praktische Kommunikationstools",
+        "Organisationale Gesundheitskompetenz"
+      ]
+    },
+    {
+      "name": "Infektionsprävention und Immunologie",
+      "subtopics": [
+        "Vakzinologie und Impfstrategien",
+        "Klinische Hygiene und Arbeitsschutz",
+        "Infektionsepidemiologie"
+      ]
+    },
+    {
+      "name": "Onkologie",
+      "subtopics": [
+        "Gesetzliche Screening-Programme",
+        "Infektiologische Karzinogenese",
+        "Methodik und Screening-Folgen"
+      ]
+    },
+    {
+      "name": "Chronische Erkrankungen und Lebensstilmedizin",
+      "subtopics": [
+        "Kardiovaskuläre und metabolische Prävention",
+        "Gastroenterologie und Hepatologie",
+        "Nephrologie"
+      ]
+    },
+    {
+      "name": "Sportmedizin und Unfallchirurgie",
+      "subtopics": [
+        "Sportphysiologie und Belastungsempfehlungen",
+        "Sportmedizinische Risiken",
+        "Unfallprävention"
+      ]
+    },
+    {
+      "name": "Lebensphasenspezifische Prävention",
+      "subtopics": [
+        "Perinatalmedizin und Frauengesundheit",
+        "Pädiatrische Vorsorge und Entwicklung",
+        "Psychische Gesundheit"
+      ]
+    },
+    {
+      "name": "Umwelt, Arbeit und Globale Gesundheit",
+      "subtopics": [
+        "Planetary Health und Umweltmedizin",
+        "Arbeitsmedizin und Betriebliches Gesundheitsmanagement"
+      ]
+    }
+  ]
+}
