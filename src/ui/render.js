@@ -182,7 +182,9 @@ function isAiModeEnabled() {
 
 function aiExplanationTooltipForOption(q, answerIndex) {
   const explainerCorrectSet = new Set(
-    (Array.isArray(q?.correctIndices) ? q.correctIndices : [])
+    (Array.isArray(q?.aiCorrectnessExplanationIndices) && q.aiCorrectnessExplanationIndices.length
+      ? q.aiCorrectnessExplanationIndices
+      : (Array.isArray(q?.correctIndices) ? q.correctIndices : []))
       .map((idx) => Number(idx))
       .filter(Number.isInteger)
   );
