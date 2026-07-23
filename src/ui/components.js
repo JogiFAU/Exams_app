@@ -143,6 +143,10 @@ export function qMetaHtml(q, ordinal, {
     ? `<span class="pill" title="KI-Hinweis: Die Antwortoption(en) wurden gegenüber der ursprünglichen Markierung verändert." aria-label="Antwortoptionen wurden durch KI verändert">🤖 Antwort geändert</span>`
     : "";
 
+  const aiDisagreesBadge = q.aiDisagreesWithOriginalAnswer
+    ? `<span class="pill" title="KI-Hinweis: Die KI widerspricht der ursprünglich als richtig markierten Antwort." aria-label="KI widerspricht der ursprünglichen richtigen Antwort">🤖 KI widerspricht Originallösung</span>`
+    : "";
+
   const aiReconstructionBadge = showAiReconstructionBadge
     ? `
       <span class="pill aiModifiedBadge ${isShowingOriginalVariant ? "is-muted" : ""}" data-tip-toggle tabindex="0" aria-label="KI-modifizierte Fragendarstellung">
@@ -170,12 +174,14 @@ export function qMetaHtml(q, ordinal, {
     : "";
 
   const maintenance = maintenanceTrafficLightHtml(q);
+  const clusterExamCount = Math.max(0, Number(q.clusterExamCount || 0));
   const clusterBadge = q.isHighRelevanceCluster
     ? `
-      <span class="pill clusterBadge" data-tip-toggle tabindex="0" aria-label="Häufige Altfrage mit ähnlichen Fragen">
-        ⭐ Häufige Altfrage
+      <span class="pill clusterBadge" data-tip-toggle tabindex="0" aria-label="Altfrage kam in ${clusterExamCount} Klausuren vor">
+        ⭐ Altfrage: ${clusterExamCount} Klausuren
         <span class="clusterBadge__tip" role="tooltip">
-          <strong>${Math.max(0, Number(q.clusterSize || 0) - 1)} ähnliche Fragen im Cluster erkannt.</strong>
+          <strong>Diese Altfrage wurde in ${clusterExamCount} verschiedenen Klausuren erkannt.</strong>
+          <span>${Math.max(0, Number(q.clusterSize || 0) - 1)} ähnliche Fragen im Cluster erkannt.</span>
           <span class="clusterBadge__cluster">${escHtml(q.clusterLabel || "Fragencluster")}</span>
           <span class="clusterBadge__abstraction">${escHtml(q.questionAbstraction || "Keine Abstraktion hinterlegt.")}</span>
           <button class="btn primary clusterBadge__action clusterBadge__action--cta" type="button" data-cluster-show="${q.id}">Fragen anzeigen</button>
@@ -193,6 +199,7 @@ export function qMetaHtml(q, ordinal, {
     ${aiReconstructionBadge}
     ${localOverrideBadge}
     ${aiChangedBadge}
+    ${aiDisagreesBadge}
     <span class="qmetaRight">${maintenance}</span>
   `;
 }
