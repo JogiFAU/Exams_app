@@ -12,6 +12,29 @@ export function pickFirstNonEmptyString(source, paths = []) {
   return null;
 }
 
+function isUninformativeTopicReason(value) {
+  const normalized = normSpace(String(value || "")).toLowerCase();
+  if (!normalized) return true;
+  return /pass\s*-?\s*c\s*(?:-|\s)?\s*review/.test(normalized);
+}
+
+function resolveTopicReason(question) {
+  const explicitReason = normSpace(String(getByPath(question, "aiTopicReason") || ""));
+  if (explicitReason && !isUninformativeTopicReason(explicitReason)) return explicitReason;
+
+  const finalShort = normSpace(String(getByPath(question, "aiAudit.topicFinal.reasonShort") || ""));
+  const finalDetailed = normSpace(String(getByPath(question, "aiAudit.topicFinal.reasonDetailed") || ""));
+  if (finalShort && !isUninformativeTopicReason(finalShort)) return finalDetailed || finalShort;
+
+  const initialDetailed = normSpace(String(getByPath(question, "aiAudit.topicInitial.reasonDetailed") || ""));
+  if (initialDetailed && !isUninformativeTopicReason(initialDetailed)) return initialDetailed;
+
+  const initialShort = normSpace(String(getByPath(question, "aiAudit.topicInitial.reasonShort") || ""));
+  if (initialShort && !isUninformativeTopicReason(initialShort)) return initialShort;
+
+  return null;
+}
+
 export const AI_DISPLAY_RULES = {
   solutionHintPaths: [
     "aiAudit.explainer.summary",
@@ -44,7 +67,7 @@ export function resolveAiDisplayText(question, type) {
     return pickFirstNonEmptyString(question, AI_DISPLAY_RULES.solutionHintPaths);
   }
   if (type === "topicReason") {
-    return pickFirstNonEmptyString(question, AI_DISPLAY_RULES.topicReasonPaths);
+    return resolveTopicReason(question);
   }
   return null;
 }

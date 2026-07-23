@@ -162,7 +162,9 @@ function normalizeQuestion(q) {
     rawAnswers
   );
 
-  const changedInDataset = q.aiAudit?.answerPlausibility?.changedInDataset;
+  const answerPlausibility = q.aiAudit?.answerPlausibility || {};
+  const changedInDataset = answerPlausibility.changedInDataset;
+  const aiDisagreesWithOriginalAnswer = answerPlausibility.aiDisagreesWithDataset === true;
   const aiChangedAnswersRaw = evaluateAiChangedLabel({
     changedInDataset,
     originalCorrectIndices,
@@ -220,6 +222,7 @@ function normalizeQuestion(q) {
     aiMaintenanceReasons,
     aiConfidence,
     aiChangedAnswers,
+    aiDisagreesWithOriginalAnswer,
     aiCorrectnessExplanation,
     aiCorrectnessExplanationIndices,
     aiWrongOptionExplanations,
@@ -262,6 +265,12 @@ function normalizeQuestion(q) {
 
 function annotateQuestionClusters(questions) {
   const clusterMap = new Map();
+  const allExamNames = new Set();
+
+  for (const q of questions) {
+    if (q.examName) allExamNames.add(q.examName);
+  }
+  const totalExamCount = allExamNames.size;
 
   for (const q of questions) {
     const clusterIdRaw = q.abstractionClusterId;
@@ -269,9 +278,11 @@ function annotateQuestionClusters(questions) {
 
     const clusterId = String(clusterIdRaw);
     if (!clusterMap.has(clusterId)) {
-      clusterMap.set(clusterId, { clusterId, ids: [] });
+      clusterMap.set(clusterId, { clusterId, ids: [], examNames: new Set() });
     }
-    clusterMap.get(clusterId).ids.push(q.id);
+    const clusterEntry = clusterMap.get(clusterId);
+    clusterEntry.ids.push(q.id);
+    if (q.examName) clusterEntry.examNames.add(q.examName);
   }
 
   const clusterSizes = Array.from(clusterMap.values())
@@ -290,6 +301,8 @@ function annotateQuestionClusters(questions) {
     q.clusterId = cluster?.clusterId || null;
     q.clusterLabel = cluster ? `Cluster ${cluster.clusterId}` : null;
     q.clusterSize = size;
+    q.clusterExamCount = cluster ? cluster.examNames.size : 0;
+    q.clusterExamShare = totalExamCount > 0 ? q.clusterExamCount / totalExamCount : 0;
     q.clusterRelatedIds = related;
     q.isHighRelevanceCluster = size >= largeClusterThreshold;
   }
