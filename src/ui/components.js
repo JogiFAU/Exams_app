@@ -108,7 +108,7 @@ function topicInfoHtml(q) {
   const topicPath = [q.aiSuperTopic, q.aiSubtopic].filter(Boolean).join(" → ");
   if (!topicPath) return "";
 
-  const reasonRaw = q.aiTopicReason || "Keine KI-Begründung zur Themenzuordnung vorhanden.";
+  const reasonRaw = q.aiTopicReason || "Keine Begründung im Datensatz gefunden.";
   const reason = formatAiTextForDisplay(reasonRaw);
   return `
     <span class="pill qmetaTopic" data-tip-toggle tabindex="0" aria-label="Themenzuordnung mit KI-Begründung">
