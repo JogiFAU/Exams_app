@@ -44,15 +44,15 @@ function normalizeIndices(indices, answerCount = null) {
 
   if (!normalized.length) return [];
 
-  const canConvertFromOneBased = Number.isInteger(answerCount) && answerCount > 0
+  const looksOneBased = Number.isInteger(answerCount) && answerCount > 0
     && normalized.every((idx) => idx >= 1 && idx <= answerCount)
-    && !normalized.includes(0);
+    && normalized.some((idx) => idx === answerCount);
 
-  if (canConvertFromOneBased) {
+  if (looksOneBased) {
     return normalized.map((idx) => idx - 1);
   }
 
-  return normalized;
+  return normalized.filter((idx) => !Number.isInteger(answerCount) || answerCount <= 0 || idx < answerCount);
 }
 
 function normalizeAiSources(q) {
