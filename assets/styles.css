@@ -1333,6 +1333,21 @@ summary { cursor: pointer; color: var(--muted); }
   cursor: pointer;
   border-color: var(--interactive-border-hover);
 }
+.clusterBadge--bronze {
+  border-color: rgba(180, 111, 51, .72);
+  background: linear-gradient(180deg, rgba(205, 127, 50, .24), rgba(120, 72, 28, .14));
+  color: var(--text);
+}
+.clusterBadge--silver {
+  border-color: rgba(176, 184, 194, .78);
+  background: linear-gradient(180deg, rgba(224, 229, 236, .34), rgba(148, 163, 184, .16));
+  color: var(--text);
+}
+.clusterBadge--gold {
+  border-color: rgba(234, 179, 8, .86);
+  background: linear-gradient(180deg, rgba(250, 204, 21, .42), rgba(202, 138, 4, .18));
+  color: var(--text);
+}
 .clusterBadge__tip {
   position: absolute;
   left: 0;

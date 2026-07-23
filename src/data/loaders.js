@@ -265,6 +265,12 @@ function normalizeQuestion(q) {
 
 function annotateQuestionClusters(questions) {
   const clusterMap = new Map();
+  const allExamNames = new Set();
+
+  for (const q of questions) {
+    if (q.examName) allExamNames.add(q.examName);
+  }
+  const totalExamCount = allExamNames.size;
 
   for (const q of questions) {
     const clusterIdRaw = q.abstractionClusterId;
@@ -296,6 +302,7 @@ function annotateQuestionClusters(questions) {
     q.clusterLabel = cluster ? `Cluster ${cluster.clusterId}` : null;
     q.clusterSize = size;
     q.clusterExamCount = cluster ? cluster.examNames.size : 0;
+    q.clusterExamShare = totalExamCount > 0 ? q.clusterExamCount / totalExamCount : 0;
     q.clusterRelatedIds = related;
     q.isHighRelevanceCluster = size >= largeClusterThreshold;
   }

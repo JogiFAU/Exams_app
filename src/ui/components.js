@@ -17,6 +17,13 @@ export function formatAiTextForDisplay(text) {
   return String(text || "");
 }
 
+function getAltQuestionFrequencyTier(q) {
+  const share = Number(q?.clusterExamShare || 0);
+  if (share > 0.66) return { className: "clusterBadge--gold", label: "Gold" };
+  if (share > 0.33) return { className: "clusterBadge--silver", label: "Silber" };
+  return { className: "clusterBadge--bronze", label: "Bronze" };
+}
+
 function questionMentionsImageWithoutAttachment(q) {
   const text = String(q?.text || "").toLowerCase();
   const hasImageRef = /(abbildung|bildanhang|siehe bild|grafik|schaubild|darstellung|anhang)/i.test(text);
@@ -175,12 +182,15 @@ export function qMetaHtml(q, ordinal, {
 
   const maintenance = maintenanceTrafficLightHtml(q);
   const clusterExamCount = Math.max(0, Number(q.clusterExamCount || 0));
+  const clusterExamSharePct = Math.round(Math.max(0, Number(q.clusterExamShare || 0)) * 100);
+  const clusterFrequencyTier = getAltQuestionFrequencyTier(q);
   const clusterBadge = q.isHighRelevanceCluster
     ? `
-      <span class="pill clusterBadge" data-tip-toggle tabindex="0" aria-label="Altfrage kam in ${clusterExamCount} Klausuren vor">
+      <span class="pill clusterBadge ${clusterFrequencyTier.className}" data-tip-toggle tabindex="0" aria-label="Altfrage kam in ${clusterExamCount} Klausuren vor (${clusterFrequencyTier.label})">
         ⭐ Altfrage: ${clusterExamCount} Klausuren
         <span class="clusterBadge__tip" role="tooltip">
-          <strong>Diese Altfrage wurde in ${clusterExamCount} verschiedenen Klausuren erkannt.</strong>
+          <strong>${clusterFrequencyTier.label}: Diese Altfrage wurde in ${clusterExamCount} verschiedenen Klausuren erkannt.</strong>
+          <span>Das entspricht ${clusterExamSharePct}% aller Klausuren in diesem Datensatz.</span>
           <span>${Math.max(0, Number(q.clusterSize || 0) - 1)} ähnliche Fragen im Cluster erkannt.</span>
           <span class="clusterBadge__cluster">${escHtml(q.clusterLabel || "Fragencluster")}</span>
           <span class="clusterBadge__abstraction">${escHtml(q.questionAbstraction || "Keine Abstraktion hinterlegt.")}</span>
