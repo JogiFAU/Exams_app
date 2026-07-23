@@ -495,7 +495,7 @@ hr.sep { border:0; border-top:1px solid var(--border); margin:14px 0; }
 .qmetaTraffic__dot--yellow { background: var(--traffic-yellow); }
 .qmetaTraffic__dot--red { background: var(--traffic-red); }
 .qmetaTraffic__dot--unknown { background: var(--traffic-unknown); }
-.qtext { margin-top: 8px; font-size: 16px; font-weight: 750; line-height: 1.35; }
+.qtext { margin-top: 8px; font-size: 16px; font-weight: 750; line-height: 1.35; white-space: pre-line; }
 
 .qsignal {
   color: var(--traffic-yellow);

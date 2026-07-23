@@ -180,15 +180,15 @@ function isAiModeEnabled() {
   return (cfg.aiModeEnabled ?? cfg.useAiModifiedAnswers) !== false;
 }
 
-function aiExplanationTooltipForOption(q, answerIndex, correctSet) {
-  if (correctSet.has(answerIndex)) {
+function aiExplanationTooltipForOption(q, { correctnessIndex, explanationIndex }, correctSet) {
+  if (correctSet.has(correctnessIndex)) {
     return q.aiCorrectnessExplanation || null;
   }
 
   const wrongExplanations = Array.isArray(q.aiWrongOptionExplanations)
     ? q.aiWrongOptionExplanations
     : [];
-  const wrong = wrongExplanations.find((entry) => entry.answerIndex === answerIndex);
+  const wrong = wrongExplanations.find((entry) => entry.answerIndex === explanationIndex);
   return wrong?.whyWrong || null;
 }
 
@@ -1856,7 +1856,7 @@ async function renderQuestionList(qs, { allowSubmit, showSolutions }) {
       }
 
       if (showAiExplanationTooltips) {
-        const tooltipText = aiExplanationTooltipForOption(q, sourceIdx, correctSet);
+        const tooltipText = aiExplanationTooltipForOption(q, { correctnessIndex: origIdx, explanationIndex: sourceIdx }, correctSet);
         if (tooltipText) {
           const tip = document.createElement("span");
           tip.className = "optExplainTooltip";

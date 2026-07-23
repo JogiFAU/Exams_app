@@ -14,6 +14,27 @@ function cleanText(value) {
   return normSpace(decodeHtmlEntities(value || ""));
 }
 
+function cleanMultilineText(value) {
+  return String(decodeHtmlEntities(value || ""))
+    .replace(/\r\n?/g, "\n")
+    .split("\n")
+    .map((line) => line.replace(/[\t ]+/g, " ").trim())
+    .join("\n")
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
+}
+
+function restoreQuestionLineBreaks(value) {
+  const text = cleanMultilineText(value);
+  if (!text || /\n/.test(text)) return text;
+
+  return text
+    .replace(/\s+(?=\(\d+\s+Richtige?\))/gi, "\n")
+    .replace(/([?:.!])\s+(?=[A-E][).]\s+)/g, "$1\n")
+    .replace(/([?:.!])\s+(?=\d+[).]\s+)/g, "$1\n")
+    .trim();
+}
+
 function normalizeIndices(indices, answerCount = null) {
   if (!Array.isArray(indices)) return [];
   const normalized = indices
@@ -183,11 +204,11 @@ function normalizeQuestion(q) {
     aiWrongOptionExplanations,
     originalCorrectIndices,
     examYear: (q.examYear != null ? Number(q.examYear) : null),
-    text: cleanText(q.questionText || ""),
+    text: restoreQuestionLineBreaks(q.questionText || ""),
     explanation: cleanText(q.explanationText || "") || null,
     reconstructedQuestion: reconstructedQuestion && typeof reconstructedQuestion === "object"
       ? {
-          questionText: cleanText(reconstructedQuestion.questionText || "") || "",
+          questionText: restoreQuestionLineBreaks(reconstructedQuestion.questionText || "") || "",
           answers: Array.isArray(reconstructedQuestion.answers)
             ? reconstructedQuestion.answers.map((a) => ({
                 answerIndex: Number(a?.answerIndex),
