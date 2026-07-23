@@ -14,7 +14,28 @@ function cleanText(value) {
   return normSpace(decodeHtmlEntities(value || ""));
 }
 
-function normalizeIndices(indices, answerCount = null) {
+function cleanMultilineText(value) {
+  return String(decodeHtmlEntities(value || ""))
+    .replace(/\r\n?/g, "\n")
+    .split("\n")
+    .map((line) => line.replace(/[\t ]+/g, " ").trim())
+    .join("\n")
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
+}
+
+function restoreQuestionLineBreaks(value) {
+  const text = cleanMultilineText(value);
+  if (!text || /\n/.test(text)) return text;
+
+  return text
+    .replace(/\s+(?=\(\d+\s+Richtige?\))/gi, "\n")
+    .replace(/([?:.!])\s+(?=[A-E][).]\s+)/g, "$1\n")
+    .replace(/([?:.!])\s+(?=\d+[).]\s+)/g, "$1\n")
+    .trim();
+}
+
+function normalizeIndices(indices, answerCount = null, answers = null) {
   if (!Array.isArray(indices)) return [];
   const normalized = indices
     .map(x => Number(x))
@@ -23,12 +44,24 @@ function normalizeIndices(indices, answerCount = null) {
 
   if (!normalized.length) return [];
 
-  const canConvertFromOneBased = Number.isInteger(answerCount) && answerCount > 0
-    && normalized.every((idx) => idx >= 1 && idx <= answerCount)
-    && !normalized.includes(0);
+  const canBeOneBased = Number.isInteger(answerCount) && answerCount > 0
+    && normalized.every((idx) => idx >= 1 && idx <= answerCount);
+  const hasZeroBasedOnlyIndex = Number.isInteger(answerCount) && answerCount > 0
+    && normalized.some((idx) => idx === 0 || idx >= answerCount);
 
-  if (canConvertFromOneBased) {
-    return normalized.map((idx) => idx - 1);
+  if (canBeOneBased && !normalized.includes(0)) {
+    const oneBased = normalized.map((idx) => idx - 1);
+    const answerList = Array.isArray(answers) ? answers : [];
+    const zeroBasedScore = normalized.filter((idx) => answerList[idx]?.isCorrect === true).length;
+    const oneBasedScore = oneBased.filter((idx) => answerList[idx]?.isCorrect === true).length;
+
+    if (normalized.some((idx) => idx === answerCount) || oneBasedScore > zeroBasedScore) {
+      return oneBased;
+    }
+  }
+
+  if (hasZeroBasedOnlyIndex) {
+    return normalized.filter((idx) => idx >= 0 && idx < answerCount);
   }
 
   return normalized;
@@ -111,19 +144,22 @@ function normalizeQuestion(q) {
   const aiReasonDetailed = cleanText(aiReasonDetailedRaw) || null;
   const aiTopicReason = cleanText(aiTopicReasonRaw) || null;
 
-  const answerCount = Array.isArray(q.answers) ? q.answers.length : 0;
+  const rawAnswers = Array.isArray(q.answers) ? q.answers : [];
+  const answerCount = rawAnswers.length;
 
   const originalCorrectIndices = normalizeIndices(
     q.originalCorrectIndices ||
     q.aiAudit?.answerPlausibility?.originalCorrectIndices,
-    answerCount
+    answerCount,
+    rawAnswers
   );
 
   const finalCorrectIndices = normalizeIndices(
     q.finalCorrectIndices ||
     q.aiAudit?.answerPlausibility?.finalCorrectIndices ||
     q.correctIndices,
-    answerCount
+    answerCount,
+    rawAnswers
   );
 
   const changedInDataset = q.aiAudit?.answerPlausibility?.changedInDataset;
@@ -168,6 +204,11 @@ function normalizeQuestion(q) {
         .filter(Boolean)
     : [];
 
+  const aiWrongExplanationIndexSet = new Set(aiWrongOptionExplanations.map((entry) => entry.answerIndex));
+  const aiCorrectnessExplanationIndices = aiCorrectnessExplanation && answerCount > 0 && aiWrongExplanationIndexSet.size > 0
+    ? Array.from({ length: answerCount }, (_, idx) => idx).filter((idx) => !aiWrongExplanationIndexSet.has(idx))
+    : [];
+
   const reconstructedQuestion = q.aiAudit?.reconstruction?.reconstructedQuestion;
 
   return {
@@ -180,14 +221,15 @@ function normalizeQuestion(q) {
     aiConfidence,
     aiChangedAnswers,
     aiCorrectnessExplanation,
+    aiCorrectnessExplanationIndices,
     aiWrongOptionExplanations,
     originalCorrectIndices,
     examYear: (q.examYear != null ? Number(q.examYear) : null),
-    text: cleanText(q.questionText || ""),
+    text: restoreQuestionLineBreaks(q.questionText || ""),
     explanation: cleanText(q.explanationText || "") || null,
     reconstructedQuestion: reconstructedQuestion && typeof reconstructedQuestion === "object"
       ? {
-          questionText: cleanText(reconstructedQuestion.questionText || "") || "",
+          questionText: restoreQuestionLineBreaks(reconstructedQuestion.questionText || "") || "",
           answers: Array.isArray(reconstructedQuestion.answers)
             ? reconstructedQuestion.answers.map((a) => ({
                 answerIndex: Number(a?.answerIndex),
