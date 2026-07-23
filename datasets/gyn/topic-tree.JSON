@@ -1,0 +1,39 @@
+{
+  "subject": "Gynäkologie und Geburtshilfe",
+  "superTopics": [
+    {
+      "name": "Gynäkologische Onkologie",
+      "subtopics": [
+        "Mammakarzinom",
+        "Endometriumkarzinom",
+        "Zervixkarzinom und Dysplasien",
+        "Ovarialkarzinom"
+      ]
+    },
+    {
+      "name": "Gynäkologische Endokrinologie, Reproduktionsmedizin und Kontrazeption",
+      "subtopics": [
+        "Zyklusphysiologie und Zyklusstörungen",
+        "Klimakterium und Postmenopause",
+        "Reproduktionsmedizin",
+        "Kontrazeption"
+      ]
+    },
+    {
+      "name": "Spezielle Geburtshilfe und Perinatologie",
+      "subtopics": [
+        "Schwangerschaftserkrankungen und Pränataldiagnostik",
+        "Pathologie der Frühschwangerschaft",
+        "Geburt und Wochenbett"
+      ]
+    },
+    {
+      "name": "Allgemeine Gynäkologie",
+      "subtopics": [
+        "Benigne Tumoren und Endometriose",
+        "Kinder- und Jugendgynäkologie",
+        "Urogynäkologie"
+      ]
+    }
+  ]
+}

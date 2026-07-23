@@ -69,6 +69,16 @@
       "zip": "",
       "notebookUrl": "https://notebooklm.google.com/notebook/0d58e756-587f-45ad-97ef-3bf62ae40bfa",
       "enabled": true
+    },
+    {
+      "id": "Gynäkologie",
+      "label": "Gynäkologie",
+      "json": [
+        "datasets/gyn/export AIannotated.json"
+      ],
+      "zip": "datasets/gyn/images.zip",
+      "notebookUrl": "https://notebooklm.google.com/notebook/f0f547a5-b21b-4e2d-8769-b246bae0e32d",
+      "enabled": true
     }
   ]
 }
