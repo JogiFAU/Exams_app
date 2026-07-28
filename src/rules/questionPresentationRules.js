@@ -4,9 +4,22 @@ function getByPath(obj, path) {
   return path.split(".").reduce((acc, key) => (acc == null ? undefined : acc[key]), obj);
 }
 
-export function pickFirstNonEmptyString(source, paths = []) {
+function normalizeDisplayText(value, preserveLineBreaks = false) {
+  const text = String(value || "");
+  if (!preserveLineBreaks) return normSpace(text);
+
+  return text
+    .replace(/\r\n?/g, "\n")
+    .split("\n")
+    .map((line) => line.replace(/[\t ]+/g, " ").trim())
+    .join("\n")
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
+}
+
+export function pickFirstNonEmptyString(source, paths = [], { preserveLineBreaks = false } = {}) {
   for (const path of paths) {
-    const value = normSpace(String(getByPath(source, path) || ""));
+    const value = normalizeDisplayText(getByPath(source, path), preserveLineBreaks);
     if (value) return value;
   }
   return null;
@@ -64,7 +77,7 @@ export const AI_DISPLAY_RULES = {
 
 export function resolveAiDisplayText(question, type) {
   if (type === "solutionHint") {
-    return pickFirstNonEmptyString(question, AI_DISPLAY_RULES.solutionHintPaths);
+    return pickFirstNonEmptyString(question, AI_DISPLAY_RULES.solutionHintPaths, { preserveLineBreaks: true });
   }
   if (type === "topicReason") {
     return resolveTopicReason(question);
