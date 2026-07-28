@@ -742,7 +742,8 @@ hr.sep { border:0; border-top:1px solid var(--border); margin:14px 0; }
   pointer-events: auto;
 }
 
-.optExplainTooltip strong { display: block; }
+.optExplainTooltip__title { display: block; }
+.optExplainTooltip__body strong { display: inline; }
 .optExplainTooltip__body { min-width: 0; }
 
 .optExplainTooltip__note {

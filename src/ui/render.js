@@ -1872,6 +1872,7 @@ async function renderQuestionList(qs, { allowSubmit, showSolutions }) {
           tip.setAttribute("role", "tooltip");
 
           const title = document.createElement("strong");
+          title.className = "optExplainTooltip__title";
           title.textContent = "KI-Erklärung";
           tip.appendChild(title);
 
