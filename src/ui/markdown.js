@@ -26,7 +26,10 @@ export function renderAiMarkdown(value) {
   let listType = null;
   const closeParagraph = () => {
     if (!paragraph.length) return;
-    output.push(`<p>${paragraph.map(renderInlineMarkdown).join("<br>")}</p>`);
+    // Markdown treats a single newline as a soft break. AI-generated hints often
+    // wrap emphasis onto separate source lines, so a forced <br> here would make
+    // otherwise continuous prose look like a collection of short paragraphs.
+    output.push(`<p>${paragraph.map(renderInlineMarkdown).join(" ")}</p>`);
     paragraph = [];
   };
   const closeList = () => {

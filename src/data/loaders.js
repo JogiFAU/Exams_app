@@ -141,7 +141,7 @@ function normalizeQuestion(q) {
 
   const aiReasonDetailedRaw = resolveAiDisplayText(q, "solutionHint");
   const aiTopicReasonRaw = resolveAiDisplayText(q, "topicReason");
-  const aiReasonDetailed = cleanText(aiReasonDetailedRaw) || null;
+  const aiReasonDetailed = cleanMultilineText(aiReasonDetailedRaw) || null;
   const aiTopicReason = cleanText(aiTopicReasonRaw) || null;
 
   const rawAnswers = Array.isArray(q.answers) ? q.answers : [];
@@ -186,11 +186,11 @@ function normalizeQuestion(q) {
       : []);
 
   const explainer = q.aiAudit?.explainer;
-  const aiCorrectnessExplanation = cleanText(explainer?.correctnessExplanation || "") || null;
+  const aiCorrectnessExplanation = cleanMultilineText(explainer?.correctnessExplanation || "") || null;
   const aiWrongOptionExplanations = Array.isArray(explainer?.wrongOptionExplanations)
     ? explainer.wrongOptionExplanations
         .map((entry) => {
-          const whyWrong = cleanText(entry?.whyWrong || "") || null;
+          const whyWrong = cleanMultilineText(entry?.whyWrong || "") || null;
           if (!whyWrong) return null;
 
           const rawIndex = Number(entry?.answerIndex);

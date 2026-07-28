@@ -536,21 +536,23 @@ hr.sep { border:0; border-top:1px solid var(--border); margin:14px 0; }
 }
 .aiMarkdown > :first-child { margin-top: 0; }
 .aiMarkdown > :last-child { margin-bottom: 0; }
-.aiMarkdown p { margin: .55em 0; }
+/* Paragraph elements provide structure without adding gaps around inline
+   emphasis. This keeps the often short AI notes flowing like normal prose. */
+.aiMarkdown p { margin: 0; }
 .aiMarkdown h3,
 .aiMarkdown h4,
 .aiMarkdown h5,
 .aiMarkdown h6 {
-  margin: .9em 0 .4em;
+  margin: .65em 0 .25em;
   font-size: 1em;
   line-height: 1.3;
   color: var(--text);
 }
 .aiMarkdown ul,
-.aiMarkdown ol { margin: .55em 0; padding-left: 1.6em; }
-.aiMarkdown li + li { margin-top: .3em; }
+.aiMarkdown ol { margin: .35em 0; padding-left: 1.6em; }
+.aiMarkdown li + li { margin-top: .18em; }
 .aiMarkdown blockquote {
-  margin: .6em 0;
+  margin: .35em 0;
   padding-left: .8em;
   border-left: 3px solid var(--interactive-border-active);
   color: var(--muted);
@@ -740,7 +742,8 @@ hr.sep { border:0; border-top:1px solid var(--border); margin:14px 0; }
   pointer-events: auto;
 }
 
-.optExplainTooltip strong { display: block; }
+.optExplainTooltip__title { display: block; }
+.optExplainTooltip__body strong { display: inline; }
 .optExplainTooltip__body { min-width: 0; }
 
 .optExplainTooltip__note {

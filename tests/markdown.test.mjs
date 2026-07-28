@@ -17,3 +17,9 @@ test("supports numbered lists, quotes, inline code and Windows line endings", ()
   const html = renderAiMarkdown("1. Eins\r\n2) Zwei\r\n\r\n> Merksatz mit `Code`");
   assert.equal(html, "<ol><li>Eins</li><li>Zwei</li></ol><blockquote>Merksatz mit <code>Code</code></blockquote>");
 });
+
+test("treats single line breaks as flowing text instead of forced visual breaks", () => {
+  const html = renderAiMarkdown("Das ist\n**besonders wichtig**\nfür die Einordnung.");
+  assert.equal(html, "<p>Das ist <strong>besonders wichtig</strong> für die Einordnung.</p>");
+  assert.ok(!html.includes("<br>"));
+});
