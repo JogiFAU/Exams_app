@@ -1,0 +1,61 @@
+{
+  "subject": "Pathologie",
+  "superTopics": [
+    {
+      "name": "Einführung und postmortale Diagnostik",
+      "subtopics": [
+        "Aufgaben und Begriffe",
+        "Sektion und Bestattungsrecht"
+      ]
+    },
+    {
+      "name": "Allgemeine Pathologie: Zellularpathologie und Anpassungsreaktionen",
+      "subtopics": [
+        "Anpassungsreaktionen",
+        "Zellschäden und Zelltod",
+        "Degenerative Veränderungen"
+      ]
+    },
+    {
+      "name": "Allgemeine Pathologie: Kreislauf und Hämodynamik",
+      "subtopics": [
+        "Ödeme und Ergüsse",
+        "Thrombose und Embolie",
+        "Schocklehre"
+      ]
+    },
+    {
+      "name": "Allgemeine Pathologie: Entzündung und Immunpathologie",
+      "subtopics": [
+        "Akute und chronische Entzündung",
+        "Immunpathologie und Hypersensitivität",
+        "Transplantationspathologie"
+      ]
+    },
+    {
+      "name": "Allgemeine Pathologie: Tumorpathologie",
+      "subtopics": [
+        "Klassifikation und Staging",
+        "Karzinogenese und Metastasierung",
+        "Präkanzerosen"
+      ]
+    },
+    {
+      "name": "Allgemeine Pathologie: Stoffwechsel, Pigmente und Genetik",
+      "subtopics": [
+        "Pigment- und Stoffwechselstörungen",
+        "Genetik und Fehlbildungen"
+      ]
+    },
+    {
+      "name": "Spezielle Pathologie",
+      "subtopics": [
+        "Herz-Kreislauf-System",
+        "Respiratorisches System",
+        "Gastrointestinaltrakt und Leber",
+        "Neuropathologie",
+        "Urogenitalsystem und Mamma"
+      ]
+    }
+  ]
+}

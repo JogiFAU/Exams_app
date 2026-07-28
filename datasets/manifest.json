@@ -79,6 +79,16 @@
       "zip": "datasets/gyn/images.zip",
       "notebookUrl": "https://notebooklm.google.com/notebook/f0f547a5-b21b-4e2d-8769-b246bae0e32d",
       "enabled": true
+    },
+    {
+      "id": "Pathologie",
+      "label": "Pathologie",
+      "json": [
+        "datasets/pathologie/export AIannotated.json"
+      ],
+      "zip": "datasets/pathologie/images.zip",
+      "notebookUrl": "https://notebooklm.google.com/notebook/f59d4085-34ee-4540-bcb0-814248cc9e9c",
+      "enabled": true
     }
   ]
 }
