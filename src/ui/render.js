@@ -3,7 +3,8 @@ import { $, letter, toast } from "../utils.js";
 import { isMultiCorrect, getCorrectIndices, evaluate } from "../quiz/evaluate.js";
 import { submitAnswer, unsubmitAnswer } from "../quiz/session.js";
 import { getImageUrl } from "../data/zipImages.js";
-import { qMetaHtml, buildExplainPrompt, formatAiTextForDisplay } from "./components.js";
+import { qMetaHtml, buildExplainPrompt } from "./components.js";
+import { renderAiMarkdown } from "./markdown.js";
 import { questionIdIndex } from "../quiz/filters.js";
 import { getLatestAnsweredResultsByQuestion, saveLocalQuestionOverride } from "../data/storage.js";
 import { getQuizQuestionVariant, applyLocalQuestionOverride } from "../quiz/questionVariant.js";
@@ -1217,12 +1218,12 @@ function buildClusterModalQuestionCard(q, ordinal, { showExplanations = true, sh
     `;
   }).join("");
 
-  const explanation = formatAiTextForDisplay(q.aiReasonDetailed || "");
+  const explanation = renderAiMarkdown(q.aiReasonDetailed || "");
   const explanationHtml = showExplanations
     ? `
       <details class="clusterModal__explain" open>
         <summary>KI-Hinweis zur richtigen Antwort</summary>
-        <div class="clusterModal__explainText">${explanation ? escapeHtml(explanation) : "Kein KI-Hinweis vorhanden."}</div>
+        <div class="clusterModal__explainText aiMarkdown">${explanation || "Kein KI-Hinweis vorhanden."}</div>
       </details>
     `
     : "";
@@ -1881,8 +1882,9 @@ async function renderQuestionList(qs, { allowSubmit, showSolutions }) {
             tip.appendChild(note);
           }
 
-          const body = document.createElement("span");
-          body.textContent = formatAiTextForDisplay(tooltipText);
+          const body = document.createElement("div");
+          body.className = "aiMarkdown optExplainTooltip__body";
+          body.innerHTML = renderAiMarkdown(tooltipText);
           tip.appendChild(body);
 
           wrap.appendChild(tip);
@@ -1962,9 +1964,9 @@ async function renderQuestionList(qs, { allowSubmit, showSolutions }) {
       const aiHintBody = document.createElement("div");
       aiHintBody.className = "aiHintBox__body";
 
-      const aiHintText = document.createElement("p");
-      aiHintText.className = "aiHintBox__text";
-      aiHintText.textContent = formatAiTextForDisplay(q.aiReasonDetailed);
+      const aiHintText = document.createElement("div");
+      aiHintText.className = "aiHintBox__text aiMarkdown";
+      aiHintText.innerHTML = renderAiMarkdown(q.aiReasonDetailed);
 
       const aiHintMeta = document.createElement("div");
       aiHintMeta.className = "aiHintBox__meta";
